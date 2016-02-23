@@ -1,0 +1,160 @@
+<resources>
+    <string name="app_name">iTracker</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="provider_name">iTracker</string>
+    <string name="authenticator_label">iTracker</string>
+
+    <string name="tab_name_action">Action</string>
+    <string name="tab_name_photo">Photo</string>
+    <string name="tab_name_movie">Movie</string>
+    <string name="tab_name_friends">Friends</string>
+
+    <string name="signup_title">Create new account</string>
+    <string name="login_label">Log in</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="title_activity_base">BaseActivity</string>
+    <string name="title_activity_welcome">WelcomeActivity</string>
+
+    <string name="tracker_alert">iTracker Notification.</string>
+    <string name="tracker_message">iTracker is recording the sensor data for you.</string>
+
+    <string name="motion_date_placeholder">2015-10-25</string>
+    <string name="motion_note_placeholder">Have done a lot of exercises today.</string>
+
+    <string name="begin_date">Begin</string>
+    <string name="end_date">End</string>
+
+    <string name="date_popup_placeholder">2016, January 1, Fri</string>
+
+    <string name="show_timeline">SHOW ACTIVITY TIMELINE</string>
+    <string name="hide_timeline">HIDE ACTIVITY TIMELINE</string>
+
+    <!-- Activity detection strings -->
+    <string name="in_vehicle">In a vehicle</string>
+    <string name="on_bicycle">On a bicycle</string>
+    <string name="on_foot">On foot</string>
+    <string name="running">Running</string>
+    <string name="still">Still</string>
+    <string name="tilting">Tilting</string>
+    <string name="unknown">Unknown activity</string>
+    <string name="walking">Walking</string>
+    <string name="unidentifiable_activity">Unidentifiable activity: %1$d</string>
+
+    <string name="request_camera_permission">The app needs camera permission to take the photo.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+
+    <string name="title_text">iTracker Sign-In\nQuickstart</string>
+    <!-- Sign-in status messages -->
+    <string name="signed_in_fmt">Signed in as: %s</string>
+    <string name="signed_in">Signed in</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="signed_out">Signed out</string>
+    <string name="signed_in_err">"Error: please check logs."</string>
+    <string name="error_null_person">
+        Error: Plus.PeopleApi.getCurrentPerson returned null. Ensure that the Google+ API is
+        enabled for your project, you have a properly configured google-services.json file
+        and that your device has an internet connection.
+    </string>
+    <string name="loading">Loading…</string>
+    <string name="auth_code_fmt">Auth Code: %s</string>
+    <string name="id_token_fmt">ID Token: %s</string>
+
+    <!-- Google Play Services error for Toast -->
+    <string name="play_services_error_fmt">Google Play Services Error: %i</string>
+
+    <!-- Button labels -->
+    <string name="sign_out">Sign Out</string>
+    <string name="disconnect">Disconnect</string>
+
+    <!-- Content Description for images -->
+    <string name="desc_itracker_icon">iTracker Logo</string>
+
+    <!-- Rationale for asking for Contacts -->
+    <string name="contacts_permission_rationale">Contacts access is needed in order to retrieve your email address.</string>
+
+    <!-- Server Client ID.  This should be a valid Web OAuth 2.0 Client ID obtained
+         from https://console.developers.google.com/ -->
+    <string name="server_client_id">476535703027-r4fo6cped9pisvovpd588ggkbm9snmej.apps.googleusercontent.com</string>
+
+    <!-- Shown in the 'About' window of the app. -->
+    <string name="about_body"><![CDATA[
+        <b>Localytics Show</b><br>
+        Version %s<br><br>
+        <a href="http://m.google.com/utos">Terms of Service</a><br><br>
+        <a href="http://www.google.com/policies/privacy/">Privacy Policy</a>
+    ]]></string>
+
+    <!-- Shown as a link in the About screen of the app; user can click to see the EULA. -->
+    <string name="about_eula">End User License Agreement</string>
+
+    <!-- Shown as a link in the About screen of the app; user can click it to see the licenses. -->
+    <string name="about_licenses">Open Source Licenses</string>
+
+    <!-- Text on a warning box that appears to warn the user they are viewing data that hasn't
+    been updated by the server recently, so it might be out of date.-->
+    <string name="data_stale_warning">The data you are viewing may be out of date.</string>
+
+    <!-- Menu item that brings up the application's About screen -->
+    <string name="description_about">About</string>
+
+    <string name="description_debug" translatable="false">Debug and tests</string>
+
+    <!-- Menu item that allows user to reload the data in the current screen so they see
+    the most up-to-date version from the server. -->
+    <string name="description_refresh">Refresh</string>
+
+    <!-- Menu item that allows the user to start a search for a session by name. After clicking,
+    they type in their search query. -->
+    <string name="description_search">Search</string>
+
+    <!-- Menu item that takes the user to the application's Settings screen -->
+    <string name="description_settings">Settings</string>
+
+    <!-- Message shown in the upcoming event explorer that results no event -->
+    <string name="no_matching_upcoming_events">No matching upcoming events.</string>
+
+    <!-- A single button shown on informative popups, like EULA, open source licenses and About -->
+    <string name="ok">OK</string>
+
+    <!-- Header for a group of sessions in Session Explorer that don't fit into other tag-based groups -->
+    <string name="others">Others</string>
+
+    <!-- Button text for sign in and sign up buttons -->
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Create Account</string>
+
+    <!-- Title text for dialog screen about the application -->
+    <string name="title_about">About</string>
+    <string name="title_activity_debug_action_runner">DebugActionRunnerActivity</string>
+    <string name="title_activity_simple_signle_pane">SimpleSignlePaneActivity</string>
+
+    <!-- Label for Search screen, that allows users to search for sessions. -->
+    <string name="title_search">Search</string>
+
+    <!-- Label for Settings activity -->
+    <string name="title_settings">Settings</string>
+
+    <!-- Label for exploration category which groups blog topics -->
+    <string name="topics">Topics</string>
+
+    <!-- Button text for sign in/up buttons when they are clicked -->
+    <string name="creating_new_account">Creating...</string>
+    <string name="sign_in_user">Waiting...</string>
+
+    <!-- Label for exploration category which groups blog topics -->
+    <string name="years">Years</string>
+    <string name="title_activity_upcoming_events">Events</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_footprint">Footprint</string>
+    <string name="title_activity_sign_in">SignInActivity</string>
+
+</resources>

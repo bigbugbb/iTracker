@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_id": "localytics-itracker",
+    "project_number": "476535703027",
+    "name": "localytics-itracker"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476535703027:android:0626b46cecca7782",
+        "client_id": "android:com.localytics.android.itracker",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.localytics.android.itracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476535703027-r4fo6cped9pisvovpd588ggkbm9snmej.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.localytics.android.itracker",
+            "certificate_hash": "9F6375381815AD1BDDB36496F1CE4D26A0E719AE"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

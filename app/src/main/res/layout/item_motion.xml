@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:id="@+id/motion_item"
+    app:cardPreventCornerOverlap="true"
+    app:cardUseCompatPadding="true"
+    app:cardElevation="@dimen/card_elevation"
+    app:cardCornerRadius="@dimen/card_corner_radius">
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/motion_date"
+                style="@style/MotionItem.Date"
+                android:paddingLeft="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/motion_date_placeholder"/>
+
+            <FrameLayout
+                android:id="@+id/layout_motion_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.localytics.android.itracker.ui.widget.HorizontalNestedScrollView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fillViewport="true">
+
+                    <com.localytics.android.itracker.ui.widget.LowSamplingSummaryView
+                        android:id="@+id/motion_summary"
+                        android:scaleType="matrix"
+                        android:adjustViewBounds="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/summary_image_height"
+                        android:clickable="true" />
+
+                </com.localytics.android.itracker.ui.widget.HorizontalNestedScrollView>
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/motion_note"
+                style="@style/MotionItem.Note"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:text="@string/motion_note_placeholder"/>
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:src="@drawable/ic_fab_footprint"
+            app:fabSize="mini"
+            app:layout_anchor="@id/layout_motion_summary"
+            app:layout_anchorGravity="bottom|right|end"
+            app:layout_behavior="com.localytics.android.itracker.ui.widget.ScrollHideFABBehavior"/>
+
+    </android.support.design.widget.CoordinatorLayout>
+
+</android.support.v7.widget.CardView>

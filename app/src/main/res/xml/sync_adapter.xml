@@ -1,0 +1,7 @@
+<!-- The attributes in this XML file provide configuration information for the SyncAdapter. -->
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+    android:contentAuthority="com.localytics.itracker"
+    android:accountType="com.localytics.android.itracker"
+    android:supportsUploading="true"
+    android:isAlwaysSyncable="false"
+    android:userVisible="true" />
