@@ -33,6 +33,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.gcm.RegistrationIntentService;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AccountUtils;
@@ -84,9 +85,9 @@ public class BaseActivity extends AppCompatActivity implements
 
         // Verifies the proper version of Google Play Services exists on the device.
         PlayServicesUtils.checkGooglePlaySevices(this);
-
         if (savedInstanceState == null) {
-            registerGCMClient();
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
         }
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -234,6 +235,8 @@ public class BaseActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
 
+        PlayServicesUtils.checkGooglePlaySevices(this);
+
         // Watch for sync state changes
         mSyncStatusObserver.onStatusChanged(0);
         final int mask = ContentResolver.SYNC_OBSERVER_TYPE_PENDING | ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE;
@@ -316,63 +319,6 @@ public class BaseActivity extends AppCompatActivity implements
         intent.putExtras(arguments);
         intent.removeExtra("_uri");
         return intent;
-    }
-
-    /** Registers device on the GCM server, if necessary. */
-    private void registerGCMClient() {
-//        GCMRegistrar.checkDevice(this);
-//        GCMRegistrar.checkManifest(this);
-//
-//        final String regId = GCMRegistrar.getRegistrationId(this);
-//
-//        if (TextUtils.isEmpty(regId)) {
-//            // Automatically registers application on startup.
-//            GCMRegistrar.register(this, Config.GCM_SENDER_ID);
-//        } else {
-//            // Get the correct GCM key for the user. GCM key is a somewhat non-standard
-//            // approach we use in this app. For more about this, check GCM.TXT.
-//            final String gcmKey = AccountUtils.hasActiveAccount(this) ?
-//                    AccountUtils.getGcmKey(this, AccountUtils.getActiveAccountName(this)) : null;
-//            // Device is already registered on GCM, needs to check if it is
-//            // registered on our server as well.
-//            if (ServerUtilities.isRegisteredOnServer(this, gcmKey)) {
-//                // Skips registration.
-//                LOGI(TAG, "Already registered on the GCM server with right GCM key.");
-//            } else {
-//                // Try to register again, but not in the UI thread.
-//                // It's also necessary to cancel the thread onDestroy(),
-//                // hence the use of AsyncTask instead of a raw thread.
-//                mGCMRegisterTask = new AsyncTask<Void, Void, Void>() {
-//                    @Override
-//                    protected Void doInBackground(Void... params) {
-//                        LOGI(TAG, "Registering on the GCM server with GCM key: " + AccountUtils.sanitizeGcmKey(gcmKey));
-//                        boolean registered = ServerUtilities.register(BaseActivity.this, regId, gcmKey);
-//                        // At this point all attempts to register with the app
-//                        // server failed, so we need to unregister the device
-//                        // from GCM - the app will try to register again when
-//                        // it is restarted. Note that GCM will send an
-//                        // unregistered callback upon completion, but
-//                        // GCMIntentService.onUnregistered() will ignore it.
-//                        if (!registered) {
-//                            LOGI(TAG, "GCM registration failed.");
-//                            GCMRegistrar.unregister(BaseActivity.this);
-//                        } else {
-//                            LOGI(TAG, "GCM registration successful.");
-//                        }
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    protected void onPostExecute(Void result) {
-//                        mGCMRegisterTask = null;
-//                    }
-//                };
-//                mGCMRegisterTask.execute(null, null, null);
-//            }
-//        }
-
-        // Make Localytics push registration
-//        Localytics.registerPush(Config.GCM_SENDER_ID);
     }
 
     protected void onRefreshingStateChanged(boolean refreshing) {

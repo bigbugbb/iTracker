@@ -26,6 +26,10 @@ public class TrackerContract {
     public static final String QUERY_PARAMETER_DISTINCT = "distinct";
 
     public interface SyncColumns {
+        /** Whether the item needs to sync or not. */
+        String DIRTY = "dirty";
+        /** Whether the item is syncing or not. Each sync has a unique id. */
+        String SYNC = "sync";
         /** Last time this entry was updated or synchronized. */
         String UPDATED = "updated";
     }
@@ -74,7 +78,7 @@ public class TrackerContract {
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
-    public static class Tracks implements TrackColumns, BaseColumns {
+    public static class Tracks implements TrackColumns, SyncColumns, BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("tracks").build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.track";
@@ -107,8 +111,9 @@ public class TrackerContract {
                 if (cursor != null && cursor.moveToFirst()) {
                     trackId = cursor.getLong(0);
                 } else {
-                    ContentValues values = new ContentValues();
+                    final ContentValues values = new ContentValues();
                     values.put(Tracks.DATE, startOfToday);
+                    values.put(SyncColumns.UPDATED, DateTime.now().getMillis());
                     Uri uri = resolver.insert(Tracks.CONTENT_URI, values);
                     if (uri != null) {
                         trackId = Long.parseLong(Tracks.getTrackId(uri));

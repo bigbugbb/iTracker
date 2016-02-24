@@ -33,6 +33,8 @@ public class PrefUtils {
     /** Sync interval that's currently configured */
     public static final String PREF_CUR_SYNC_INTERVAL = "_pref_cur_sync_interval";
 
+    public static final String PREF_SENT_TOKEN_TO_SERVER = "_pref_sent_token_to_server";
+
     /** Boolean preference that indicates whether we enabled the sdk test mode or not. */
     public static final String PREF_SDK_TEST_MODE_ENABLED = "sdk_test_mode_enabled";
 
@@ -115,6 +117,16 @@ public class PrefUtils {
     public static void setCurSyncInterval(final Context context, long interval) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putLong(PREF_CUR_SYNC_INTERVAL, interval).apply();
+    }
+
+    public static boolean hasSentTokenToServer(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(PREF_SENT_TOKEN_TO_SERVER, false);
+    }
+
+    public static void setSentTokenToServer(final Context context, boolean sent) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putBoolean(PREF_SENT_TOKEN_TO_SERVER, sent).apply();
     }
 
     public static boolean isSdkTestModeEnabled(final Context context) {

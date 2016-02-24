@@ -62,10 +62,15 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         // Create tables
         db.execSQL("CREATE TABLE " + Tables.TRACKS + " ("
                 + Tracks._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Tracks.DIRTY + " INTEGER DEFAULT 1,"
+                + Tracks.SYNC + " TEXT,"
+                + Tracks.UPDATED + " INTEGER NOT NULL,"
                 + Tracks.DATE + " INTEGER UNIQUE NOT NULL);");
 
         db.execSQL("CREATE TABLE " + Tables.MOTIONS + " ("
                 + Motions._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Motions.DIRTY + " INTEGER DEFAULT 1,"
+                + Motions.SYNC + " TEXT,"
                 + Motions.UPDATED + " INTEGER NOT NULL,"
                 + Motions.TIME + " INTEGER NOT NULL,"
                 + Motions.DATA + " INTEGER NOT NULL,"
@@ -76,6 +81,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + Tables.LOCATIONS + " ("
                 + Locations._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Locations.DIRTY + " INTEGER DEFAULT 1,"
+                + Locations.SYNC + " TEXT,"
                 + Locations.UPDATED + " INTEGER NOT NULL,"
                 + Locations.TIME + " INTEGER NOT NULL,"
                 + Locations.LATITUDE + " REAL NOT NULL,"
@@ -89,6 +96,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + Tables.ACTIVITIES + " ("
                 + Activities._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Activities.DIRTY + " INTEGER DEFAULT 1,"
+                + Activities.SYNC + " TEXT,"
                 + Activities.UPDATED + " INTEGER NOT NULL,"
                 + Activities.TIME + " INTEGER NOT NULL,"
                 + Activities.TYPE + " TEXT NOT NULL,"
@@ -100,6 +109,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + Tables.WEATHERS + " ("
                 + Weathers._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Weathers.DIRTY + " INTEGER DEFAULT 1,"
+                + Weathers.SYNC + " TEXT,"
                 + Weathers.UPDATED + " INTEGER NOT NULL,"
                 + Weathers.TIME + " INTEGER NOT NULL,"
                 + Weathers.CITY + " TEXT NOT NULL,"
@@ -114,9 +125,10 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX activity_track_id_index ON " + Tables.ACTIVITIES + "(" + Activities.TRACK_ID + ");");
         db.execSQL("CREATE INDEX weather_track_id_index ON " + Tables.WEATHERS + "(" + Weathers.TRACK_ID + ");");
 
-        db.execSQL("CREATE INDEX motion_device_id_index ON " + Tables.MOTIONS + "(" + Motions.DEVICE_ID + ");");
-        db.execSQL("CREATE INDEX location_device_id_index ON " + Tables.LOCATIONS + "(" + Locations.DEVICE_ID + ");");
-        db.execSQL("CREATE INDEX activity_device_id_index ON " + Tables.ACTIVITIES + "(" + Activities.DEVICE_ID + ");");
+        db.execSQL("CREATE INDEX motion_dirty_index ON " + Tables.MOTIONS + "(" + Motions.DIRTY + ");");
+        db.execSQL("CREATE INDEX location_dirty_index ON " + Tables.LOCATIONS + "(" + Locations.DIRTY + ");");
+        db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
+        db.execSQL("CREATE INDEX weather_dirty_index ON " + Tables.WEATHERS + "(" + Weathers.DIRTY + ");");
     }
 
     @Override

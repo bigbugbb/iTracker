@@ -50,7 +50,7 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
  * Helper class used to communicate with the demo server.
  */
 public final class ServerUtilities {
-    private static final String TAG = makeLogTag("GCMs");
+    private static final String TAG = makeLogTag("ServerUtilities");
 
     private static final String PREFERENCES = "com.google.samples.apps.iosched.gcm";
     private static final String PROPERTY_REGISTERED_TS = "registered_ts";
