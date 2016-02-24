@@ -3,14 +3,10 @@ package com.localytics.android.itracker.gcm;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
-import com.localytics.android.Localytics;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.util.PrefUtils;
 
@@ -67,7 +63,7 @@ public class RegistrationIntentService extends IntentService {
     private boolean sendTokenToServer(String token) {
         final Context context = getApplicationContext();
         // TODO: send the token to the app server
-        Localytics.setPushRegistrationId(token);
+//        Localytics.setPushRegistrationId(token);
         return true;
     }
 

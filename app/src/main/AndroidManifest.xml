@@ -226,25 +226,25 @@
             android:name="LOCALYTICS_APP_KEY"
             android:value="59b6d367575c8798a17acb0-9ccf239a-d9ac-11e5-aa99-00342b7f5075"/>
 
-        <activity android:name="com.localytics.android.PushTrackingActivity"/>
+        <!--<activity android:name="com.localytics.android.PushTrackingActivity"/>-->
 
-        <receiver
-            android:name="com.localytics.android.ReferralReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.android.vending.INSTALL_REFERRER" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver-->
+            <!--android:name="com.localytics.android.ReferralReceiver"-->
+            <!--android:exported="true">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.android.vending.INSTALL_REFERRER" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
-        <receiver
-            android:name="com.localytics.android.PushReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="com.localytics.android.itracker" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver-->
+            <!--android:name="com.localytics.android.PushReceiver"-->
+            <!--android:permission="com.google.android.c2dm.permission.SEND" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.google.android.c2dm.intent.REGISTRATION" />-->
+                <!--<action android:name="com.google.android.c2dm.intent.RECEIVE" />-->
+                <!--<category android:name="com.localytics.android.itracker" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
         <!-- [END Localytics Integration] -->
 
     </application>

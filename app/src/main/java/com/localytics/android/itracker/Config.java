@@ -57,4 +57,7 @@ public class Config {
 
     // Default days back from today
     public static final int DEFAULT_DAYS_BACK_FROM_TODAY = 90;
+
+    // Data sync configurations
+    public static final boolean WIFI_ONLY_SYNC_ENABLED = true;
 }

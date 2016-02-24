@@ -38,6 +38,15 @@ public class TrackerContract {
         String DATE = "date";
     }
 
+    interface LinkColumns {
+        String LINK = "link";
+        String TYPE = "data_type";
+        String START_TIME = "start_time";
+        String END_TIME = "end_time";
+        String DEVICE_ID = "device_id";
+        String TRACK_ID = "track_id";
+    }
+
     interface MotionColumns {
         String TIME = "time";
         String DATA = "data";
@@ -77,6 +86,8 @@ public class TrackerContract {
     public static final String CONTENT_AUTHORITY = "com.localytics.itracker";
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+
+    public static final String SELECTION_BY_DIRTY = String.format("%s = ?", SyncColumns.DIRTY);
 
     public static class Tracks implements TrackColumns, SyncColumns, BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("tracks").build();
@@ -126,6 +137,25 @@ public class TrackerContract {
             }
 
             return trackId;
+        }
+    }
+
+    public static class Links implements LinkColumns, SyncColumns, BaseColumns {
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("links").build();
+
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.link";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.link";
+
+        public static final String SELECTION_BY_TRACK_ID = String.format("%s = ?", TRACK_ID);
+
+        /** Build a {@link Uri} that references a given motion. */
+        public static Uri buildLinkUri(String linkId) {
+            return CONTENT_URI.buildUpon().appendPath(linkId).build();
+        }
+
+        /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
+        public static String getLinkId(Uri uri) {
+            return uri.getPathSegments().get(1);
         }
     }
 

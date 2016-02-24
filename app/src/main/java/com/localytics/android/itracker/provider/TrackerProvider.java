@@ -15,6 +15,7 @@ import android.util.Log;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
+import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Weathers;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
@@ -42,17 +43,20 @@ public class TrackerProvider extends ContentProvider {
     private static final int TRACKS = 100;
     private static final int TRACKS_ID = 101;
 
-    private static final int MOTIONS = 200;
-    private static final int MOTIONS_ID = 201;
+    private static final int LINKS = 200;
+    private static final int LINKS_ID = 201;
 
-    private static final int LOCATIONS = 300;
-    private static final int LOCATIONS_ID = 301;
+    private static final int MOTIONS = 300;
+    private static final int MOTIONS_ID = 301;
 
-    private static final int ACTIVITIES = 400;
-    private static final int ACTIVITIES_ID = 401;
+    private static final int LOCATIONS = 400;
+    private static final int LOCATIONS_ID = 401;
 
-    private static final int WEATHERS = 500;
-    private static final int WEATHERS_ID = 501;
+    private static final int ACTIVITIES = 500;
+    private static final int ACTIVITIES_ID = 501;
+
+    private static final int WEATHERS = 600;
+    private static final int WEATHERS_ID = 601;
 
     /**
      * Build and return a {@link UriMatcher} that catches all {@link Uri}
@@ -64,6 +68,9 @@ public class TrackerProvider extends ContentProvider {
 
         matcher.addURI(authority, "tracks", TRACKS);
         matcher.addURI(authority, "tracks/*", TRACKS_ID);
+
+        matcher.addURI(authority, "links", LINKS);
+        matcher.addURI(authority, "links/*", LINKS_ID);
 
         matcher.addURI(authority, "motions", MOTIONS);
         matcher.addURI(authority, "motions/*", MOTIONS_ID);
@@ -188,6 +195,10 @@ public class TrackerProvider extends ContentProvider {
                 return Tracks.CONTENT_TYPE;
             case TRACKS_ID:
                 return Tracks.CONTENT_ITEM_TYPE;
+            case LINKS:
+                return Links.CONTENT_TYPE;
+            case LINKS_ID:
+                return Links.CONTENT_ITEM_TYPE;
             case MOTIONS:
                 return Motions.CONTENT_TYPE;
             case MOTIONS_ID:
@@ -234,6 +245,10 @@ public class TrackerProvider extends ContentProvider {
         switch (match) {
             case TRACKS: {
                 table = Tables.TRACKS;
+                break;
+            }
+            case LINKS: {
+                table = Tables.LINKS;
                 break;
             }
             case MOTIONS: {
@@ -286,6 +301,11 @@ public class TrackerProvider extends ContentProvider {
                 long newId = db.insertOrThrow(Tables.TRACKS, null, values);
                 notifyChange(uri);
                 return Tracks.buildTrackUri("" + newId);
+            }
+            case LINKS: {
+                long newId = db.insertOrThrow(Tables.LINKS, null, values);
+                notifyChange(uri);
+                return Links.buildLinkUri("" + newId);
             }
             case MOTIONS: {
                 long newId = db.insertOrThrow(Tables.MOTIONS, null, values);
@@ -359,6 +379,13 @@ public class TrackerProvider extends ContentProvider {
                 final String id = Tracks.getTrackId(uri);
                 return builder.table(Tables.TRACKS).where(Tracks._ID + "=?", id);
             }
+            case LINKS: {
+                return builder.table(Tables.LINKS);
+            }
+            case LINKS_ID: {
+                final String id = Links.getLinkId(uri);
+                return builder.table(Tables.LINKS).where(Links._ID + "=?", id);
+            }
             case MOTIONS: {
                 return builder.table(Tables.MOTIONS);
             }
@@ -407,6 +434,13 @@ public class TrackerProvider extends ContentProvider {
             case TRACKS_ID: {
                 final String trackId = TrackerContract.Tracks.getTrackId(uri);
                 return builder.table(Tables.TRACKS).where(Tracks._ID + "=?", trackId);
+            }
+            case LINKS: {
+                return builder.table(Tables.LINKS);
+            }
+            case LINKS_ID: {
+                final String linkId = TrackerContract.Links.getLinkId(uri);
+                return builder.table(Tables.LINKS).where(Links._ID + "=?", linkId);
             }
             case MOTIONS: {
                 return builder.table(Tables.MOTIONS);

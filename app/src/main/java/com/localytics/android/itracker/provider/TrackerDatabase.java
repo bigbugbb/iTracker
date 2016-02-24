@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
+import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Weathers;
 import com.localytics.android.itracker.sync.SyncHelper;
@@ -37,6 +38,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
     interface Tables {
         String TRACKS = "tracks";
+        String LINKS = "links";
         String MOTIONS = "motions";
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
@@ -66,6 +68,19 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Tracks.SYNC + " TEXT,"
                 + Tracks.UPDATED + " INTEGER NOT NULL,"
                 + Tracks.DATE + " INTEGER UNIQUE NOT NULL);");
+
+        db.execSQL("CREATE TABLE " + Tables.LINKS + " ("
+                + Links._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Links.DIRTY + " INTEGER DEFAULT 1,"
+                + Links.SYNC + " TEXT,"
+                + Links.UPDATED + " INTEGER NOT NULL,"
+                + Links.LINK + " INTEGER UNIQUE NOT NULL,"
+                + Links.TYPE + " TEXT NOT NULL,"
+                + Links.START_TIME + " INTEGER NOT NULL,"
+                + Links.END_TIME + " INTEGER NOT NULL,"
+                + Links.DEVICE_ID + " TEXT NOT NULL,"
+                + Links.TRACK_ID + " INTEGER NOT NULL,"
+                + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
         db.execSQL("CREATE TABLE " + Tables.MOTIONS + " ("
                 + Motions._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -119,13 +134,16 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Weathers.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
-        // Create indexes
+        // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
+        db.execSQL("CREATE INDEX link_track_id_index ON " + Tables.LINKS + "(" + Links.TRACK_ID + ");");
         db.execSQL("CREATE INDEX location_track_id_index ON " + Tables.LOCATIONS + "(" + Locations.TRACK_ID + ");");
         db.execSQL("CREATE INDEX activity_track_id_index ON " + Tables.ACTIVITIES + "(" + Activities.TRACK_ID + ");");
         db.execSQL("CREATE INDEX weather_track_id_index ON " + Tables.WEATHERS + "(" + Weathers.TRACK_ID + ");");
 
+        // Create indexes on dirty
         db.execSQL("CREATE INDEX motion_dirty_index ON " + Tables.MOTIONS + "(" + Motions.DIRTY + ");");
+        db.execSQL("CREATE INDEX link_dirty_index ON " + Tables.LINKS + "(" + Links.DIRTY + ");");
         db.execSQL("CREATE INDEX location_dirty_index ON " + Tables.LOCATIONS + "(" + Locations.DIRTY + ");");
         db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
         db.execSQL("CREATE INDEX weather_dirty_index ON " + Tables.WEATHERS + "(" + Weathers.DIRTY + ");");

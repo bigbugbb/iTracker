@@ -4,11 +4,20 @@ import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
+import android.util.SparseArray;
+import android.util.SparseLongArray;
 
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.data.model.Activity;
+import com.localytics.android.itracker.data.model.Location;
+import com.localytics.android.itracker.data.model.Motion;
+import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -16,7 +25,10 @@ import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.UIUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 
+import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGW;
 
 /**
@@ -32,6 +44,12 @@ public class SyncHelper {
     private TrackerDataHandler mTrackerDataHandler;
     private RemoteTrackerDataFetcher mRemoteDataFetcher;
 
+    private final static String LIMIT = " LIMIT ";
+    private final static String LIMIT_OF_TRACK = LIMIT + "100";
+    private final static String LIMIT_OF_MOTION = LIMIT + "2000";
+    private final static String LIMIT_OF_ACTIVITY = LIMIT + "1000";
+    private final static String LIMIT_OF_LOCATION = LIMIT + "1000";
+
     public SyncHelper(Context context) {
         mContext = context;
         mTrackerDataHandler = new TrackerDataHandler(mContext);
@@ -40,7 +58,7 @@ public class SyncHelper {
 
     public static void requestManualSync(Account chosenAccount) {
         if (chosenAccount != null) {
-            LogUtils.LOGD(TAG, "Requesting manual sync for account " + chosenAccount.name);
+            LOGD(TAG, "Requesting manual sync for account " + chosenAccount.name);
             Bundle b = new Bundle();
             b.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
             b.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
@@ -50,22 +68,22 @@ public class SyncHelper {
 
             boolean pending = ContentResolver.isSyncPending(chosenAccount, TrackerContract.CONTENT_AUTHORITY);
             if (pending) {
-                LogUtils.LOGD(TAG, "Warning: sync is PENDING. Will cancel.");
+                LOGD(TAG, "Warning: sync is PENDING. Will cancel.");
             }
             boolean active = ContentResolver.isSyncActive(chosenAccount, TrackerContract.CONTENT_AUTHORITY);
             if (active) {
-                LogUtils.LOGD(TAG, "Warning: sync is ACTIVE. Will cancel.");
+                LOGD(TAG, "Warning: sync is ACTIVE. Will cancel.");
             }
 
             if (pending || active) {
-                LogUtils.LOGD(TAG, "Cancelling previously pending/active sync.");
+                LOGD(TAG, "Cancelling previously pending/active sync.");
                 ContentResolver.cancelSync(chosenAccount, TrackerContract.CONTENT_AUTHORITY);
             }
 
-            LogUtils.LOGD(TAG, "Requesting sync now.");
+            LOGD(TAG, "Requesting sync now.");
             ContentResolver.requestSync(chosenAccount, TrackerContract.CONTENT_AUTHORITY, b);
         } else {
-            LogUtils.LOGD(TAG, "Can't request manual sync -- no chosen account.");
+            LOGD(TAG, "Can't request manual sync -- no chosen account.");
         }
     }
 
@@ -83,12 +101,8 @@ public class SyncHelper {
     public boolean performSync(SyncResult syncResult, Account account, Bundle extras) {
         boolean dataChanged = false;
 
-        // TODO: get auth token and use it for each data request
-
-        if (!PrefUtils.isDataBootstrapDone(mContext)) {
-            LogUtils.LOGD(TAG, "Sync aborting (data bootstrap not done yet)");
-            return false;
-        }
+        // Get auth token and use it for each data request
+        final String authToken = AccountUtils.getAuthToken(mContext);
 
         long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
         long now = UIUtils.getCurrentTime(mContext);
@@ -128,7 +142,7 @@ public class SyncHelper {
                     case OP_USER_DATA_SYNC:
                         break;
                     case OP_TRACK_DATA_SYNC:
-                        dataChanged |= doTrackDataSync();
+                        dataChanged |= doTrackDataSync(authToken);
                         break;
 //                    case OP_USER_FEEDBACK_SYNC:
 //                        doUserFeedbackSync();
@@ -145,7 +159,7 @@ public class SyncHelper {
                 }
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
-                LogUtils.LOGE(TAG, "Error performing remote sync.");
+                LOGE(TAG, "Error performing remote sync.");
                 increaseIoExceptions(syncResult);
             }
         }
@@ -158,7 +172,7 @@ public class SyncHelper {
                 performPostSyncChores(mContext);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
-                LogUtils.LOGE(TAG, "Error performing post sync chores.");
+                LOGE(TAG, "Error performing post sync chores.");
             }
         }
         choresDuration = System.currentTimeMillis() - opStart;
@@ -171,7 +185,7 @@ public class SyncHelper {
 
         if (dataChanged) {
             long totalDuration = choresDuration + remoteSyncDuration;
-            LogUtils.LOGD(TAG, "SYNC STATS:\n" +
+            LOGD(TAG, "SYNC STATS:\n" +
                     " *  Account synced: " + (account == null ? "null" : account.name) + "\n" +
                     " *  Content provider operations: " + operations + "\n" +
                     " *  Remote sync took: " + remoteSyncDuration + "ms\n" +
@@ -192,12 +206,12 @@ public class SyncHelper {
 
     public static void performPostSyncChores(final Context context) {
         // Update search index
-        LogUtils.LOGD(TAG, "Updating search index.");
+        LOGD(TAG, "Updating search index.");
 //        context.getContentResolver().update(TrackerContract.SearchIndex.CONTENT_URI,
 //                new ContentValues(), null, null);
 
         // Sync calendars
-        LogUtils.LOGD(TAG, "Session data changed. Syncing starred sessions with Calendar.");
+        LOGD(TAG, "Session data changed. Syncing starred sessions with Calendar.");
         syncCalendar(context);
     }
 
@@ -208,13 +222,13 @@ public class SyncHelper {
     }
 
     private void doUserFeedbackSync() {
-        LogUtils.LOGD(TAG, "Syncing feedback");
+        LOGD(TAG, "Syncing feedback");
         new FeedbackSyncHelper(mContext).sync();
     }
 
     private boolean doUserDataSync() throws IOException {
         if (!isOnline()) {
-            LogUtils.LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
+            LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return false;
         }
         return true;
@@ -227,38 +241,141 @@ public class SyncHelper {
      * @return Whether or not data was changed.
      * @throws IOException if there is a problem downloading or importing the data.
      */
-    private boolean doTrackDataSync() throws IOException {
+    private boolean doTrackDataSync(@NonNull final String authToken) throws IOException {
         if (!isOnline()) {
-            LogUtils.LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
+            LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return false;
         }
 
-        LogUtils.LOGD(TAG, "Starting remote sync.");
-
-        // Fetch the remote data files via RemoteCompanyDataFetcher
-        String[] data = mRemoteDataFetcher.fetchCompanyDataIfNewer(mTrackerDataHandler.getDataTimestamp());
-
-        if (data != null) {
-            LogUtils.LOGI(TAG, "Applying remote data.");
-            // save the remote data to the database
-            mTrackerDataHandler.applyCompanyData(data, mRemoteDataFetcher.getServerDataTimestamp(), true);
-            LogUtils.LOGI(TAG, "Done applying remote data.");
-
-            // mark that conference data sync succeeded
-            PrefUtils.markSyncSucceededNow(mContext);
-            return true;
-        } else {
-            // no data to process (everything is up to date)
-            // mark this company data sync succeeded
-            PrefUtils.markSyncSucceededNow(mContext);
+        if (Config.WIFI_ONLY_SYNC_ENABLED && !isUsingWifi()) {
+            LOGD(TAG, "Not attempting remote sync because wifi-only sync is enabled but the device is not connected to WIFI");
             return false;
         }
+
+        LOGD(TAG, "Starting track data sync.");
+
+        // Get dirty activity data
+        Cursor activityCursor = null;
+        try {
+            activityCursor = mContext.getContentResolver().query(
+                    TrackerContract.Activities.CONTENT_URI,
+                    null,
+                    TrackerContract.SELECTION_BY_DIRTY,
+                    new String[]{ Integer.toString(1) },
+                    TrackerContract.SyncColumns.UPDATED + " DESC");
+            if (activityCursor != null && activityCursor.moveToFirst()) {
+                do {
+                    Activity activity = new Activity(activityCursor);
+                    // NOTE: 1. at least one hour delay, but it's simple to implement
+                    //       2. the transaction should be based by hour
+
+                    // TODO: write the data to the temp file by hour (use the file if it already exists)
+
+                    // TODO: clear dirty column of the data for this hour
+
+                    // TODO: upload the temp file for this hour
+
+                    // TODO: get s3 url of the file just uploaded
+
+                    // TODO: update the url list with the s3 url
+                } while (activityCursor.moveToNext());
+            }
+        } catch (Exception e) {
+            LOGE(TAG, "Error: " + e.getMessage());
+        } finally {
+            if (activityCursor != null) {
+                activityCursor.close();
+            }
+        }
+
+        // Get dirty location data
+        Cursor locationCursor = null;
+        try {
+            locationCursor = mContext.getContentResolver().query(
+                    TrackerContract.Locations.CONTENT_URI,
+                    null,
+                    TrackerContract.SELECTION_BY_DIRTY,
+                    new String[]{ Integer.toString(1) },
+                    TrackerContract.SyncColumns.UPDATED + " DESC");
+            if (locationCursor != null && locationCursor.moveToFirst()) {
+                do {
+                    Location location = new Location(locationCursor);
+                    // NOTE: 1. at least one hour delay, but it's simple to implement
+                    //       2. the transaction should be based by hour
+
+                    // TODO: write the data to the temp file by hour (use the file if it already exists)
+
+                    // TODO: clear dirty column of the data for this hour
+
+                    // TODO: upload the temp file for this hour
+
+                    // TODO: get s3 url of the file just uploaded
+
+                    // TODO: update the url list with the s3 url
+                } while (locationCursor.moveToNext());
+            }
+        } catch (Exception e) {
+            LOGE(TAG, "Error: " + e.getMessage());
+        } finally {
+            if (locationCursor != null) {
+                locationCursor.close();
+            }
+        }
+
+        // Get dirty motion data
+        Cursor motionCursor = null;
+        try {
+            motionCursor = mContext.getContentResolver().query(
+                    TrackerContract.Motions.CONTENT_URI,
+                    null,
+                    TrackerContract.SELECTION_BY_DIRTY,
+                    new String[]{ Integer.toString(1) },
+                    TrackerContract.SyncColumns.UPDATED + " DESC");
+            if (motionCursor != null && motionCursor.moveToFirst()) {
+                do {
+                    Motion motion = new Motion(motionCursor);
+                    // NOTE: 1. at least one hour delay, but it's simple to implement
+                    //       2. the transaction should be based by hour
+
+                    // TODO: write the data to the temp file by hour (use the file if it already exists)
+
+                    // TODO: clear dirty column of the data for this hour
+
+                    // TODO: upload the temp file for this hour
+
+                    // TODO: get s3 url of the file just uploaded
+
+                    // TODO: update the url list with the s3 url
+                } while (motionCursor.moveToNext());
+            }
+        } catch (Exception e) {
+            LOGE(TAG, "Error: " + e.getMessage());
+        } finally {
+            if (motionCursor != null) {
+                motionCursor.close();
+            }
+        }
+
+        // TODO: upload the payload with the track data and the track url list (dirty)
+
+        return true;
     }
 
     // Returns whether we are connected to the internet.
     private boolean isOnline() {
         ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+    }
+
+    private boolean isUsingWifi() {
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void increaseIoExceptions(SyncResult syncResult) {
@@ -283,18 +400,18 @@ public class SyncHelper {
     }
 
     public static void updateSyncInterval(final Context context, final Account account) {
-        LogUtils.LOGD(TAG, "Checking sync interval for " + account);
+        LOGD(TAG, "Checking sync interval for " + account);
         long recommended = calculateRecommendedSyncInterval(context);
         long current = PrefUtils.getCurSyncInterval(context);
-        LogUtils.LOGD(TAG, "Recommended sync interval " + recommended + ", current " + current);
+        LOGD(TAG, "Recommended sync interval " + recommended + ", current " + current);
         if (recommended != current) {
-            LogUtils.LOGD(TAG, "Setting up sync for account " + account + ", interval " + recommended + "ms");
+            LOGD(TAG, "Setting up sync for account " + account + ", interval " + recommended + "ms");
             ContentResolver.setIsSyncable(account, TrackerContract.CONTENT_AUTHORITY, 1);
             ContentResolver.setSyncAutomatically(account, TrackerContract.CONTENT_AUTHORITY, true);
             ContentResolver.addPeriodicSync(account, TrackerContract.CONTENT_AUTHORITY, new Bundle(), recommended / DateUtils.SECOND_IN_MILLIS);
             PrefUtils.setCurSyncInterval(context, recommended);
         } else {
-            LogUtils.LOGD(TAG, "No need to update sync interval.");
+            LOGD(TAG, "No need to update sync interval.");
         }
     }
 }
