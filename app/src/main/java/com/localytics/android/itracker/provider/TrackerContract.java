@@ -34,8 +34,15 @@ public class TrackerContract {
         String UPDATED = "updated";
     }
 
+    public interface BaseDataColumns {
+        String TIME = "time";
+        String DEVICE_ID = "device_id";
+        String TRACK_ID = "track_id";
+    }
+
     interface TrackColumns {
         String DATE = "date";
+        String VERSION = "version";
     }
 
     interface LinkColumns {
@@ -47,40 +54,29 @@ public class TrackerContract {
         String TRACK_ID = "track_id";
     }
 
-    interface MotionColumns {
-        String TIME = "time";
+    interface MotionColumns extends BaseDataColumns {
         String DATA = "data";
         String SAMPLING = "sampling";
-        String DEVICE_ID = "device_id";
-        String TRACK_ID = "track_id";
     }
 
-    interface LocationColumns {
-        String TIME = "time";
+    interface LocationColumns extends BaseDataColumns {
         String LATITUDE = "latitude";
         String LONGITUDE = "longitude";
         String ALTITUDE = "altitude";
         String ACCURACY = "accuracy";
         String SPEED = "speed";
-        String DEVICE_ID = "device_id";
-        String TRACK_ID = "track_id";
     }
 
-    interface ActivityColumns {
-        String TIME = "time";
+    interface ActivityColumns extends BaseDataColumns {
         String TYPE = "type";
         String TYPE_ID = "type_id";
         String CONFIDENCE = "confidence";
-        String DEVICE_ID = "device_id";
-        String TRACK_ID = "track_id";
     }
 
-    interface WeatherColumns {
-        String TIME = "time";
+    interface WeatherColumns extends BaseDataColumns {
         String CITY = "city";
         String WEATHER = "weather";
         String TEMPERATURE = "temperature";
-        String TRACK_ID = "track_id";
     }
 
     public static final String CONTENT_AUTHORITY = "com.localytics.itracker";

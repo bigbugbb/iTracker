@@ -156,6 +156,11 @@
         </service>
 
         <service
+            android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
+            android:enabled="true">
+        </service>
+
+        <service
             android:name=".gcm.RegistrationIntentService"
             android:exported="false">
         </service>

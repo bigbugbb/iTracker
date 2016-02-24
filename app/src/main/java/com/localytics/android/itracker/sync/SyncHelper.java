@@ -7,12 +7,19 @@ import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.SparseArray;
 import android.util.SparseLongArray;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.Location;
@@ -25,7 +32,9 @@ import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.UIUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -44,11 +53,7 @@ public class SyncHelper {
     private TrackerDataHandler mTrackerDataHandler;
     private RemoteTrackerDataFetcher mRemoteDataFetcher;
 
-    private final static String LIMIT = " LIMIT ";
-    private final static String LIMIT_OF_TRACK = LIMIT + "100";
-    private final static String LIMIT_OF_MOTION = LIMIT + "2000";
-    private final static String LIMIT_OF_ACTIVITY = LIMIT + "1000";
-    private final static String LIMIT_OF_LOCATION = LIMIT + "1000";
+    TransferUtility mTransferUtility;
 
     public SyncHelper(Context context) {
         mContext = context;
@@ -103,6 +108,17 @@ public class SyncHelper {
 
         // Get auth token and use it for each data request
         final String authToken = AccountUtils.getAuthToken(mContext);
+
+        // Initialize the Amazon Cognito credentials provider
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+            mContext,
+            Config.COGNITO_IDENTITY_POOL_ID,
+            Regions.US_EAST_1 // Region
+        );
+
+        // Initialize s3 client and the transfer utility
+        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
+        mTransferUtility = new TransferUtility(s3, mContext);
 
         long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
         long now = UIUtils.getCurrentTime(mContext);
@@ -254,111 +270,83 @@ public class SyncHelper {
 
         LOGD(TAG, "Starting track data sync.");
 
-        // Get dirty activity data
-        Cursor activityCursor = null;
-        try {
-            activityCursor = mContext.getContentResolver().query(
-                    TrackerContract.Activities.CONTENT_URI,
-                    null,
-                    TrackerContract.SELECTION_BY_DIRTY,
-                    new String[]{ Integer.toString(1) },
-                    TrackerContract.SyncColumns.UPDATED + " DESC");
-            if (activityCursor != null && activityCursor.moveToFirst()) {
-                do {
-                    Activity activity = new Activity(activityCursor);
-                    // NOTE: 1. at least one hour delay, but it's simple to implement
-                    //       2. the transaction should be based by hour
+        // Sync activities
+        syncData(TrackerContract.Activities.CONTENT_URI, new OnDataSyncingListener() {
+            @Override
+            public void onDataSyncing(Cursor cursor) {
+                // NOTE: 1. at least one hour delay, but it's simple to implement
+                //       2. the transaction should be based by hour
 
-                    // TODO: write the data to the temp file by hour (use the file if it already exists)
+//                ContentProviderOperation
 
-                    // TODO: clear dirty column of the data for this hour
+                List<Activity> data = new ArrayList<>(30);
+                if (cursor.moveToFirst()) {
+                    long nextTime, prevTime = 0;
+                    do {
+                        final Activity activity = new Activity(cursor);
+                        nextTime = activity.time - activity.time % DateUtils.HOUR_IN_MILLIS;
+                        if (nextTime - prevTime == DateUtils.HOUR_IN_MILLIS) {
+                            // TODO: Write the previous hour's data into a temp file
+                            
+                        }
+                        data.add(activity);
+                        prevTime = nextTime;
+                    } while (cursor.moveToNext());
+                }
 
-                    // TODO: upload the temp file for this hour
 
-                    // TODO: get s3 url of the file just uploaded
+                // TODO: clear dirty column of the data for this hour
 
-                    // TODO: update the url list with the s3 url
-                } while (activityCursor.moveToNext());
+                // TODO: upload the temp file for this hour
+
+                // TODO: get s3 url of the file just uploaded
+
+                // TODO: update the url list with the s3 url
             }
-        } catch (Exception e) {
-            LOGE(TAG, "Error: " + e.getMessage());
-        } finally {
-            if (activityCursor != null) {
-                activityCursor.close();
+        });
+
+        // Sync locations
+        syncData(TrackerContract.Locations.CONTENT_URI, new OnDataSyncingListener() {
+            @Override
+            public void onDataSyncing(Cursor cursor) {
+
             }
-        }
+        });
 
-        // Get dirty location data
-        Cursor locationCursor = null;
-        try {
-            locationCursor = mContext.getContentResolver().query(
-                    TrackerContract.Locations.CONTENT_URI,
-                    null,
-                    TrackerContract.SELECTION_BY_DIRTY,
-                    new String[]{ Integer.toString(1) },
-                    TrackerContract.SyncColumns.UPDATED + " DESC");
-            if (locationCursor != null && locationCursor.moveToFirst()) {
-                do {
-                    Location location = new Location(locationCursor);
-                    // NOTE: 1. at least one hour delay, but it's simple to implement
-                    //       2. the transaction should be based by hour
+        // Sync motions
+        syncData(TrackerContract.Motions.CONTENT_URI, new OnDataSyncingListener() {
+            @Override
+            public void onDataSyncing(Cursor cursor) {
 
-                    // TODO: write the data to the temp file by hour (use the file if it already exists)
-
-                    // TODO: clear dirty column of the data for this hour
-
-                    // TODO: upload the temp file for this hour
-
-                    // TODO: get s3 url of the file just uploaded
-
-                    // TODO: update the url list with the s3 url
-                } while (locationCursor.moveToNext());
             }
-        } catch (Exception e) {
-            LOGE(TAG, "Error: " + e.getMessage());
-        } finally {
-            if (locationCursor != null) {
-                locationCursor.close();
-            }
-        }
-
-        // Get dirty motion data
-        Cursor motionCursor = null;
-        try {
-            motionCursor = mContext.getContentResolver().query(
-                    TrackerContract.Motions.CONTENT_URI,
-                    null,
-                    TrackerContract.SELECTION_BY_DIRTY,
-                    new String[]{ Integer.toString(1) },
-                    TrackerContract.SyncColumns.UPDATED + " DESC");
-            if (motionCursor != null && motionCursor.moveToFirst()) {
-                do {
-                    Motion motion = new Motion(motionCursor);
-                    // NOTE: 1. at least one hour delay, but it's simple to implement
-                    //       2. the transaction should be based by hour
-
-                    // TODO: write the data to the temp file by hour (use the file if it already exists)
-
-                    // TODO: clear dirty column of the data for this hour
-
-                    // TODO: upload the temp file for this hour
-
-                    // TODO: get s3 url of the file just uploaded
-
-                    // TODO: update the url list with the s3 url
-                } while (motionCursor.moveToNext());
-            }
-        } catch (Exception e) {
-            LOGE(TAG, "Error: " + e.getMessage());
-        } finally {
-            if (motionCursor != null) {
-                motionCursor.close();
-            }
-        }
+        });
 
         // TODO: upload the payload with the track data and the track url list (dirty)
 
         return true;
+    }
+
+    private void syncData(@NonNull Uri uri, OnDataSyncingListener listener) {
+        Cursor cursor = null;
+        try {
+            cursor = mContext.getContentResolver().query(
+                    uri,
+                    null,
+                    TrackerContract.SELECTION_BY_DIRTY,
+                    new String[]{ Integer.toString(1) },
+                    TrackerContract.BaseDataColumns.TIME + " ASC");
+            if (cursor != null) {
+                if (listener != null) {
+                    listener.onDataSyncing(cursor);
+                }
+            }
+        } catch (Exception e) {
+            LOGE(TAG, "Error: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 
     // Returns whether we are connected to the internet.
@@ -413,5 +401,9 @@ public class SyncHelper {
         } else {
             LOGD(TAG, "No need to update sync interval.");
         }
+    }
+
+    private interface OnDataSyncingListener {
+        void onDataSyncing(Cursor cursor);
     }
 }

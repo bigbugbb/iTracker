@@ -60,4 +60,7 @@ public class Config {
 
     // Data sync configurations
     public static final boolean WIFI_ONLY_SYNC_ENABLED = true;
+
+    // AWS cognito identity pool id
+    public static final String COGNITO_IDENTITY_POOL_ID = "us-east-1:5095d3b3-1e80-4f42-82dd-28087482a5b1";
 }

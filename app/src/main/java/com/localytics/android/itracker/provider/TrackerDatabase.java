@@ -67,7 +67,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Tracks.DIRTY + " INTEGER DEFAULT 1,"
                 + Tracks.SYNC + " TEXT,"
                 + Tracks.UPDATED + " INTEGER NOT NULL,"
-                + Tracks.DATE + " INTEGER UNIQUE NOT NULL);");
+                + Tracks.DATE + " INTEGER UNIQUE NOT NULL,"
+                + Tracks.VERSION + " INTEGER NOT NULL DEFAULT 0);");
 
         db.execSQL("CREATE TABLE " + Tables.LINKS + " ("
                 + Links._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
