@@ -2,8 +2,11 @@ package com.localytics.android.itracker.provider;
 
 import android.app.Activity;
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -22,6 +25,7 @@ import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.SelectionBuilder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGV;
@@ -37,6 +41,8 @@ public class TrackerProvider extends ContentProvider {
     private static final String TAG = makeLogTag(com.localytics.android.itracker.provider.TrackerProvider.class);
 
     private TrackerDatabase mOpenHelper;
+
+    private final ThreadLocal<Boolean> mIsInBatchMode = new ThreadLocal<>();
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -220,13 +226,36 @@ public class TrackerProvider extends ContentProvider {
         }
     }
 
+    @Override
+    public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+            throws OperationApplicationException {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        mIsInBatchMode.set(true);
+        // the next line works because SQLiteDatabase
+        // uses a thread local SQLiteSession object for all manipulations
+        db.beginTransaction();
+        try {
+            final ContentProviderResult[] retResult = super.applyBatch(operations);
+            db.setTransactionSuccessful();
+//            getContext().getContentResolver().notifyChange(LentItemsContract.CONTENT_URI, null);
+            return retResult;
+        } finally {
+            mIsInBatchMode.remove();
+            db.endTransaction();
+        }
+    }
+
+    private boolean isInBatchMode() {
+        return mIsInBatchMode.get() != null && mIsInBatchMode.get();
+    }
+
     private void notifyChange(Uri uri) {
         // We only notify changes if the caller is not the sync adapter.
         // The sync adapter has the responsibility of notifying changes (it can do so
         // more intelligently than we can -- for example, doing it only once at the end
         // of the sync instead of issuing thousands of notifications for each record).
         boolean syncToNetwork = !TrackerContract.hasCallerIsSyncAdapterParameter(uri);
-        if (syncToNetwork) {
+        if (syncToNetwork && !isInBatchMode()) {
             Context context = getContext();
             context.getContentResolver().notifyChange(uri, null);
 
