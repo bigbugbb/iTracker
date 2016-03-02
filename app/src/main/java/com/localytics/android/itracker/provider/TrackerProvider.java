@@ -13,9 +13,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
+import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
-import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Weathers;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;

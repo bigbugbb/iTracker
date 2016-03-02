@@ -24,15 +24,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.UUID;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.LOGV;
 
 public class AccountUtils {
     private static final String TAG = LogUtils.makeLogTag(AccountUtils.class);

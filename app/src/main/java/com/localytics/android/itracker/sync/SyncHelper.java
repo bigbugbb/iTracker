@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.sync;
 
 import android.accounts.Account;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
@@ -9,31 +10,42 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
-import android.util.SparseArray;
-import android.util.SparseLongArray;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
-import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.provider.TrackerContract.Activities;
+import com.localytics.android.itracker.provider.TrackerContract.BaseDataColumns;
+import com.localytics.android.itracker.provider.TrackerContract.Locations;
+import com.localytics.android.itracker.provider.TrackerContract.Motions;
+import com.localytics.android.itracker.provider.TrackerContract.SyncColumns;
 import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.UIUtils;
+import com.opencsv.CSVWriter;
 
+import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -53,7 +65,11 @@ public class SyncHelper {
     private TrackerDataHandler mTrackerDataHandler;
     private RemoteTrackerDataFetcher mRemoteDataFetcher;
 
-    TransferUtility mTransferUtility;
+    private AmazonS3Client mS3Client;
+    private TransferUtility mTransferUtility;
+
+    private String SELECTION_BY_INTERVAL =
+            String.format("%s >= ? AND %s < ?", BaseDataColumns.TIME, BaseDataColumns.TIME);
 
     public SyncHelper(Context context) {
         mContext = context;
@@ -117,8 +133,8 @@ public class SyncHelper {
         );
 
         // Initialize s3 client and the transfer utility
-        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-        mTransferUtility = new TransferUtility(s3, mContext);
+        mS3Client = new AmazonS3Client(credentialsProvider);
+        mTransferUtility = new TransferUtility(mS3Client, mContext);
 
         long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
         long now = UIUtils.getCurrentTime(mContext);
@@ -270,53 +286,73 @@ public class SyncHelper {
 
         LOGD(TAG, "Starting track data sync.");
 
-        // Sync activities
-        syncData(TrackerContract.Activities.CONTENT_URI, new OnDataSyncingListener() {
+        syncData(Activities.CONTENT_URI, new OnDataSyncingListener() {
             @Override
-            public void onDataSyncing(Cursor cursor) {
-                // NOTE: 1. at least one hour delay, but it's simple to implement
-                //       2. the transaction should be based by hour
-
-//                ContentProviderOperation
-
-                List<Activity> data = new ArrayList<>(30);
+            public void onDataSyncing(final Uri uri, Cursor cursor) {
                 if (cursor.moveToFirst()) {
                     long nextTime, prevTime = 0;
+                    final String deviceId = DeviceUtils.getDeviceUUID(mContext);
+                    final List<Activity> data = new ArrayList<>(60);
+                    final List<ContentProviderOperation> ops = new LinkedList<>();
+
                     do {
                         final Activity activity = new Activity(cursor);
                         nextTime = activity.time - activity.time % DateUtils.HOUR_IN_MILLIS;
-                        if (nextTime - prevTime == DateUtils.HOUR_IN_MILLIS) {
-                            // TODO: Write the previous hour's data into a temp file
-                            
+                        if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+                            final File file = makeUploadFile(String.format("activity_%d.csv", prevTime), data);
+
+                            if (file.exists()) {
+                                final String[] selectionArgs = new String[]{prevTime + "", nextTime + ""};
+                                final String bucket = Config.S3_BUCKET_NAME;
+                                final String key = getPrefixKey(prevTime) + "/activities_" + deviceId;
+                                final String url = mS3Client.getResourceUrl(bucket, key);
+                                TransferObserver observer = uploadFileToS3(bucket, key, file);
+                                observer.setTransferListener(new TransferListener() {
+                                    @Override
+                                    public void onStateChanged(int id, TransferState state) {
+                                        if (state == TransferState.COMPLETED) {
+                                            // Clear dirty column for data of this hour if the file has been uploaded successfully
+                                            ops.add(ContentProviderOperation.newUpdate(uri)
+                                                    .withValue(SyncColumns.DIRTY, null)
+                                                    .withSelection(SELECTION_BY_INTERVAL, selectionArgs)
+                                                    .build());
+                                            FileUtils.deleteQuietly(file);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+                                    }
+
+                                    @Override
+                                    public void onError(int id, Exception ex) {
+                                        FileUtils.deleteQuietly(file);
+                                    }
+                                });
+                            }
+
+                            data.clear();
                         }
                         data.add(activity);
                         prevTime = nextTime;
                     } while (cursor.moveToNext());
                 }
 
-
-                // TODO: clear dirty column of the data for this hour
-
-                // TODO: upload the temp file for this hour
-
-                // TODO: get s3 url of the file just uploaded
-
                 // TODO: update the url list with the s3 url
             }
         });
 
-        // Sync locations
-        syncData(TrackerContract.Locations.CONTENT_URI, new OnDataSyncingListener() {
+        syncData(Locations.CONTENT_URI, new OnDataSyncingListener() {
             @Override
-            public void onDataSyncing(Cursor cursor) {
+            public void onDataSyncing(final Uri uri, Cursor cursor) {
 
             }
         });
 
-        // Sync motions
-        syncData(TrackerContract.Motions.CONTENT_URI, new OnDataSyncingListener() {
+        syncData(Motions.CONTENT_URI, new OnDataSyncingListener() {
             @Override
-            public void onDataSyncing(Cursor cursor) {
+            public void onDataSyncing(final Uri uri, Cursor cursor) {
 
             }
         });
@@ -335,10 +371,8 @@ public class SyncHelper {
                     TrackerContract.SELECTION_BY_DIRTY,
                     new String[]{ Integer.toString(1) },
                     TrackerContract.BaseDataColumns.TIME + " ASC");
-            if (cursor != null) {
-                if (listener != null) {
-                    listener.onDataSyncing(cursor);
-                }
+            if (cursor != null && listener != null) {
+                listener.onDataSyncing(uri, cursor);
             }
         } catch (Exception e) {
             LOGE(TAG, "Error: " + e.getMessage());
@@ -347,6 +381,48 @@ public class SyncHelper {
                 cursor.close();
             }
         }
+    }
+
+    private File makeUploadFile(String filename, List<?> data) {
+        File file = new File(mContext.getCacheDir(), filename);
+        try {
+            CSVWriter writer = new CSVWriter(new FileWriter(file, false));
+            for (Object item : data) {
+                if (item instanceof Activity) {
+                    Activity activity = (Activity) item;
+                    writer.writeNext(new String[]{
+                            activity.time + "",
+                            activity.type,
+                            activity.type_id + "",
+                            activity.confidence + "",
+                            activity.device_id
+                    });
+                } else if (item instanceof Location) {
+                    Location location = (Location) item;
+                } else if (item instanceof Motion) {
+                    Motion motion = (Motion) item;
+                } else {
+                    // TODO: make some better self defined exceptions
+                    throw new RuntimeException();
+                }
+            }
+            writer.close();
+        } catch (IOException e) {
+            LOGE(TAG, "Write data to " + file + " failed: " + e.getMessage());
+        }
+        return file;
+    }
+
+    private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {
+        final ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType("text/csv");
+        metadata.setContentLength(fileToUpload.length());
+        metadata.addUserMetadata("x-user-account", AccountUtils.getActiveAccountName(mContext));
+        return mTransferUtility.upload(bucket, key, fileToUpload, metadata);
+    }
+
+    private String getPrefixKey(long time) {
+        return new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN);
     }
 
     // Returns whether we are connected to the internet.
@@ -404,6 +480,6 @@ public class SyncHelper {
     }
 
     private interface OnDataSyncingListener {
-        void onDataSyncing(Cursor cursor);
+        void onDataSyncing(Uri uri, Cursor cursor);
     }
 }

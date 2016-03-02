@@ -3,10 +3,7 @@ package com.localytics.android.itracker.gcm;
 import android.content.Intent;
 
 import com.google.android.gms.iid.InstanceIDListenerService;
-import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
-
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 public class TrackerInstanceIDListenerService extends InstanceIDListenerService {
 

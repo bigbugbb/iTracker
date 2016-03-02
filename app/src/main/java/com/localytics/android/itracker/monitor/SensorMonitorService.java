@@ -41,7 +41,6 @@ import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.ui.TrackerActivity;
-import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.PlayServicesUtils;
 

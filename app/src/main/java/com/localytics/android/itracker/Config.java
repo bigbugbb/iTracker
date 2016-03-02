@@ -3,6 +3,8 @@ package com.localytics.android.itracker;
 import android.text.format.DateUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.text.Format;
 
@@ -63,4 +65,10 @@ public class Config {
 
     // AWS cognito identity pool id
     public static final String COGNITO_IDENTITY_POOL_ID = "us-east-1:5095d3b3-1e80-4f42-82dd-28087482a5b1";
+
+    // S3 Bucket name
+    public static final String S3_BUCKET_NAME = "itracker-track-data";
+
+    // S3 Key prefix pattern
+    public static final DateTimeFormatter S3_KEY_PREFIX_PATTERN = DateTimeFormat.forPattern("yyyy/MM/dd/HH");
 }
