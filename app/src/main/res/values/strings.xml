@@ -9,7 +9,7 @@
 
     <string name="tab_name_action">Action</string>
     <string name="tab_name_photo">Photo</string>
-    <string name="tab_name_movie">Movie</string>
+    <string name="tab_name_media">Media</string>
     <string name="tab_name_friends">Friends</string>
 
     <string name="signup_title">Create new account</string>

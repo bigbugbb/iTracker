@@ -4,14 +4,8 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/badge_image"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="16dp"
-        android:layout_gravity="center_vertical"/>
     <TextView
-        android:id="@+id/title_text"
+        android:id="@+id/steaming_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"

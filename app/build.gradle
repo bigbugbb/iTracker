@@ -73,12 +73,12 @@ model {
         main {
             jni {
                 dependencies {
-                    library "avcodec"  linkage "static"
+                    library "avcodec" linkage "static"
                     library "avformat" linkage "static"
-                    library "avutil"   linkage "static"
+                    library "avutil" linkage "static"
                     library "swresample" linkage "static"
-                    library "ffmpeg"   linkage "static"
-                    library "crypto"   linkage "static"
+                    library "ffmpeg" linkage "static"
+                    library "crypto" linkage "static"
                     library "ssl"
                 }
             }
@@ -131,6 +131,7 @@ model {
         exclude 'META-INF/LGPL2.1'
     }
 }
+
 
 
 dependencies {
