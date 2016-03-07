@@ -105,7 +105,7 @@ THREAD_RETURN CGraphManager::ThreadProc()
     while (m_bRun) {
         RecvMessage(arg.msg);
         
-        switch (arg.msg.nID) {
+        switch (arg.msg.eID) {
         case MSG_OPEN:
             nResult = Open(arg);
             break;
@@ -174,6 +174,7 @@ int CGraphManager::Open(Argument& arg)
         Log("Invalid Graph\n");
         OnClose(arg);
         m_Graph.Traversal(m_pSource, COMMAND_UNLOAD, NULL, nResult);
+        m_Graph.Traversal(m_pSource, COMMAND_RELEASE, NULL, nResult);
         Log("Unload Graph\n");
     } else {
         OnOpened(arg);
@@ -208,6 +209,7 @@ int CGraphManager::Close(Argument& arg)
     
     OnClose(arg);
     m_Graph.Traversal(m_pSource, COMMAND_UNLOAD, NULL, nResult);
+    m_Graph.Traversal(m_pSource, COMMAND_RELEASE, NULL, nResult);
     
     m_pRefClockCtrl->Reset();
     
@@ -253,6 +255,7 @@ int CGraphManager::Play(Argument& arg)
         m_Graph.Traversal(m_pSource, COMMAND_INVALID, NULL, nResult);
         OnClose(arg);
         m_Graph.Traversal(m_pSource, COMMAND_UNLOAD, NULL, nResult);
+        m_Graph.Traversal(m_pSource, COMMAND_RELEASE, NULL, nResult);
     }
 end:
     OnPlayed(arg);
@@ -293,6 +296,7 @@ int CGraphManager::Pause(Argument& arg)
         m_Graph.Traversal(m_pSource, COMMAND_INVALID, NULL, nResult);
         OnClose(arg);
         m_Graph.Traversal(m_pSource, COMMAND_UNLOAD, NULL, nResult);
+        m_Graph.Traversal(m_pSource, COMMAND_RELEASE, NULL, nResult);
     }
     
     m_pRefClockCtrl->Pause();
@@ -324,6 +328,7 @@ int CGraphManager::Seek(Argument& arg)
         m_Graph.Traversal(m_pSource, COMMAND_INVALID, NULL, nResult);
         OnClose(arg);
         m_Graph.Traversal(m_pSource, COMMAND_UNLOAD, NULL, nResult);
+        m_Graph.Traversal(m_pSource, COMMAND_RELEASE, NULL, nResult);
     }
     
     AssertValid(nResult == S_OK);

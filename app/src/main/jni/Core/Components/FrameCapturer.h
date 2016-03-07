@@ -36,7 +36,7 @@ protected:
     CLock             m_csCapture;
     CEvent            m_etCapture;
     AVPixelFormat     m_eDstFmt;
-//    SwsContext*       m_pSwsCtx;
+    SwsContext*       m_pSwsCtx;
     CMessageQueue     m_MsgQueue;
 };
 

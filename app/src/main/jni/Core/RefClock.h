@@ -80,7 +80,7 @@ public:
 protected:
     virtual LONGLONG GetCurTime();
     
-    double  m_lfTimebase;
+    float  m_fTimebase;
 };
 
 #endif

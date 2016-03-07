@@ -32,23 +32,23 @@ struct Message
 {
     Message()
     {
-        nID       = MSG_NONE;
+        eID       = MSG_NONE;
         bIgnore   = FALSE;
         dwParam1  = 0;
         dwParam2  = 0;
         pUserData = NULL;
     }
     
-    Message(MSGID nID, BOOL bIgnore = FALSE, DWORD dwParam1 = 0, DWORD dwParam2 = 0, LPVOID pUserData = NULL)
+    Message(MSGID eID, BOOL bIgnore = FALSE, DWORD dwParam1 = 0, DWORD dwParam2 = 0, LPVOID pUserData = NULL)
     {
-        this->nID       = nID;
+        this->eID       = eID;
         this->bIgnore   = bIgnore;
         this->dwParam1  = dwParam1;
         this->dwParam2  = dwParam2;
         this->pUserData = pUserData;
     }
     
-    MSGID   nID;
+    MSGID   eID;
     BOOL    bIgnore;
     DWORD   dwParam1;
     DWORD   dwParam2;

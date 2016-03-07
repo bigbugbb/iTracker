@@ -23,12 +23,12 @@ public:
     virtual ~CVideoRenderer();
     
     // IVideoRenderer
-    virtual int SetTimebase(double lfTimebase);
-    virtual int SetMediaSeekTime(double lfTime);
-    virtual int GetMediaCurrentTime(double* pTime);
-    virtual int SetMediaStartTime(double lfTime);
+    virtual int SetTimebase(float fTimebase);
+    virtual int SetMediaSeekTime(float lfTime);
+    virtual int GetMediaCurrentTime(float* pTime);
+    virtual int SetMediaStartTime(float fTime);
     virtual int EnableCaptureFrame(BOOL bCapture);
-    virtual int DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride); // used on android
+    virtual int DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride, int nHeight); // used on android
     
     void SetQualityController(IQualityControl* pQCtrl);
 
@@ -43,7 +43,7 @@ protected:
     int Invalid();
     int Unload();
     int SetEOS();
-    int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
+    int GetInputPool(const GUID& requestor, ISamplePool** ppPool);
     
     int Receive(ISamplePool* pPool);
     int OnReceive(CMediaSample& sample);
@@ -60,10 +60,10 @@ protected:
     BOOL        m_bClose;
     BOOL        m_bCapture;
 
-    double      m_lfTimebase;
+    float       m_fTimebase;
     LONGLONG    m_llCurPTS;
     LONGLONG    m_llStartPTS;
-    double      m_lfSeekTime;
+    float       m_fSeekTime;
     
     CFramePool  m_FramePool;
     
@@ -72,7 +72,7 @@ protected:
     
 #ifdef ANDROID
     AVPixelFormat m_eDstFmt;
-//    SwsContext* m_pSwsCtx;
+    struct SwsContext* m_pSwsCtx;
 #endif
 private:
     void PrepareSeek(BOOL bPrepare = TRUE);

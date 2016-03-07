@@ -27,8 +27,6 @@ public:
     virtual ~CFFmpegAudioDecoder();
 
     // IFFmpegAudioDecoder
-    virtual int SetParameter(int nParam, void* pValue);
-    virtual int GetParameter(int nParam, void* pValue);
     
 protected:
     // CMediaObject
@@ -42,21 +40,26 @@ protected:
     int Invalid();
     int Unload();
     int SetEOS();
+    int RespondDispatch(const GUID& sender, int nType, void* pUserData);
+    int RespondFeedback(const GUID& sender, int nType, void* pUserData);
     
     int OnReceive(CMediaSample& sample);
     
     virtual THREAD_RETURN ThreadProc();
-    int Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn);
+    //void ReSampleAudioData(AVCodecContext* pCodecCtx, int nDataSize);
+    virtual int Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn);
+    
+    BOOL SwitchAudioTrack();
     
     CEvent          m_sync;
 
     ISamplePool*    m_pPcmPool;
     ISamplePool*    m_pAudioPool;
     CMediaObject*   m_pRenderer;
-
-    AVFrame         m_PCM;
-
-    AudioInfo*      m_pAudio;
+    
+    AudioTrack*     m_pAudio;
+    LONGLONG        m_llSwitchTime;
+    //SwrContext*     m_pSwrCtx;
 };
 
 #endif

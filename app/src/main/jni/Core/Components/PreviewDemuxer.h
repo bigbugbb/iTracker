@@ -20,7 +20,7 @@ public:
     CPreviewDemuxer(const GUID& guid, IDependency* pDepend, int* pResult);
     virtual ~CPreviewDemuxer();
     
-    virtual int InitialConfig(const char* szURL, double lfOffset, BOOL bRemote);
+    virtual int InitialConfig(const char* szURL, float fOffset, BOOL bRemote);
     
 protected:
     // CMediaObject
@@ -33,9 +33,10 @@ protected:
     int EndFlush();
     int Invalid();
     int Unload();
+    int Release();
     int SetEOS();
-    int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
-    
+    int GetOutputPool(const GUID& requestor, ISamplePool** ppPool);
+
     virtual THREAD_RETURN ThreadProc();
     
     virtual int RebuildIndexEntries(AVFormatContext* pFmtCtx, AVCodecContext* pVideoCtx, AVCodecContext* pAudioCtx);

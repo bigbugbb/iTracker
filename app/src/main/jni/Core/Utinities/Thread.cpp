@@ -35,7 +35,7 @@ int CThread::Create()
         }
         m_bCreate = TRUE;
     }
-    // 由于QVEvent默认为无信号，线程进入loop后将先在Wait处被挂起
+    // 由于QEvent默认为无信号，线程进入loop后将先在Wait处被挂起
     
     return QVOD_OK;
 }
@@ -59,6 +59,10 @@ int CThread::Close()
     
 int CThread::Start()
 {
+    if (!m_bCreate) {
+        return QVOD_ERROR;
+    }
+    
     if (m_bRun) {
         return QVOD_OK;
     }

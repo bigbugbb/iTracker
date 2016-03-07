@@ -55,7 +55,7 @@ int CPlayerGraphManager::BuildGraph()
     CGraphManager::BuildGraph();
     
     int nResult = S_OK;
-    CMediaObject *pDemuxer, *pVideoDecoder, *pAudioDecoder, *pVideoRenderer, *pAudioRenderer;
+    CMediaObject *pDemuxer, *pVideoDecoder, *pAudioDecoder, *pSubtitleDecoder, *pVideoRenderer, *pAudioRenderer;
     
     if (!(pDemuxer = new CFFmpegDemuxer(GUID_DEMUXER, m_pDepend, &nResult)) && nResult != S_OK) {
         return E_FAIL;
@@ -66,6 +66,10 @@ int CPlayerGraphManager::BuildGraph()
     }
     
     if (!(pAudioDecoder = new CFFmpegAudioDecoder(GUID_AUDIO_DECODER, m_pDepend, &nResult)) && nResult != S_OK) {
+        return E_FAIL;
+    }
+    
+    if (!(pSubtitleDecoder = new CFFmpegSubtitleDecoder(GUID_SUBTITLE_DECODER, m_pDepend, &nResult)) && nResult != S_OK) {
         return E_FAIL;
     }
     
@@ -80,19 +84,22 @@ int CPlayerGraphManager::BuildGraph()
     m_vecObjs.push_back(pDemuxer);
     m_vecObjs.push_back(pVideoDecoder);
     m_vecObjs.push_back(pAudioDecoder);
+    m_vecObjs.push_back(pSubtitleDecoder);
     m_vecObjs.push_back(pVideoRenderer);
     m_vecObjs.push_back(pAudioRenderer);
     
-    if (!m_Graph.Insert(pDemuxer)) return E_FAIL;
-    if (!m_Graph.Insert(pVideoDecoder)) return E_FAIL;
-    if (!m_Graph.Insert(pAudioDecoder)) return E_FAIL;
-    if (!m_Graph.Insert(pVideoRenderer)) return E_FAIL;
-    if (!m_Graph.Insert(pAudioRenderer)) return E_FAIL;
+    if (!m_Graph.Insert(pDemuxer))         return E_FAIL;
+    if (!m_Graph.Insert(pVideoDecoder))    return E_FAIL;
+    if (!m_Graph.Insert(pAudioDecoder))    return E_FAIL;
+    if (!m_Graph.Insert(pSubtitleDecoder)) return E_FAIL;
+    if (!m_Graph.Insert(pVideoRenderer))   return E_FAIL;
+    if (!m_Graph.Insert(pAudioRenderer))   return E_FAIL;
     
-    if (!m_Graph.Connect(pDemuxer, pVideoDecoder)) return E_FAIL;
+    if (!m_Graph.Connect(pDemuxer, pVideoDecoder))       return E_FAIL;
     if (!m_Graph.Connect(pVideoDecoder, pVideoRenderer)) return E_FAIL;
-    if (!m_Graph.Connect(pDemuxer, pAudioDecoder)) return E_FAIL;
+    if (!m_Graph.Connect(pDemuxer, pAudioDecoder))       return E_FAIL;
     if (!m_Graph.Connect(pAudioDecoder, pAudioRenderer)) return E_FAIL;
+    if (!m_Graph.Connect(pDemuxer, pSubtitleDecoder))    return E_FAIL;
     
     if (!m_Graph.Prepare()) return E_FAIL;
     m_pSource = m_Graph.GetSource();
@@ -120,21 +127,32 @@ CMediaObject* CPlayerGraphManager::GetComponent(const GUID& guid)
 {
     for (int i = 0; i < m_vecObjs.size(); ++i) {
         GUID guid2 = m_vecObjs[i]->GetGUID();
-        if (!memcmp(&guid2, &guid, sizeof(GUID))) {
+        if (guid2 == guid) {
             return m_vecObjs[i];
         }
     }
-    
+
     return NULL;
 }
 
 int CPlayerGraphManager::EnableComponent(const GUID& guid, BOOL bEnable)
 {
     CMediaObject* pObj = GetComponent(guid);
-    
+
     pObj->Enable(bEnable);
-    
+
     return S_OK;
+}
+
+BOOL CPlayerGraphManager::IsComponentEnabled(const GUID& guid)
+{
+	CMediaObject* pObj = GetComponent(guid);
+
+	if (!pObj) {
+		return FALSE;
+	}
+
+	return pObj->IsEnabled();
 }
 
 void CPlayerGraphManager::OnInit(Argument& arg)
@@ -157,6 +175,7 @@ void CPlayerGraphManager::OnLoaded(Argument& arg)
     CVideoRenderer* pVideoRenderer = dynamic_cast<CVideoRenderer*>(GetComponent(GUID_VIDEO_RENDERER));
     CAudioRenderer* pAudioRenderer = dynamic_cast<CAudioRenderer*>(GetComponent(GUID_AUDIO_RENDERER));
     CFFmpegVideoDecoder* pVideoDecoder = dynamic_cast<CFFmpegVideoDecoder*>(GetComponent(GUID_VIDEO_DECODER));
+    CFFmpegSubtitleDecoder* pSubtitleDecoder = dynamic_cast<CFFmpegSubtitleDecoder*>(GetComponent(GUID_SUBTITLE_DECODER));
     
     pVideoRenderer->SetQualityController(pVideoDecoder);
     
@@ -164,6 +183,7 @@ void CPlayerGraphManager::OnLoaded(Argument& arg)
 
     pVideoRenderer->SetSyncSource(m_pRefClock);
     pAudioRenderer->SetSyncSource(m_pRefClock);
+    pSubtitleDecoder->SetSyncSource(m_pRefClock);
     
     int nChannelCount = 0;
     pDemuxer->GetAudioChannelCount(&nChannelCount);
@@ -171,17 +191,18 @@ void CPlayerGraphManager::OnLoaded(Argument& arg)
     int nSampleFormat;
     pDemuxer->GetAudioSampleFormat(&nSampleFormat);
     pAudioRenderer->SetSampleFormat(nSampleFormat);
-    double lfStartTime;
-    pDemuxer->GetMediaStartTime(&lfStartTime);
-    pVideoRenderer->SetMediaStartTime(lfStartTime);
-    double lfTimebase;
-    pDemuxer->GetAudioTimebase(&lfTimebase);
-    pAudioRenderer->SetTimebase(lfTimebase);
-    pDemuxer->GetVideoTimebase(&lfTimebase);
-    pVideoRenderer->SetTimebase(lfTimebase);
-    double lfSampleRate;
-    pDemuxer->GetAudioSampleRate(&lfSampleRate);
-    pAudioRenderer->SetSampleRate(lfSampleRate);
+    float fStartTime;
+    pDemuxer->GetMediaStartTime(&fStartTime);
+    pVideoRenderer->SetMediaStartTime(fStartTime);
+    pAudioRenderer->SetMediaStartTime(fStartTime);
+    float fTimebase;
+    pDemuxer->GetAudioTimebase(&fTimebase);
+    pAudioRenderer->SetTimebase(fTimebase);
+    pDemuxer->GetVideoTimebase(&fTimebase);
+    pVideoRenderer->SetTimebase(fTimebase);
+    float fSampleRate;
+    pDemuxer->GetAudioSampleRate(&fSampleRate);
+    pAudioRenderer->SetSampleRate(fSampleRate);
 }
 
 void CPlayerGraphManager::OnOpened(Argument& arg)

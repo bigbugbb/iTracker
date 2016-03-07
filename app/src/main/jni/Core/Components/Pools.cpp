@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+#include <algorithm> 
 #include "Pools.h"
 #include "FFmpegData.h"
 #include "../MediaObject.h"
@@ -26,6 +27,94 @@ int CPacketPool::Flush()
     AssertValid(Size() == 0);
     
     return S_OK;
+}
+
+///////////////////////////////////////////////////////////////
+CPacketPoolList::CPacketPoolList() 
+    : m_pCurPool(NULL), m_bAutoRelease(TRUE)
+{
+}
+
+void CPacketPoolList::SetCurPool(int nTrackID)
+{
+    m_pCurPool = m_mapPools[nTrackID];
+    AssertValid(m_pCurPool);
+}
+
+CPacketPool* CPacketPoolList::GetCurPool()
+{    
+    return m_pCurPool;
+}
+
+CPacketPool* CPacketPoolList::GetPoolFromTrackID(int nTrackID)
+{
+    AssertValid(nTrackID >= 0);
+    CPacketPool* pPool = m_mapPools[nTrackID];
+    
+    return pPool;
+}
+
+int CPacketPoolList::GetCurPoolSize()
+{
+    return m_pCurPool ? m_pCurPool->Size() : 0;
+}
+
+void CPacketPoolList::EnableAutoRelease(BOOL bAutoRelease)
+{
+    m_bAutoRelease = bAutoRelease;
+}
+
+void CPacketPoolList::Add(int nTrackID, CPacketPool* pPool)
+{
+    AssertValid(nTrackID >= 0 && pPool);
+    m_mapPools[nTrackID] = pPool;
+    m_listPools.push_back(pPool);
+}
+
+void CPacketPoolList::Remove(int nTrackID)
+{
+    CPacketPool* pPool = m_mapPools[nTrackID];
+    if (pPool) {
+        m_listPools.remove(pPool);
+        if (m_bAutoRelease) {
+            delete pPool;
+        }
+    }
+    
+    m_mapPools[nTrackID] = NULL;
+}
+
+void CPacketPoolList::Clear()
+{
+    m_pCurPool = NULL;
+    
+    for (std::list<CPacketPool*>::iterator iter = m_listPools.begin();
+            iter != m_listPools.end(); ++iter) 
+    {
+        CPacketPool* pPool = *iter;
+        
+        if (pPool) {
+            pPool->Flush();
+            if (m_bAutoRelease) {
+                delete pPool;
+            }
+        }
+    }
+    
+    m_listPools.clear();
+}
+
+void CPacketPoolList::Flush()
+{
+    for (std::list<CPacketPool*>::iterator iter = m_listPools.begin();
+            iter != m_listPools.end(); ++iter) 
+    {
+        CPacketPool* pPool = *iter;
+        
+        if (pPool) {
+            pPool->Flush();
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -94,8 +183,8 @@ CPcmPool::CPcmPool()
     while (GetEmpty(sample) == S_OK) {
         sample.m_Type  = SAMPLE_PCM;
         sample.m_pBuf  = pAligned; // each pcm buffer starts at a 16-byte aligned location
-        sample.m_nSize = MAX_AUDIO_FRAME_SIZE * 3 / 2;
-        pAligned += MAX_AUDIO_FRAME_SIZE * 3 / 2;
+        sample.m_nSize = AVCODEC_MAX_AUDIO_FRAME_SIZE * 2;
+        pAligned += AVCODEC_MAX_AUDIO_FRAME_SIZE * 2;
         Commit(sample);
     }
     

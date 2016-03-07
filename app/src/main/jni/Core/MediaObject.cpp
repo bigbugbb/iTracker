@@ -20,7 +20,7 @@ CMediaObject::CMediaObject(const GUID& guid, IDependency* pDepend)
     m_bFlush  = FALSE;
     m_bEnable = TRUE;
     m_eType   = TRANSFORM;
-    m_nState = STATE_UNLOADED;
+    m_nState  = STATE_UNLOADED;
 }
 
 CMediaObject::~CMediaObject()
@@ -37,10 +37,11 @@ int CMediaObject::Load()
 
 int CMediaObject::WaitForResources(BOOL bWait)
 {
-    if (bWait)
+    if (bWait) {
         SetState(STATE_WAITFORRESOURCES, 0);
-    else
+    } else {
         SetState(0, STATE_WAITFORRESOURCES);
+    }
     
     return S_OK;
 }
@@ -87,6 +88,11 @@ int CMediaObject::Unload()
     m_bEnable = TRUE;
     SetState(STATE_UNLOADED, STATE_LOADED | STATE_WAITFORRESOURCES | 
              STATE_IDLE | STATE_EXECUTE | STATE_PAUSE | STATE_INVALID);
+    return S_OK;
+}
+
+int CMediaObject::Release()
+{
     return S_OK;
 }
 
@@ -144,13 +150,55 @@ int CMediaObject::Receive(ISamplePool* pPool)
     return nResult;
 }
 
-int CMediaObject::Connect(DIR nDir, CMediaObject* pObj)
+int CMediaObject::Dispatch(const GUID& receiver, int nType, void* pUserData)
+{
+    CMediaObject* pObj = NULL;
+    
+    for (int i = 0; i < m_vecOutObjs.size(); ++i) {
+        AssertValid(m_vecOutObjs[i]);
+        
+        pObj = m_vecOutObjs[i];
+        if (receiver == pObj->m_guid) {
+            break;
+        }
+    }
+    
+    return pObj ? pObj->RespondDispatch(m_guid, nType, pUserData) : E_FAIL;
+}
+
+int CMediaObject::RespondDispatch(const GUID& sender, int nType, void* pUserData)
+{
+    return S_OK;
+}
+
+int CMediaObject::Feedback(const GUID& receiver, int nType, void* pUserData)
+{
+    CMediaObject* pObj = NULL;
+    
+    for (int i = 0; i < m_vecInObjs.size(); ++i) {
+        AssertValid(m_vecInObjs[i]);
+        
+        pObj = m_vecInObjs[i];
+        if (receiver == pObj->m_guid) {
+            break;
+        }
+    }
+ 
+    return pObj ? pObj->RespondFeedback(m_guid, nType, pUserData) : E_FAIL;
+}
+
+int CMediaObject::RespondFeedback(const GUID& sender, int nType, void* pUserData)
+{
+    return S_OK;
+}
+
+int CMediaObject::Connect(DIR eDir, CMediaObject* pObj)
 {
     AssertValid(pObj);
     
-    if (nDir == DIR_IN) {
+    if (eDir == DIR_IN) {
         m_vecInObjs.push_back(pObj);
-    } else if (nDir == DIR_OUT) {
+    } else if (eDir == DIR_OUT) {
         m_vecOutObjs.push_back(pObj);
     } else {
         AssertValid(0);
@@ -191,6 +239,9 @@ int CMediaObject::Operate(int nCommand, void* pParam)
     case COMMAND_UNLOAD:
         nResult = Unload();
         break;
+    case COMMAND_RELEASE:
+        nResult = Release();
+        break;
     default:
         nResult = E_NOIMPL;
         break;
@@ -199,7 +250,14 @@ int CMediaObject::Operate(int nCommand, void* pParam)
     return nResult;
 }
 
-int CMediaObject::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
+int CMediaObject::GetInputPool(const GUID& requestor, ISamplePool** ppPool)
+{
+    *ppPool = NULL;
+    
+    return S_OK;
+}
+
+int CMediaObject::GetOutputPool(const GUID& requestor, ISamplePool** ppPool)
 {
     *ppPool = NULL;
     

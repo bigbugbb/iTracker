@@ -17,11 +17,11 @@ CVideoRenderer::CVideoRenderer(const GUID& guid, IDependency* pDepend, int* pRes
 {
     m_llCurPTS   = 0;
     m_llStartPTS = 0;
-    m_lfTimebase = 0;
-    m_lfSeekTime = 0;
+    m_fTimebase  = 0;
+    m_fSeekTime  = 0;
     m_pQCtrl  = NULL;
 #ifdef ANDROID
-//    m_pSwsCtx = NULL;
+    m_pSwsCtx = NULL;
     m_eDstFmt = AV_PIX_FMT_RGB565;
 #endif
 
@@ -37,36 +37,36 @@ CVideoRenderer::~CVideoRenderer()
 }
 
 // IVideoRenderer
-int CVideoRenderer::SetTimebase(double lfTimebase)
+int CVideoRenderer::SetTimebase(float fTimebase)
 {
-    m_lfTimebase = lfTimebase;
+    m_fTimebase = fTimebase;
     
     return S_OK;
 }
 
-int CVideoRenderer::SetMediaStartTime(double lfTime)
+int CVideoRenderer::SetMediaStartTime(float fTime)
 {
-    m_llStartPTS = lfTime;
+    m_llStartPTS = fTime;
     
     return S_OK;
 }
 
-int CVideoRenderer::SetMediaSeekTime(double lfTime)
+int CVideoRenderer::SetMediaSeekTime(float fTime)
 {
     PrepareSeek(TRUE);
-    m_lfSeekTime = lfTime;
-    m_llCurPTS = lfTime / m_lfTimebase;
-    //Log("SetMediaSeekTime: %lf\n", m_lfSeekTime);
+    m_fSeekTime = fTime;
+    m_llCurPTS = fTime / m_fTimebase;
+    Log("SetMediaSeekTime: %lf\n", m_fSeekTime);
     
     return S_OK;
 }
 
-int CVideoRenderer::GetMediaCurrentTime(double* pTime)
+int CVideoRenderer::GetMediaCurrentTime(float* pTime)
 {
     AssertValid(pTime);
-    *pTime = (m_llCurPTS - m_llStartPTS) * m_lfTimebase;
+    *pTime = (m_llCurPTS - m_llStartPTS) * m_fTimebase;
 
-    //Log("GetMediaCurrentTime: %lf\n", *pTime);
+    //Log("GetMediaCurrentTime: %lf m_llCurPTS: %lld m_llStartPTS: %lld\n", *pTime, m_llCurPTS, m_llStartPTS);
     
     return S_OK;
 }
@@ -74,6 +74,8 @@ int CVideoRenderer::GetMediaCurrentTime(double* pTime)
 int CVideoRenderer::EnableCaptureFrame(BOOL bCapture)
 {
     m_bCapture = bCapture;
+    
+    return S_OK;
 }
 
 int CVideoRenderer::Receive(ISamplePool* pPool)
@@ -213,11 +215,11 @@ int CVideoRenderer::SetEOS()
     return S_OK;
 }
 
-int CVideoRenderer::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
+int CVideoRenderer::GetInputPool(const GUID& requestor, ISamplePool** ppPool)
 {
     AssertValid(ppPool);
     
-    if (!memcmp(&guid, &GUID_VIDEO_DECODER, sizeof(GUID))) {
+    if (requestor == GUID_VIDEO_DECODER) {
         *ppPool = &m_FramePool;
     } else {
         *ppPool = NULL;
@@ -244,10 +246,18 @@ BOOL CVideoRenderer::IsPreparingSeek()
 inline
 void CVideoRenderer::UpdateCurTimestamp(const CMediaSample& sample)
 {
+    CFrame& frame = *reinterpret_cast<CFrame*>(sample.m_pExten);
+    
+    if (!frame.m_bShow) {
+        return;
+    }
+    
     if (sample.m_llTimestamp - sample.m_llSyncPoint < 0) {
         m_llCurPTS = sample.m_llSyncPoint;
+        //Log("sample.m_llSyncPoint = %lld\n", sample.m_llSyncPoint);
     } else {
         m_llCurPTS = sample.m_llTimestamp; // used for getting current media time
+        //Log("sample.m_llTimestamp = %lld\n", sample.m_llTimestamp);
     }
 }
 
@@ -258,7 +268,7 @@ int CVideoRenderer::OnReceive(CMediaSample& sample)
     CFrame& frame = *reinterpret_cast<CFrame*>(sample.m_pExten);
     
     llNow  = m_pRefClock->GetTime(); // ms
-    llShow = (sample.m_llTimestamp - sample.m_llSyncPoint) * m_lfTimebase * 1000; // ms
+    llShow = FFMAX(sample.m_llTimestamp - sample.m_llSyncPoint, 0) * m_fTimebase * 1000; // ms
     llLate = m_pRefClock->IsStarted() ? llNow - llShow : 0;
     //Log("pts: %lld, sync: %lld, now: %lld, show: %lld, late: %lld, frame type: %d, %d\n", 
     //    sample.m_llTimestamp, sample.m_llSyncPoint, llNow, llShow, llLate, frame.m_nType, frame.m_bShow);
@@ -269,9 +279,9 @@ int CVideoRenderer::OnReceive(CMediaSample& sample)
     }
     
     if (frame.m_bShow) {
-        LONGLONG llDelta, llTmp = GetCurrentTime();
+        LONGLONG llDelta, llTmp = GetCurrentTime(); // us
         DeliverFrame(&frame);
-        llDelta = GetCurrentTime() - llTmp + 1000;
+        llDelta = GetCurrentTime() - llTmp;
         
         while (!m_pRefClock->IsStarted() || GetState() & STATE_WAITFORRESOURCES) {
             //Log("state = %d\n", GetState());
@@ -280,8 +290,8 @@ int CVideoRenderer::OnReceive(CMediaSample& sample)
             if (m_bFlush || m_bClose) break;
         }
         if (llShow > llNow) {
-            //Log("m_VSync.Wait: %lld", llShow - llNow);
-            m_VSync.Wait((llShow - llNow) * 1000 - llDelta);
+            LONGLONG llWait = FFMIN(FFMAX((llShow - llNow) * 1000 - llDelta, 0), 7500000);
+            m_VSync.Wait(llWait);
         }
     } else {
         if (sample.m_bIgnore) {
@@ -315,20 +325,23 @@ void CVideoRenderer::DeliverFrame(CFrame* pFrame)
 }
 
 // DeliverFrameReflection is used on android only
-int CVideoRenderer::DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride)
+int CVideoRenderer::DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride, int nHeight)
 {
     //Log("DisplayVideoFrame\n");
 #ifdef ANDROID
-    AVFrame* pYUV = (AVFrame*)pSrc;
-    BYTE* pOut[4] = { pDst, NULL, NULL, NULL };
-    int nLinesize[4] = { nStride, 0, 0, 0 };
-
-//	m_pSwsCtx = sws_getCachedContext(m_pSwsCtx, pYUV->width, pYUV->height, (PixelFormat)pYUV->format,
+//    AVFrame* pYUV = (AVFrame*)pSrc;
+//    BYTE* pOut[4] = { pDst, NULL, NULL, NULL };
+//    int nLinesize[4] = { nStride, 0, 0, 0 };
+//
+//	m_pSwsCtx = sws_getCachedContext(m_pSwsCtx, pYUV->width, pYUV->height, (AVPixelFormat)pYUV->format,
 //            pYUV->width, pYUV->height, m_eDstFmt, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 //	if (!m_pSwsCtx) {
 //		Log("DisplayVideoFrame m_pSwsCtx NULL\n");
 //		return E_FAIL;
 //	}
+//    if (nHeight != pYUV->height || nStride < (pYUV->width << 1)) {
+//        return E_FAIL;
+//    }
 //    int nResult = sws_scale(m_pSwsCtx, pYUV->data, pYUV->linesize, 0, pYUV->height, pOut, nLinesize);
 #endif
     //Log("DisplayVideoFrame end\n");
@@ -341,7 +354,7 @@ LONGLONG CVideoRenderer::GetCurrentTime()
     struct timeval tmNow;
     gettimeofday(&tmNow, NULL);
     
-    return tmNow.tv_sec * 1000000 + tmNow.tv_usec;
+    return (LONGLONG)tmNow.tv_sec * 1000000 + tmNow.tv_usec;
 }
 
 THREAD_RETURN CVideoRenderer::ThreadProc()

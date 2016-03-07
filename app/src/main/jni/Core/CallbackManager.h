@@ -18,13 +18,13 @@ struct CallbackData
 {
     CallbackData()
     {
-        nCallbackType = 0;
-        pfnCallback   = 0;
-        pUserData     = 0;
-        pReserved     = 0;
+        nType       = 0;
+        pfnCallback = 0;
+        pUserData   = 0;
+        pReserved   = 0;
     }
     
-    int         nCallbackType;
+    int         nType;
     PCallback   pfnCallback;
     void*       pUserData;
     void*       pReserved;

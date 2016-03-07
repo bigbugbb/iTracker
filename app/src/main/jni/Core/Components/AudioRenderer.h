@@ -22,14 +22,13 @@ public:
     virtual ~CAudioRenderer();
     
     // IAudioRenderer
-    virtual int Interrupt(BOOL bInterrupt);
-    virtual int SetTimebase(double lfTimebase);
+    virtual int SetTimebase(float lfTimebase);
     virtual int SetSampleRate(int nSampleRate);
     virtual int SetChannelCount(int nChannelCount);
     virtual int SetSampleFormat(int nSampleFormat);
-    virtual int SetMediaSeekTime(double lfTime);
-    virtual int GetMediaCurrentTime(double* pTime);
-    virtual int SetMediaStartTime(double lfTime);
+    virtual int SetMediaSeekTime(float lfTime);
+    virtual int GetMediaCurrentTime(float* pTime);
+    virtual int SetMediaStartTime(float lfTime);
     virtual int OutputAudio(BYTE* pData, UINT nDataByteSize);
     
 protected:
@@ -43,19 +42,21 @@ protected:
     int Invalid();
     int Unload();
     int SetEOS();
-    int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
+    int GetInputPool(const GUID& requestor, ISamplePool** ppPool);
+    int RespondDispatch(const GUID& sender, int nType, void* pUserData);
 
     void FillBuffer(BYTE* pBuffer, UINT nDataByteSize);
     LONGLONG EstimateTimestamp(const CMediaSample& sample);
     
     BOOL        m_bEnable;
     BOOL        m_bClose;
+    BOOL        m_bSwitch;
     BOOL        m_bInterrupt;
-    double      m_lfTimebase;
-    double      m_lfSeekTime;
+    float       m_fTimebase;
+    float       m_fSeekTime;
     
     CEvent      m_ASync;
-    double      m_lfTSScale;
+    float       m_fTSScale;
     int         m_nSampleRate;
     int         m_nChannelCount;
     int         m_nSampleFormat;
@@ -63,6 +64,13 @@ protected:
     LONGLONG    m_llStartPTS;
     LONGLONG    m_llCurrentPTS;
     CPcmPool    m_PcmPool;
+    
+private:
+    void PrepareSeek(BOOL bPrepare = TRUE);
+    BOOL IsPreparingSeek();
+    
+    BOOL        m_bPreSeek;
+    CLock       m_csPreSeek;
 };
 
 #endif

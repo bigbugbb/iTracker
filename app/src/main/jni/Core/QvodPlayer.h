@@ -36,13 +36,13 @@ public:
     static CQvodPlayer* GetInstance();
     
     // IQvodPlayer
-    virtual int Open(const char* pszURL, double lfOffset, BOOL bRemote);
+    virtual int Open(const char* pszURL, float fOffset, BOOL bRemote);
     virtual int Close();
     virtual int Play();
-    virtual int Seek(double lfOffset);
+    virtual int Seek(float fOffset);
     virtual int Pause();
     virtual int CaptureFrame();
-    virtual int StartPreview(const char* pszURL, double lfOffset, int nFrameCount);
+    virtual int StartPreview(const char* pszURL, float fOffset, int nFrameCount);
     virtual int StopPreview();
     virtual int SetParameter(int nParam, void* pValue);
     virtual int GetParameter(int nParam, void* pValue);
@@ -56,7 +56,7 @@ protected:
     int SendMessage(const Message& msg);
     int WaitForResources(BOOL bWait, BOOL bCancel = FALSE);
     
-    // structure to hold event parameters
+    // Structure to hold event parameters
     struct EventParam
     {
         EventParam();
@@ -71,7 +71,7 @@ protected:
     
     virtual int FilterEvent(void* pSender, UINT nEvent, DWORD dwParam1, DWORD dwParam2, void* pUserData);
     
-    // Some event handlers
+    // Event Handlers
     void OnCreateAudio(void* pSender, EventParam& param);
     void OnCreateVideo(void* pSender, EventParam& param);
     void OnUpdatePictureSize(void* pSender, EventParam& param);
@@ -84,27 +84,28 @@ protected:
     void OnCloseFinished(void* pSender, EventParam& param);
     void OnPreviewStarted(void* pSender, EventParam& param);
     void OnPreviewStopped(void* pSender, EventParam& param);
+    void OnBeginSubtitle(void* pSender, EventParam& param);
+    void OnEndSubtitle(void* pSender, EventParam& param);
     void OnWaitForResources(void* pSender, EventParam& param);
     void OnEncounterError(void* pSender, EventParam& param);
     void OnAudioOnly(void* pSender, EventParam& param);
     void OnVideoOnly(void* pSender, EventParam& param);
-    void OnDiscardVideoPacket(void* pSender, EventParam& param);
-    void OnAudioNeedData(void* pSender, EventParam& param);
     void OnAudioEOS(void* pSender, EventParam& param);
     void OnVideoEOS(void* pSender, EventParam& param);
     void OnCheckDevice(void* pSender, EventParam& param);
     
     CEvent  m_Respond[RESPOND_COUNT];
     
-    IFFmpegDemuxer*       m_pDemuxer;
-    IFFmpegVideoDecoder*  m_pVideoDecoder;
-    IFFmpegAudioDecoder*  m_pAudioDecoder;
-    IVideoRenderer*       m_pVideoRenderer;
-    IAudioRenderer*       m_pAudioRenderer;
-    IFFmpegDemuxer*       m_pPreviewDemuxer;
+    IFFmpegDemuxer*         m_pDemuxer;
+    IFFmpegVideoDecoder*    m_pVideoDecoder;
+    IFFmpegAudioDecoder*    m_pAudioDecoder;
+    IFFmpegSubtitleDecoder* m_pSubtitleDecoder;
+    IVideoRenderer*         m_pVideoRenderer;
+    IAudioRenderer*         m_pAudioRenderer;
+    IFFmpegDemuxer*         m_pPreviewDemuxer;
     
-    CPlayerGraphManager*  m_pPlayerManager;
-    CPreviewGraphManager* m_pPreviewManager;
+    CPlayerGraphManager*    m_pPlayerManager;
+    CPreviewGraphManager*   m_pPreviewManager;
 };
 
 #endif

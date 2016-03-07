@@ -3,13 +3,16 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.player.MediaPlayerService;
 import com.localytics.android.itracker.util.LogUtils;
 
 
@@ -24,6 +27,8 @@ public class PlayerFragment extends TrackerFragment {
 
     private Context mContext;
     private Handler mMainHandler;
+
+    private ImageButton mPlayPauseButton;
 
     public PlayerFragment() {
         mMainHandler = new Handler();
@@ -54,6 +59,41 @@ public class PlayerFragment extends TrackerFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_player, container, false);
+        View root = inflater.inflate(R.layout.fragment_player, container, false);
+        mPlayPauseButton = (ImageButton) root.findViewById(R.id.play_pause);
+        mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), MediaPlayerService.class);
+                if (mPlayPauseButton.isPressed()) {
+                    // Pause the streaming
+                    intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_PAUSE);
+                    getActivity().startService(intent);
+                } else {
+                    // Start the streaming
+                    intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_PLAY);
+                    getActivity().startService(intent);
+                }
+            }
+        });
+
+        return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getActivity(), MediaPlayerService.class);
+        intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_OPEN);
+        intent.putExtra(MediaPlayerService.PLAYER_PARAMETER_OPEN_URL, mUrl);
+        getActivity().startService(intent);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Intent intent = new Intent(getActivity(), MediaPlayerService.class);
+        intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_CLOSE);
+        getActivity().startService(intent);
     }
 }

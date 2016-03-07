@@ -27,6 +27,7 @@ CPreviewVideoRenderer::~CPreviewVideoRenderer()
 int CPreviewVideoRenderer::Load()
 {
     Log("CPreviewVideoRenderer::Load\n");
+    m_bAgain = FALSE;
     EnableCaptureFrame(TRUE);
     
     return CVideoRenderer::Load();
@@ -91,15 +92,26 @@ int CPreviewVideoRenderer::Unload()
 int CPreviewVideoRenderer::SetEOS()
 {
     Log("CPreviewVideoRenderer::SetEOS\n");
+    if (m_bCapture) { // have not captured a frame yet
+        if (!m_bAgain) {
+            NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
+            m_bAgain = TRUE;
+        }
+        return E_FAIL;
+    }
+    if (m_bEOS) {
+        return S_OK;
+    }
+    m_bEOS = TRUE;
     
-    return CVideoRenderer::SetEOS();
+    return S_OK;
 }
 
-int CPreviewVideoRenderer::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
+int CPreviewVideoRenderer::GetInputPool(const GUID& requestor, ISamplePool** ppPool)
 {
     AssertValid(ppPool);
     
-    if (!memcmp(&guid, &GUID_PREVIEW_VIDEO_DECODER, sizeof(GUID))) {
+    if (requestor == GUID_PREVIEW_VIDEO_DECODER) {
         *ppPool = &m_FramePool;
     } else {
         *ppPool = NULL;

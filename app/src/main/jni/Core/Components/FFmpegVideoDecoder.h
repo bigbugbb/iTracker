@@ -28,7 +28,6 @@ public:
     virtual int GetVideoWidth(int* pWidth);
     virtual int GetVideoHeight(int* pHeight);
     virtual int SetDecodeMode(int nDecMode);
-    virtual int DiscardPackets(int nCount);
     virtual int EnableLoopFilter(BOOL bEnable);
     
     // IQualityControl
@@ -47,21 +46,23 @@ protected:
     int Invalid();
     int Unload();
     int SetEOS();
-    int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
-    
+    int RespondDispatch(const GUID& sender, int nType, void* pUserData);
+
     int OnReceive(CMediaSample& sample);
     
     virtual int OnVideoSizeChanged();
     virtual THREAD_RETURN ThreadProc();
+    virtual BOOL IsWaitingKeyFrameCanceled();
+    virtual int Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn);
     int Resize(int nWidth, int nHeight, AVPixelFormat eSrcFmt);
     int EnableLoopFilter2(AVCodecContext* pCodecCtx);
     BOOL IsWaitingKeyFrame();
     BOOL IsIntraOnly(AVCodecID id);
     LONGLONG AdjustTimestamp(LONGLONG llTimestamp, int nDuration);
-    int Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn);
     
     int             m_nWidth;
     int             m_nHeight;
+    int             m_nNonKeyCount;
     BOOL            m_bWaitI;
     BOOL            m_bJumpBack;
     BOOL            m_bLoopFilter;
@@ -74,13 +75,13 @@ protected:
     ISamplePool*    m_pFramePool;
     ISamplePool*    m_pVideoPool;
     
-    AVFrame         m_YUV;
+    AVFrame*        m_pYUV;
     AVPixelFormat   m_eDstFmt;
     CMediaObject*   m_pRenderer;
 #ifdef iOS
     SwsContext*     m_pSwsCtx;
 #endif
-    VideoInfo*      m_pVideo;
+    VideoTrack*     m_pVideo;
     AVCodecContext* m_pCodecCtx;
 };
 

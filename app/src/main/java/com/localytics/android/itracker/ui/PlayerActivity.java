@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.player.MediaPlayerService;
 
 public class PlayerActivity extends AppCompatActivity {
 
@@ -26,5 +27,4 @@ public class PlayerActivity extends AppCompatActivity {
                     .commit();
         }
     }
-
 }

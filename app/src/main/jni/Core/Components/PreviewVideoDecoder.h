@@ -32,6 +32,7 @@ protected:
     int Unload();
     int SetEOS();
     
+    virtual BOOL IsWaitingKeyFrameCanceled();
     virtual int InterceptEvent(int nEvent, DWORD dwParam1, DWORD dwParam2, void* pUserData);
     virtual THREAD_RETURN ThreadProc();
 };

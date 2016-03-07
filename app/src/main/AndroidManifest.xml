@@ -247,6 +247,12 @@
 
         <activity android:name=".ui.PlayerActivity">
         </activity>
+
+        <service
+            android:name=".player.MediaPlayerService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
     </application>
 
 </manifest>

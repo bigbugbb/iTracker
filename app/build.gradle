@@ -20,6 +20,11 @@ model {
                     staticLibraryFile = file("src/ffmpeg/${platform}/lib/libavutil.a")
                 }
             }
+//            swscale {
+//                binaries.withType(SharedLibraryBinary) {
+//                    sharedLibraryFile = file("src/ffmpeg/${platform}/lib/libswscale.so")
+//                }
+//            }
             swresample {
                 binaries.withType(StaticLibraryBinary) {
                     staticLibraryFile = file("src/ffmpeg/${platform}/lib/libswresample.a")
@@ -80,6 +85,7 @@ model {
                     library "ffmpeg" linkage "static"
                     library "crypto" linkage "static"
                     library "ssl"
+//                    library "swscale"
                 }
             }
         }

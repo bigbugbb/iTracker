@@ -33,10 +33,10 @@ int CCallbackManager::SetCallback(int nType, PCallback pfnCallback, void* pUserD
 {
     CallbackData cbd;
     
-    cbd.nCallbackType = nType;
-    cbd.pfnCallback   = pfnCallback;
-    cbd.pUserData    = pUserData;
-    cbd.pReserved    = pReserved;
+    cbd.nType       = nType;
+    cbd.pfnCallback = pfnCallback;
+    cbd.pUserData   = pUserData;
+    cbd.pReserved   = pReserved;
     AssertValid(pfnCallback);
     
     m_mapCallbacks[nType] = cbd;

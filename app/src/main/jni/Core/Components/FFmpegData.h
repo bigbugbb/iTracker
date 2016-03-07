@@ -15,64 +15,151 @@ extern "C" {
     
 #include "libavformat/avformat.h"
 //#include "libavformat/url.h"
-//#include "libswscale/swscale.h"
+#include "libswscale/swscale.h"
 #include "libavutil/mathematics.h"
 #include "libavcodec/avcodec.h"
+//#include "libswresample/swresample_internal.h"
     
 #ifdef __cplusplus
 }
 #endif
 
+#include <vector>
+using std::vector;
 
-#define MAX_AUDIO_TRACKS    8
-#define MAX_AUDIO_FRAME_SIZE    192000
-
-struct FormatInfo
-{
-    AVFormatContext* pFormatContext;
-    
-    AVCodecContext*  pVideoContext;
-    AVCodecContext*  pAudioContext[MAX_AUDIO_TRACKS];
-    AVCodecContext*	 pSubtitleContext;
-    
-    AVCodec*    pVideoCodec;
-    AVCodec*    pAudioCodec[MAX_AUDIO_TRACKS];
-    AVCodec*    pSubtitleCodec;
-
-    int         nVideoStreamIdx;
-    int         nAudioStreamIdx;
-    int         nSubtitleStreamIdx;
-    
-    bool        bDecodeAudio;
-    bool        bDecodeVideo;
-};
-
-struct VideoInfo
-{
-    int         nWidth;
-    int         nHeight;
-    int         nFormatID;
-    int         nBitrate;
-    int64_t     llFormatDuration;
-    int64_t     llDuration;
-    double      lfFPS;
-    double      lfTimebase;
-};
+#define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
 
 typedef enum AVSampleFormat SampleFormat;
 
-struct AudioInfo
+struct VideoTrack
 {
+    VideoTrack()
+    {
+        memset(this, 0, sizeof(VideoTrack));
+    }
+    
+    int          nStreamID;
+    int          nCodecID;
+    int          nWidth;
+    int          nHeight;
+    int          nBitrate;
+    int64_t      llDuration;
+    float        fFPS;
+    float        fTimebase;
+    void*        pUserData;
+    
+    AVCodec*         pCodec;
+    AVCodecContext*  pCodecCtx;
+};
+
+struct AudioTrack
+{
+    AudioTrack()
+    {
+        memset(this, 0, sizeof(AudioTrack));
+    }
+    
+    int          nStreamID;
+    int          nCodecID;
     int          nSampleRate;
-    int          nFormatID;
     int          nChannelsPerFrame;
     int          nFramesPerPacket;
     int          nBitrate;
-    int          nCurTrack;
-    int          nTrackCount;
+    int64_t      llDuration;
     SampleFormat nSampleFormat;
-    double       lfTimebase;
-    AVRational   avrTimebase;
+    float        fTimebase;
+    char         szTitle[256];
+    char         szAlbum[256];
+    char         szArtist[64];
+    void*        pUserData;
+    
+    AVCodec*         pCodec;
+    AVCodecContext*  pCodecCtx;
+};
+
+struct SubtitleTrack
+{
+    SubtitleTrack()
+    {
+        memset(this, 0, sizeof(SubtitleTrack));
+    }
+    
+    int          nStreamID;
+    int          nCodecID;
+    float        fTimebase;
+    void*        pUserData;
+    
+    AVCodec*         pCodec;
+    AVCodecContext*  pCodecCtx;
+};
+
+typedef vector<VideoTrack>    VideoTracks;
+typedef vector<AudioTrack>    AudioTracks;
+typedef vector<SubtitleTrack> SubtitleTracks;
+
+struct FormatInfo
+{
+    FormatInfo()
+    {
+        Clear();
+    }
+    
+    void Clear() 
+    {
+        pFmtCtx  = NULL;
+        bDecodeV = TRUE;
+        bDecodeA = TRUE;
+        bDecodeS = TRUE;
+        
+        nCurTrackV = 0;
+        nCurTrackA = 0;
+        nCurTrackS = 0;
+        
+        tracksV.clear();
+        tracksA.clear();
+        tracksS.clear();
+    }
+    
+    VideoTrack* GetCurVideoTrack()
+    {
+        if (nCurTrackV < 0 || nCurTrackV >= tracksV.size()) {
+            return NULL;
+        }
+        
+        return &tracksV[nCurTrackV];
+    }
+    
+    AudioTrack* GetCurAudioTrack()
+    {
+        if (nCurTrackA < 0 || nCurTrackA >= tracksA.size()) {
+            return NULL;
+        }
+        
+        return &tracksA[nCurTrackA];
+    }
+    
+    SubtitleTrack* GetCurSubtitleTrack()
+    {
+        if (nCurTrackS < 0 || nCurTrackS >= tracksS.size()) {
+            return NULL;
+        }
+        
+        return &tracksS[nCurTrackS];
+    }
+    
+    AVFormatContext* pFmtCtx;
+    
+    VideoTracks      tracksV;
+    AudioTracks      tracksA;
+    SubtitleTracks   tracksS;
+    
+    int   nCurTrackV;
+    int   nCurTrackA;
+    int   nCurTrackS;
+    
+    bool  bDecodeV;
+    bool  bDecodeA;
+    bool  bDecodeS;
 };
 
 #endif

@@ -44,6 +44,19 @@ struct FRAMEINFO
     void*  pContent;
 };
 
+struct MUSICINFO
+{
+    MUSICINFO()
+    {
+        memset(this, 0, sizeof(MUSICINFO));
+    }
+    
+    int    nSampleRate;
+    char   szArtist[64];
+    char   szTitle[256];
+    char   szAlbum[256];
+};
+
 struct PREVIEWINFO
 {
     PREVIEWINFO()
@@ -52,10 +65,8 @@ struct PREVIEWINFO
     }
     
     int       nBitRate;
-    double    lfDuration;
-    char      szArtist[64];
-    char      szTitle[256];
-    char      szAlbum[256];
+    float     fDuration;
+    MUSICINFO mi;
     FRAMEINFO fi;
 };
 
@@ -85,9 +96,9 @@ CQvodPlayer::CQvodPlayer(int* pResult)
     m_pVideoRenderer = dynamic_cast<IVideoRenderer*>(m_pPlayerManager->GetComponent(GUID_VIDEO_RENDERER));
     m_pAudioRenderer = dynamic_cast<IAudioRenderer*>(m_pPlayerManager->GetComponent(GUID_AUDIO_RENDERER));
     
-    static CPreviewGraphManager s_PreviewGraphMgr(this, pResult);
-    m_pPreviewManager = &s_PreviewGraphMgr;
-    m_pPreviewDemuxer = dynamic_cast<IFFmpegDemuxer*>(m_pPreviewManager->GetComponent(GUID_PREVIEW_DEMUXER));
+//    static CPreviewGraphManager s_PreviewGraphMgr(this, pResult);
+//    m_pPreviewManager = &s_PreviewGraphMgr;
+//    m_pPreviewDemuxer = dynamic_cast<IFFmpegDemuxer*>(m_pPreviewManager->GetComponent(GUID_PREVIEW_DEMUXER));
 
     *pResult = S_OK;
 }
@@ -110,11 +121,11 @@ CQvodPlayer* CQvodPlayer::GetInstance()
 }
 
 // IQvodPlayer
-int CQvodPlayer::Open(const char* pszURL, double lfOffset, BOOL bRemote)
+int CQvodPlayer::Open(const char* pszURL, float fOffset, BOOL bRemote)
 {
     Message msg(MSG_OPEN);
     
-    m_pDemuxer->InitialConfig(pszURL, lfOffset, bRemote);
+    m_pDemuxer->InitialConfig(pszURL, fOffset, bRemote);
     m_pPlayerManager->SendMessage(msg);
     
     return S_OK;
@@ -127,7 +138,7 @@ int CQvodPlayer::Close()
     m_pPlayerManager->ShrinkMessage(TRUE);
     m_pPlayerManager->SendMessage(msg);
     
-//    interrupt_avio();
+    interrupt_avio();
     
     return S_OK;
 }
@@ -141,16 +152,16 @@ int CQvodPlayer::Play()
     return S_OK;
 }
 
-int CQvodPlayer::Seek(double lfOffset)
+int CQvodPlayer::Seek(float fOffset)
 {
     Log("Seek ####\n");
     Message msg(MSG_SEEK, TRUE);
-    
-    m_pDemuxer->SetSeekPosition(lfOffset);
-    m_pVideoRenderer->SetMediaSeekTime(lfOffset);
-    m_pAudioRenderer->SetMediaSeekTime(lfOffset);
+
+    if (m_pDemuxer) m_pDemuxer->SetSeekPosition(fOffset);
+    if (m_pVideoRenderer) m_pVideoRenderer->SetMediaSeekTime(fOffset);
+    if (m_pAudioRenderer) m_pAudioRenderer->SetMediaSeekTime(fOffset);
     m_pPlayerManager->ShrinkMessage(); // discard seek message in the queue
-//    interrupt_avio();
+    interrupt_avio();
     
     m_pPlayerManager->SendMessage(msg);
     
@@ -186,11 +197,11 @@ int CQvodPlayer::CaptureFrame()
     return S_OK;
 }
 
-int CQvodPlayer::StartPreview(const char* pszURL, double lfOffset, int nFrameCount)
+int CQvodPlayer::StartPreview(const char* pszURL, float fOffset, int nFrameCount)
 {
     Message msg(MSG_OPEN);
     
-    m_pPreviewDemuxer->InitialConfig(pszURL, lfOffset, 0);
+    m_pPreviewDemuxer->InitialConfig(pszURL, fOffset, 0);
     m_pPreviewManager->SendMessage(msg);
     
     if (nFrameCount > 1) {
@@ -208,7 +219,7 @@ int CQvodPlayer::StopPreview()
     m_pPreviewManager->ShrinkMessage(TRUE);
     m_pPreviewManager->SendMessage(msg);
     
-//    interrupt_avio();
+    interrupt_avio();
 
     return S_OK;
 }
@@ -236,11 +247,17 @@ int CQvodPlayer::GetParameter(int nParam, void* pValue)
     case PLAYER_GET_STATE:
         *(int*)pValue = m_pPlayerManager->GetState();
         break;
+    case PLAYER_GET_PREVIEW_STATE:
+        *(int*)pValue = m_pPreviewManager->GetState();
+        break;
     case PLAYER_GET_MEDIA_DURATION:
-        m_pDemuxer->GetMediaDuration((double*)pValue);
+        m_pDemuxer->GetMediaDuration((float*)pValue);
         break;
     case PLAYER_GET_MEDIA_CURRENT_TIME:
-        m_pVideoRenderer->GetMediaCurrentTime((double*)pValue);
+    	if (m_pPlayerManager->IsComponentEnabled(GUID_VIDEO_RENDERER))
+    		m_pVideoRenderer->GetMediaCurrentTime((float*)pValue);
+    	else if (m_pPlayerManager->IsComponentEnabled(GUID_AUDIO_RENDERER))
+    		m_pAudioRenderer->GetMediaCurrentTime((float*)pValue);
         break;
     case PLAYER_GET_MEDIA_BITRATE:
         m_pDemuxer->GetMediaBitrate((int*)pValue);
@@ -248,8 +265,8 @@ int CQvodPlayer::GetParameter(int nParam, void* pValue)
     case PLAYER_GET_MEDIA_FORMAT_NAME:
         m_pDemuxer->GetMediaFormatName((char*)pValue);
         break;
-    case PLAYER_GET_AUDIO_FORMAT_ID:
-        m_pDemuxer->GetAudioFormatID((int*)pValue);
+    case PLAYER_GET_AUDIO_CODEC_ID:
+        m_pDemuxer->GetAudioCodecID((int*)pValue);
         break;
     case PLAYER_GET_AUDIO_CHANNEL_COUNT:
         m_pDemuxer->GetAudioChannelCount((int*)pValue);
@@ -261,13 +278,13 @@ int CQvodPlayer::GetParameter(int nParam, void* pValue)
         m_pDemuxer->GetAudioSampleFormat((int*)pValue);
         break;
     case PLAYER_GET_AUDIO_SAMPLE_RATE:
-        m_pDemuxer->GetAudioSampleRate((double*)pValue);
+        m_pDemuxer->GetAudioSampleRate((float*)pValue);
         break;
     case PLAYER_GET_AUDIO_CURRENT_TRACK:
         m_pDemuxer->GetCurAudioTrack((int*)pValue);
         break;
-    case PLAYER_GET_VIDEO_FORMAT_ID:
-        m_pDemuxer->GetVideoFormatID((int*)pValue);
+    case PLAYER_GET_VIDEO_CODEC_ID:
+        m_pDemuxer->GetVideoCodecID((int*)pValue);
         break;
     case PLAYER_GET_VIDEO_WIDTH:
         m_pVideoDecoder->GetVideoWidth((int*)pValue);
@@ -276,7 +293,7 @@ int CQvodPlayer::GetParameter(int nParam, void* pValue)
         m_pVideoDecoder->GetVideoHeight((int*)pValue);
         break;
     case PLAYER_GET_VIDEO_FPS:
-        m_pDemuxer->GetVideoFPS((int*)pValue);   
+        m_pDemuxer->GetVideoFPS((float*)pValue);   
         break;
     default:
         break;
@@ -300,10 +317,13 @@ int CQvodPlayer::ReceiveRequest(int nType, int nParam1, int nParam2, void* pUser
         m_pAudioRenderer->OutputAudio((BYTE*)pUserData, *(UINT*)pReserved);
         break;
     case REQUEST_OUTPUT_VIDEO:
-        m_pVideoRenderer->DeliverFrameReflection((BYTE*)pUserData, pReserved, nParam1);
+        m_pVideoRenderer->DeliverFrameReflection((BYTE*)pUserData, pReserved, nParam1, nParam2);
         break;
-    case REQUEST_INTERRUPT_AUDIO:
-        m_pAudioRenderer->Interrupt((BOOL)nParam1);
+    case REQUEST_AUDIO_SWITCH:
+            
+        break;
+    case REQUEST_SUBTITLE_SWITCH:
+        
         break;
     default:
         break;
@@ -363,6 +383,12 @@ int CQvodPlayer::ReceiveEvent(void* pSender, int nEvent, DWORD dwParam1, DWORD d
     case EVENT_PREVIEW_STOPPED:
         OnPreviewStopped(pSender, param);
         break;
+    case EVENT_BEGIN_SUBTITLE:
+        OnBeginSubtitle(pSender, param);
+        break;
+    case EVENT_END_SUBTITLE:
+        OnEndSubtitle(pSender, param);
+        break;
     case EVENT_WAIT_FOR_RESOURCES:
         OnWaitForResources(pSender, param);
         break;
@@ -374,12 +400,6 @@ int CQvodPlayer::ReceiveEvent(void* pSender, int nEvent, DWORD dwParam1, DWORD d
         break;
     case EVENT_VIDEO_ONLY:
         OnVideoOnly(pSender, param);
-        break;
-    case EVENT_DISCARD_VIDEO_PACKET:
-        OnDiscardVideoPacket(pSender, param);
-        break;
-    case EVENT_AUDIO_NEED_DATA:
-        OnAudioNeedData(pSender, param);
         break;
     case EVENT_AUDIO_EOS:
         OnAudioEOS(pSender, param);
@@ -462,17 +482,26 @@ void CQvodPlayer::OnPreviewCaptured(void* pSender, EventParam& param)
         return;
     }
     
-    AVFrame* pFrame = (AVFrame*)param.pUserData;
+    AVFrame*   pFrame = param.dwParam1 == 0 ? (AVFrame*)param.pUserData : NULL;
+    AudioTrack* pAudio = param.dwParam1 != 0 ? (AudioTrack*)param.pUserData : NULL;
     IFFmpegDemuxer* pDemuxer = dynamic_cast<IFFmpegDemuxer*>(m_pPreviewManager->GetComponent(GUID_PREVIEW_DEMUXER));
     PREVIEWINFO pvi;
     
     pDemuxer->GetMediaBitrate(&pvi.nBitRate);
-    pDemuxer->GetMediaDuration(&pvi.lfDuration);
-    pvi.fi.nWidth   = pFrame->width;
-    pvi.fi.nHeight  = pFrame->height;
-    pvi.fi.nStride  = pFrame->linesize[0];
-    pvi.fi.nFormat  = pFrame->format;
-    pvi.fi.pContent = pFrame->data[0]; // maybe not good, fixme
+    pDemuxer->GetMediaDuration(&pvi.fDuration);
+    if (pFrame) {
+        pvi.fi.nWidth   = pFrame->width;
+        pvi.fi.nHeight  = pFrame->height;
+        pvi.fi.nStride  = pFrame->linesize[0];
+        pvi.fi.nFormat  = pFrame->format;
+        pvi.fi.pContent = pFrame->data[0]; // maybe not good, fixme
+    } 
+    if (pAudio) {
+        pvi.mi.nSampleRate = pAudio->nSampleRate;
+        strcpy(pvi.mi.szArtist, pAudio->szArtist);
+        strcpy(pvi.mi.szTitle, pAudio->szTitle);
+        strcpy(pvi.mi.szAlbum, pAudio->szAlbum);
+    }
     
     (*cbd.pfnCallback)(cbd.pUserData, &pvi);
 }
@@ -514,6 +543,20 @@ void CQvodPlayer::OnPreviewStopped(void* pSender, EventParam& param)
     (*cbd.pfnCallback)(cbd.pUserData, param.pUserData);
 }
 
+void CQvodPlayer::OnBeginSubtitle(void* pSender, EventParam& param)
+{
+    CallbackData cbd = g_CallbackManager->GetCallbackData(CALLBACK_BEGIN_SUBTITLE);
+    
+    (*cbd.pfnCallback)(cbd.pUserData, param.pUserData);
+}
+
+void CQvodPlayer::OnEndSubtitle(void* pSender, EventParam& param)
+{
+    CallbackData cbd = g_CallbackManager->GetCallbackData(CALLBACK_END_SUBTITLE);
+    
+    (*cbd.pfnCallback)(cbd.pUserData, param.pUserData);
+}
+
 void CQvodPlayer::OnWaitForResources(void* pSender, EventParam& param)
 {
     WaitForResources((BOOL)param.dwParam1, (BOOL)param.dwParam2);
@@ -536,16 +579,6 @@ void CQvodPlayer::OnVideoOnly(void* pSender, EventParam& param)
 {
     m_pPlayerManager->EnableComponent(GUID_AUDIO_RENDERER, FALSE);
     m_pPlayerManager->SetAudioEOS(TRUE);
-}
-
-void CQvodPlayer::OnDiscardVideoPacket(void* pSender, EventParam& param)
-{
-    m_pVideoDecoder->DiscardPackets(param.dwParam1);
-}
-
-void CQvodPlayer::OnAudioNeedData(void* pSender, EventParam& param)
-{
-    m_pDemuxer->ConnectedPeerNeedData(CONNECTION_PEER_AUDIO, param.dwParam1);
 }
 
 void CQvodPlayer::OnAudioEOS(void* pSender, EventParam& param)
