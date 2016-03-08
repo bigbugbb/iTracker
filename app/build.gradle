@@ -109,12 +109,6 @@ model {
         create("x86_64") {
             ndk.abiFilters.add("x86_64")
         }
-        create("mips") {
-            ndk.abiFilters.add("mips")
-        }
-        create("mips64") {
-            ndk.abiFilters.add("mips64")
-        }
         // To include all cpu architectures, leaves abiFilters empty
         create("fat")
     }

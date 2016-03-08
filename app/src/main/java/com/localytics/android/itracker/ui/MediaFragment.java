@@ -81,7 +81,7 @@ public class MediaFragment extends TrackerFragment implements
         items.add(new AudioStreamingItem("Radio 19", "http://str12.fluidstream.net/radio19.aac"));
         items.add(new AudioStreamingItem("Detskoe Radio Yekaterinburg 89.2 FM", "http://ic3.101.ru:8000/v14_1?"));
         items.add(new AudioStreamingItem("Sputnik news - The Voice of Russia 999 AM", "http://icecast.rian.cdnvideo.ru/rian.voiceeng"));
-        items.add(new AudioStreamingItem("九九音乐台", "http://www.zueiai.net/asx3/guangbo_wl_36.asx"));
+        items.add(new AudioStreamingItem("Rush FM", "http://198.50.156.36:8708/stream"));
         items.add(new AudioStreamingItem("WKWS 96.1 FM Charleston, WV\n", "http://icy1.abacast.com/wvradio-wkwsfmmp3-64"));
 
         mAdapter.addAll(items);

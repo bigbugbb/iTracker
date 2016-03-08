@@ -1,9 +1,8 @@
 package com.localytics.android.itracker.ui;
 
-
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -29,6 +28,8 @@ public class PlayerFragment extends TrackerFragment {
     private Handler mMainHandler;
 
     private ImageButton mPlayPauseButton;
+
+    private boolean mStarted;
 
     public PlayerFragment() {
         mMainHandler = new Handler();
@@ -65,15 +66,15 @@ public class PlayerFragment extends TrackerFragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), MediaPlayerService.class);
-                if (mPlayPauseButton.isPressed()) {
-                    // Pause the streaming
-                    intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_PAUSE);
-                    getActivity().startService(intent);
-                } else {
-                    // Start the streaming
-                    intent.setAction(MediaPlayerService.INTENT_ACTION_PLAYER_PLAY);
-                    getActivity().startService(intent);
-                }
+                intent.setAction(mStarted ? MediaPlayerService.INTENT_ACTION_PLAYER_PAUSE
+                        : MediaPlayerService.INTENT_ACTION_PLAYER_PLAY);
+                getActivity().startService(intent);
+
+                Drawable drawable = getResources().getDrawable(mStarted ? R.drawable.play_streaming
+                        : R.drawable.pause_streaming);
+                mPlayPauseButton.setImageDrawable(drawable);
+
+                mStarted = !mStarted;
             }
         });
 

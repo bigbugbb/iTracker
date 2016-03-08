@@ -14,10 +14,6 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-
-        ActionBar ab = getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
-
         if (null == savedInstanceState) {
             Intent intent = getIntent();
             final String url = intent.getStringExtra(PlayerFragment.STREAMING_URL);

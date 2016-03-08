@@ -110,6 +110,15 @@
                 android:value=".ui.TrackerActivity"/>
         </activity>
         <activity
+            android:name=".ui.PlayerActivity"
+            android:label="PlayerActivity"
+            android:parentActivityName=".ui.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.TrackerActivity"/>
+        </activity>
+        <activity
             android:name=".ui.AuthenticatorActivity"
             android:label="@string/login_label"
             android:theme="@style/AppTheme">
@@ -121,6 +130,12 @@
             android:exported="false"
             android:label="@string/provider_name">
         </provider>
+
+        <service
+            android:name=".player.MediaPlayerService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
 
         <!-- Authenticator related service -->
         <service android:name=".auth.AuthenticateService">
@@ -245,14 +260,6 @@
         <!-- </receiver> -->
         <!-- [END Localytics Integration] -->
 
-        <activity android:name=".ui.PlayerActivity">
-        </activity>
-
-        <service
-            android:name=".player.MediaPlayerService"
-            android:enabled="true"
-            android:exported="true">
-        </service>
     </application>
 
 </manifest>

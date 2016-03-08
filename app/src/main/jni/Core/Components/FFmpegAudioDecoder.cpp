@@ -267,8 +267,7 @@ inline
 int CFFmpegAudioDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn)
 {
     int nLength = 0;
-    int nSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-    
+
     if (sampleIn.m_bIgnore) {
         return S_OK;
     }
@@ -286,38 +285,30 @@ int CFFmpegAudioDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, co
 
     BYTE* pData = pPacket->data;
     int  nTotal = pPacket->size;
-    BOOL bFirst = TRUE;
     while (pPacket->size > 0) {
+//        av_frame_unref(m_pPCM);
+
         int nGotFrm = 0;
-        if ((nLength = avcodec_decode_audio4(pCodecCtx, m_pPCM, &nGotFrm, pPacket)) > 0) {
-            if (bFirst) {
-//                LOG_PCM(sample.m_pBuf, nSize);
-                sample.m_pCur        = sample.m_pBuf;
-                sample.m_nActual     = nLength;
-                sample.m_llTimestamp = sampleIn.m_llTimestamp;
-                sample.m_llSyncPoint = sampleIn.m_llSyncPoint;
-                //Log("packet duration: %d\n", pPacket->duration);
-                //Log("timestamp = %lld, sync: %lld, size = %d\n", sampleIn.m_llTimestamp, sample.m_llSyncPoint, nSize);
-                bFirst = FALSE;
-            } else {
-                sample.m_nActual += nLength;
-            }
-        } else {
-            if (!bFirst)
-                sample.m_pBuf = sample.m_pCur;
+        if ((nLength = avcodec_decode_audio4(pCodecCtx, m_pPCM, &nGotFrm, pPacket)) < 0) {
             pPacket->data = pData;
             pPacket->size = nTotal;
-            //Log("avcodec_decode_audio4 fails!\n");
+            Log("avcodec_decode_audio4 fails!\n");
             return E_FAIL;
         }
 
-        sample.m_pBuf += nSize; // TODO:
+        if (nGotFrm) {
+            int nSize = av_samples_get_buffer_size(NULL, pCodecCtx->channels, m_pPCM->nb_samples, pCodecCtx->sample_fmt, 1);
+//            LOG_PCM(sample.m_pBuf[0], nSize);
+            memcpy(sample.m_pBuf, m_pPCM->data[0], nSize);
+            sample.m_pCur = sample.m_pBuf;
+            sample.m_nActual     = nSize;
+            sample.m_llTimestamp = sampleIn.m_llTimestamp;
+            sample.m_llSyncPoint = sampleIn.m_llSyncPoint;
+        }
+
         pPacket->data += nLength;
         pPacket->size -= nLength;
-        nSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-
     }
-    sample.m_pBuf = sample.m_pCur;
     pPacket->data = pData;
     pPacket->size = nTotal;
     

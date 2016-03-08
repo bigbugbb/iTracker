@@ -171,36 +171,36 @@ void CAudioRenderer::FillBuffer(BYTE* pBuffer, UINT nDataByteSize)
         //Log("audio pts: %lld, syncpt: %lld, actual: %d, stream time: %lld\n", 
         //    sample.m_llTimestamp, sample.m_llSyncPoint, sample.m_nActual, m_pRefClock->GetTime());
         
-        if (bFirst) {
-            bFirst  = FALSE;
-            llEarly = (EstimateTimestamp(sample) - sample.m_llSyncPoint) * m_fTimebase * 1000 - m_pRefClock->GetTime();
-            //Log("llEarly = %lld\n", llEarly);
-            
-            if (llEarly > AUDIO_SYNC_MIN_TOP) {
-                memset(pBuffer, 0, nDataByteSize);
-                //Log("actual: %d, wait: %lld\n", sample.m_nActual, llEarly);
-                if (llEarly > AUDIO_SYNC_MAX_TOP) {
-                    m_PcmPool.Consume(sample.m_nActual);
-                    m_PcmPool.Recycle(sample);
-                    continue;
-                }
-                break;
-            } else if (llEarly < AUDIO_SYNC_MAX_BOTTOM) {
-                //Log("early = %lld\n", llEarly);
-                if (sample.m_nActual <= nDataByteSize) {
-                    m_PcmPool.Consume(sample.m_nActual);
-                    m_PcmPool.Recycle(sample);
-                } else { // sample.m_nActual > nDataByteSize
-                    sample.m_pCur    += nDataByteSize;
-                    sample.m_nActual -= nDataByteSize;
-                    m_PcmPool.Consume(nDataByteSize);
-                    m_PcmPool.Update(sample);
-                }
-                bFirst = TRUE;
-                continue;
-            }
-        }
-        AssertValid(llEarly >= AUDIO_SYNC_MAX_BOTTOM);
+//        if (bFirst) {
+//            bFirst  = FALSE;
+//            llEarly = (EstimateTimestamp(sample) - sample.m_llSyncPoint) * m_fTimebase * 1000 - m_pRefClock->GetTime();
+//            //Log("llEarly = %lld\n", llEarly);
+//
+//            if (llEarly > AUDIO_SYNC_MIN_TOP) {
+//                memset(pBuffer, 0, nDataByteSize);
+//                Log("actual: %d, wait: %lld\n", sample.m_nActual, llEarly);
+//                if (llEarly > AUDIO_SYNC_MAX_TOP) {
+//                    m_PcmPool.Consume(sample.m_nActual);
+//                    m_PcmPool.Recycle(sample);
+//                    continue;
+//                }
+//                break;
+//            } else if (llEarly < AUDIO_SYNC_MAX_BOTTOM) {
+//                Log("early = %lld\n", llEarly);
+//                if (sample.m_nActual <= nDataByteSize) {
+//                    m_PcmPool.Consume(sample.m_nActual);
+//                    m_PcmPool.Recycle(sample);
+//                } else { // sample.m_nActual > nDataByteSize
+//                    sample.m_pCur    += nDataByteSize;
+//                    sample.m_nActual -= nDataByteSize;
+//                    m_PcmPool.Consume(nDataByteSize);
+//                    m_PcmPool.Update(sample);
+//                }
+//                bFirst = TRUE;
+//                continue;
+//            }
+//        }
+//        AssertValid(llEarly >= AUDIO_SYNC_MAX_BOTTOM);
         
         if (sample.m_nActual > nDataByteSize) {
             memcpy(pBuffer, sample.m_pCur, nDataByteSize);

@@ -226,7 +226,7 @@ int CPcmPool::Commit(const CMediaSample& sample)
     int nResult = CSamplePool::Commit(sample);
     AssertValid(nResult == S_OK);
     m_nSize += sample.m_nActual;
-    AssertValid(m_nSize <= PCM_BUFFER_SIZE);
+//    AssertValid(m_nSize <= PCM_BUFFER_SIZE);
     
     return nResult;
 }

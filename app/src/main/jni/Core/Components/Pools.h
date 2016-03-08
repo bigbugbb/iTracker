@@ -62,7 +62,7 @@ protected:
 };
 
 const int PCM_BUFFER_COUNT = 30;
-const int PCM_BUFFER_SIZE = AVCODEC_MAX_AUDIO_FRAME_SIZE * PCM_BUFFER_COUNT * 2;
+const int PCM_BUFFER_SIZE = AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 * PCM_BUFFER_COUNT;
 
 class CPcmPool : public CSamplePool
 {

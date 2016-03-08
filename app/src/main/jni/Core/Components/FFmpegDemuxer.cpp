@@ -242,7 +242,7 @@ int CFFmpegDemuxer::GetAudioTimebase(float* fTimebase)
         return E_FAIL;
     }
     
-    AssertValid(lfTimebase);
+    AssertValid(fTimebase);
     AudioTrack* pTrackA = m_format.GetCurAudioTrack();
     if (pTrackA) {
         *fTimebase = pTrackA->fTimebase;

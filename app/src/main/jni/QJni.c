@@ -18,7 +18,7 @@ static PREVIEWINFO* s_pPreview = NULL; // global, but used only in local area
 
 static jint create(JNIEnv *env, jobject thiz)
 {
-	CreatePlayer(NULL);
+	CreatePlayer("/sdcard");
 	
 	SetCallback(CALLBACK_CREATE_AUDIO_SERVICE, CreateAudioService, NULL, NULL);
 	SetCallback(CALLBACK_CREATE_VIDEO_SERVICE, CreateVideoService, NULL, NULL);
@@ -250,7 +250,7 @@ static void classInitNative(JNIEnv* env, jclass clazz)
 		D("classInitNative failed");		
     }
 
-    method_postEvent        = (*env)->GetMethodID(env, clazz, "postEventFromNative", "(III)V");
+    method_postEvent = (*env)->GetMethodID(env, clazz, "postEventFromNative", "(III)V");
 //    method_fillPreviewField = (*env)->GetMethodID(env, clazz, "fillPreviewField", "(IIIIIIDLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 //    if (!method_postEvent || !method_notifySeekPos || !method_notifyIndexPos || !method_getDownloadSpeed || !method_fillPreviewField) {
 //    	D("classInitNative failed 2");

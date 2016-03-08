@@ -9,9 +9,9 @@
 #ifndef QvodPlayer_Config_h
 #define QvodPlayer_Config_h
 
-//#ifndef PLAYER_DEBUG
-//#define PLAYER_DEBUG
-//#endif
+#ifndef PLAYER_DEBUG
+#define PLAYER_DEBUG
+#endif
 
 //#ifndef LOG_TO_FILE
 //#define LOG_TO_FILE

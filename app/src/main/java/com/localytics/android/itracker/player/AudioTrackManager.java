@@ -26,7 +26,7 @@ class AudioTrackManager {
     public void play() {
         if (mAudioThread == null) {
             mAudioThread = new AudioThread();
-            mAudioThread.setPriority(6);
+//            mAudioThread.setPriority(6);
             mAudioThread.init();
             mAudioThread.start();
         }
@@ -118,6 +118,8 @@ class AudioTrackManager {
 
         @Override
         public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
             if (mAudioTrack == null) {
                 return;
             }

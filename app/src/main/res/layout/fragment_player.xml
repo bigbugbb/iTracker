@@ -6,9 +6,9 @@
 
     <ImageButton
         android:id="@+id/play_pause"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_gravity="center"
-        android:src="@drawable/play_pause_button_states"/>
+        android:src="@drawable/play_streaming"/>
 
 </FrameLayout>
