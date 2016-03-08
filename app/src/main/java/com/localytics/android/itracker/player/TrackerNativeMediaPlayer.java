@@ -181,7 +181,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
     }
 
     public void seekTo(int msec) {
-        LOGD(TAG, " seekTo : " + msec / 1000.0);
+        LOGD(TAG, "seekTo : " + msec / 1000.0);
         playerseek(msec / 1000.0);
     }
 
@@ -309,7 +309,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
     public int getEvent() {
         try {
             Integer eventInteger = mEventBlockingQueue.poll(5, TimeUnit.SECONDS);
-            if(eventInteger != null) {
+            if (eventInteger != null) {
                 return eventInteger;
             }
         } catch (InterruptedException e) {
@@ -364,7 +364,6 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
                     break;
                 case ON_ERROR:
                     if (mOnErrorListener != null) {
-                        LOGI(TAG, "ON_ERROR  @@@@@@@@@@@@@@@ ON_ERROR = " + ON_ERROR + " arg1 = " + msg.arg1);
                         //mOnErrorListener.onError(NativePlayerN.this, msg.arg1, msg.arg2);
                         close();
                     }
@@ -372,19 +371,16 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
                 //case ON_INFO:
                 case ON_BEGIN_BUFFERING:
                     if (mOnInfoListener != null) {
-                        LOGI(TAG, "Buffering infor debug MEDIA_INFO_BUFFERING_START  NativePlayerN  ******************  ON_BEGIN_BUFFERING = " + ON_BEGIN_BUFFERING + " arg1 = " + msg.arg1);
                         mOnInfoListener.onInfo(TrackerNativeMediaPlayer.this, ITrackerMediaPlayer.MEDIA_INFO_BUFFERING_START/*msg.arg1*/, msg.arg2);
                     }
                     break;
                 case ON_END_BUFFERING:
                     if (mOnInfoListener != null) {
-                        LOGI(TAG, "Buffering infor debug MEDIA_INFO_BUFFERING_END  NativePlayerN  ******************  ON_END_BUFFERING = " + ON_END_BUFFERING + " arg1 = " + msg.arg1);
                         mOnInfoListener.onInfo(TrackerNativeMediaPlayer.this, ITrackerMediaPlayer.MEDIA_INFO_BUFFERING_END/*msg.arg1*/, msg.arg2);
                     }
                     break;
                 case ON_CLOSED:
                     if (mOnInfoListener != null) {
-                        LOGI(TAG, "ON_CLOSED  !!!!!!!!!!!!!!!!!!!!");
                         mOnInfoListener.onInfo(TrackerNativeMediaPlayer.this, msg.what, msg.arg1);
                     }
                     break;
@@ -414,7 +410,6 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
     @Override
     public void close() {
         mHandler.removeCallbacksAndMessages(this);
-        LOGI(TAG, "close() called!!!!!!!!!!!!!!!!!!!!");
         mAudioTrackManager.release();
         playerclose();
     }

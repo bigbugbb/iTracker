@@ -3,9 +3,7 @@ package com.localytics.android.itracker.player;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.media.AudioTrack.OnPlaybackPositionUpdateListener;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
@@ -42,7 +40,7 @@ class AudioTrackManager {
     }
 
     public void release() {
-        if(mAudioThread != null ) {
+        if (mAudioThread != null ) {
             LOGI(TAG, "********* release start");
             LOGI(TAG, "release mAudioThread.release() called");
             mAudioThread.release();

@@ -16,7 +16,6 @@ import android.os.Message;
 import android.util.Log;
 
 import java.io.FileDescriptor;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
