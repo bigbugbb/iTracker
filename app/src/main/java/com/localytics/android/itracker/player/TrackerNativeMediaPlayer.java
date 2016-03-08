@@ -34,6 +34,8 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
     private Surface mSurface = null;
     private LinkedBlockingQueue<Integer> mEventBlockingQueue = new LinkedBlockingQueue<>();
 
+    AudioTrackManager mAudioTrackManager = new AudioTrackManager(this);
+
     private ITrackerMediaPlayer.OnBufferingUpdateListener mOnBufferingUpdateListener;
     private ITrackerMediaPlayer.OnCompletionListener mOnCompletionListener;
     private ITrackerMediaPlayer.OnErrorListener mOnErrorListener;
@@ -139,6 +141,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
 
     public void pause() {
         playerpause();
+        mAudioTrackManager.pause();
     }
 
     public void prepare() {
@@ -174,6 +177,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
 
     public void restart() {
         playerplay();
+        mAudioTrackManager.play();
     }
 
     public void seekTo(int msec) {
@@ -219,6 +223,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
 
     public void start() {
         playerplay();
+        mAudioTrackManager.play();
     }
 
     @Override
@@ -410,6 +415,7 @@ public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {
     public void close() {
         mHandler.removeCallbacksAndMessages(this);
         LOGI(TAG, "close() called!!!!!!!!!!!!!!!!!!!!");
+        mAudioTrackManager.release();
         playerclose();
     }
 

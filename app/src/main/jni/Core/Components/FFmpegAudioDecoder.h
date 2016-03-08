@@ -56,7 +56,9 @@ protected:
     ISamplePool*    m_pPcmPool;
     ISamplePool*    m_pAudioPool;
     CMediaObject*   m_pRenderer;
-    
+
+    AVFrame*        m_pPCM;
+
     AudioTrack*     m_pAudio;
     LONGLONG        m_llSwitchTime;
     //SwrContext*     m_pSwrCtx;

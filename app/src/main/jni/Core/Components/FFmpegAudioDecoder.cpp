@@ -29,11 +29,15 @@ CFFmpegAudioDecoder::CFFmpegAudioDecoder(const GUID& guid, IDependency* pDepend,
 {
     m_pAudio = NULL;
     m_llSwitchTime = AV_NOPTS_VALUE;
+
+    m_pPCM = av_frame_alloc();
 }
 
 CFFmpegAudioDecoder::~CFFmpegAudioDecoder()
 {
-    
+    if (m_pPCM) {
+        av_frame_free(&m_pPCM);
+    }
 }
 
 // IFFmpegAudioDecoder
@@ -280,41 +284,42 @@ int CFFmpegAudioDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, co
         return E_RETRY;
     }
 
-//    BYTE* pData = pPacket->data;
-//    int  nTotal = pPacket->size;
-//    BOOL bFirst = TRUE;
-//    while (pPacket->size > 0) {
-//        if ((nLength = avcodec_decode_audio4(pCodecCtx, /*(INT16*)sample.m_pBuf*/NULL, &nSize, pPacket)) > 0) {
-//            if (bFirst) {
+    BYTE* pData = pPacket->data;
+    int  nTotal = pPacket->size;
+    BOOL bFirst = TRUE;
+    while (pPacket->size > 0) {
+        int nGotFrm = 0;
+        if ((nLength = avcodec_decode_audio4(pCodecCtx, m_pPCM, &nGotFrm, pPacket)) > 0) {
+            if (bFirst) {
 //                LOG_PCM(sample.m_pBuf, nSize);
-//                sample.m_pCur        = sample.m_pBuf;
-//                sample.m_nActual     = nSize;
-//                sample.m_llTimestamp = sampleIn.m_llTimestamp;
-//                sample.m_llSyncPoint = sampleIn.m_llSyncPoint;
-//                //Log("packet duration: %d\n", pPacket->duration);
-//                //Log("timestamp = %lld, sync: %lld, size = %d\n", sampleIn.m_llTimestamp, sample.m_llSyncPoint, nSize);
-//                bFirst = FALSE;
-//            } else {
-//                sample.m_nActual += nSize;
-//            }
-//        } else {
-//            if (!bFirst)
-//                sample.m_pBuf = sample.m_pCur;
-//            pPacket->data = pData;
-//            pPacket->size = nTotal;
-//            //Log("avcodec_decode_audio3 fails!\n");
-//            return E_FAIL;
-//        }
-//
-//        sample.m_pBuf += nSize;
-//        pPacket->data += nLength;
-//        pPacket->size -= nLength;
-//        nSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-//
-//    }
-//    sample.m_pBuf = sample.m_pCur;
-//    pPacket->data = pData;
-//    pPacket->size = nTotal;
+                sample.m_pCur        = sample.m_pBuf;
+                sample.m_nActual     = nLength;
+                sample.m_llTimestamp = sampleIn.m_llTimestamp;
+                sample.m_llSyncPoint = sampleIn.m_llSyncPoint;
+                //Log("packet duration: %d\n", pPacket->duration);
+                //Log("timestamp = %lld, sync: %lld, size = %d\n", sampleIn.m_llTimestamp, sample.m_llSyncPoint, nSize);
+                bFirst = FALSE;
+            } else {
+                sample.m_nActual += nLength;
+            }
+        } else {
+            if (!bFirst)
+                sample.m_pBuf = sample.m_pCur;
+            pPacket->data = pData;
+            pPacket->size = nTotal;
+            //Log("avcodec_decode_audio4 fails!\n");
+            return E_FAIL;
+        }
+
+        sample.m_pBuf += nSize; // TODO:
+        pPacket->data += nLength;
+        pPacket->size -= nLength;
+        nSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+
+    }
+    sample.m_pBuf = sample.m_pCur;
+    pPacket->data = pData;
+    pPacket->size = nTotal;
     
     m_pPcmPool->Commit(sample);
 
