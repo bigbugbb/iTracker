@@ -38,6 +38,8 @@ public class PrefUtils {
     /** Boolean preference that indicates whether we enabled the sdk test mode or not. */
     public static final String PREF_SDK_TEST_MODE_ENABLED = "sdk_test_mode_enabled";
 
+    public static final String PREF_HARDWARE_DECODING = "_pref_hardware_decoding";
+
     public static void init(final Context context) {}
 
     public static void markNotFirstUsage(final Context context) {
@@ -137,6 +139,16 @@ public class PrefUtils {
     public static void enableSdkTestMode(final Context context, boolean enabled) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putBoolean(PREF_SDK_TEST_MODE_ENABLED, enabled).apply();
+    }
+
+    public static boolean isHardwareDecoding(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(PREF_HARDWARE_DECODING, true);
+    }
+
+    public static void enableHardwareDecoding(final Context context, boolean enabled) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putBoolean(PREF_HARDWARE_DECODING, enabled).apply();
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,

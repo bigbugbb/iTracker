@@ -1,5 +1,5 @@
 //
-//  PlayerInterface.cpp
+//  QvodPlayerInterface.cpp
 //  QVOD
 //
 //  Created by bigbug on 11-11-21.
@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include "Core/QvodPlayer.h"
-#include "PlayerInterface.h"
+#include "QvodPlayerInterface.h"
 
 
 #ifdef LOG_AUDIO_PCM
@@ -25,20 +25,20 @@ std::string strPathLog;
 
 static IQvodPlayer* g_pPlayer = NULL;
 
-int CreatePlayer(const char* szPath)
+int CreatePlayer(const char* pszPath)
 {
 #ifdef LOG_AUDIO_PCM
-    strPathPCM = szPath;
+    strPathPCM = pszPath;
     strPathPCM += "/real";
 #endif
     
 #ifdef LOG_VIDEO_RGB
-    strPathRGB = szPath;
+    strPathRGB = pszPath;
     strPathRGB += "/rgb";
 #endif 
 
 #ifdef LOG_TO_FILE
-    strPathLog = szPath;
+    strPathLog = pszPath;
     strPathLog += "/player_log.txt";
 #endif    
     
@@ -56,13 +56,13 @@ int DestroyPlayer()
     return S_OK;
 }
 
-int Open(const char* pszURL, double lfOffset, int nRemote)
+int Open(const char* pszURL, float fOffset, int nRemote)
 {
     if (!g_pPlayer) {
         return E_FAIL;
     }
 
-    int nResult = g_pPlayer->Open(pszURL, lfOffset, nRemote);
+    int nResult = g_pPlayer->Open(pszURL, fOffset, nRemote);
 
     return nResult;
 }
@@ -100,24 +100,24 @@ int Pause()
     return nResult;
 }
 
-int Seek(double lfTime)
+int Seek(float fTime)
 {
     if (!g_pPlayer) {
         return E_FAIL;
     }
     
-    int nResult = g_pPlayer->Seek(lfTime);
+    int nResult = g_pPlayer->Seek(fTime);
     
     return nResult;
 }
 
-int StartPreview(const char* pszURL, double lfOffset, int nFrameCount)
+int StartPreview(const char* pszURL, float fOffset, int nFrameCount)
 {
     if (!g_pPlayer) {
         return E_FAIL;
     }
     
-    int nResult = g_pPlayer->StartPreview(pszURL, lfOffset, 1);
+    int nResult = g_pPlayer->StartPreview(pszURL, fOffset, 1);
     
     return nResult;
 }

@@ -45,7 +45,7 @@ int CMessageQueue::GetMessage(Message& msg)
     
     if (m_listMsgs.empty()) {
         memset(&msg, 0, sizeof(Message));
-        msg.nID = MSG_NONE;
+        msg.eID = MSG_NONE;
     } else {
         msg = m_listMsgs.front();
         m_listMsgs.pop_front();

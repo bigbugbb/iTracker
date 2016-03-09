@@ -122,7 +122,7 @@ THREAD_RETURN CFrameCapturer::ThreadProc()
     while (m_bRun) {
         RecvMessage(msg);
 
-        if (msg.nID == MSG_OTHER) {
+        if (msg.eID == MSG_OTHER) {
             AVFrame* pCapture = (AVFrame*)msg.pUserData;
             
             switch (msg.dwParam1) {

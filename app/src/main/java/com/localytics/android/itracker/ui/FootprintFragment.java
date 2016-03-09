@@ -104,7 +104,7 @@ public class FootprintFragment extends TrackerFragment implements
     }
 
     public FootprintFragment() {
-        mMainHandler = new Handler(Looper.getMainLooper());
+        mMainHandler = new Handler();
     }
 
     @Override

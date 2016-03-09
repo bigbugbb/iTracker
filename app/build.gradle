@@ -20,6 +20,11 @@ model {
                     staticLibraryFile = file("src/ffmpeg/${platform}/lib/libavutil.a")
                 }
             }
+//            swscale {
+//                binaries.withType(SharedLibraryBinary) {
+//                    sharedLibraryFile = file("src/ffmpeg/${platform}/lib/libswscale.so")
+//                }
+//            }
             swresample {
                 binaries.withType(StaticLibraryBinary) {
                     staticLibraryFile = file("src/ffmpeg/${platform}/lib/libswresample.a")
@@ -73,13 +78,14 @@ model {
         main {
             jni {
                 dependencies {
-                    library "avcodec"  linkage "static"
+                    library "avcodec" linkage "static"
                     library "avformat" linkage "static"
-                    library "avutil"   linkage "static"
+                    library "avutil" linkage "static"
                     library "swresample" linkage "static"
-                    library "ffmpeg"   linkage "static"
-                    library "crypto"   linkage "static"
+                    library "ffmpeg" linkage "static"
+                    library "crypto" linkage "static"
                     library "ssl"
+//                    library "swscale"
                 }
             }
         }
@@ -103,12 +109,6 @@ model {
         create("x86_64") {
             ndk.abiFilters.add("x86_64")
         }
-        create("mips") {
-            ndk.abiFilters.add("mips")
-        }
-        create("mips64") {
-            ndk.abiFilters.add("mips64")
-        }
         // To include all cpu architectures, leaves abiFilters empty
         create("fat")
     }
@@ -131,6 +131,7 @@ model {
         exclude 'META-INF/LGPL2.1'
     }
 }
+
 
 
 dependencies {

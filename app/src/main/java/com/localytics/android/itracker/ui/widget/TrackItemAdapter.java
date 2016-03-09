@@ -96,7 +96,9 @@ public class TrackItemAdapter extends BaseAbstractRecyclerCursorAdapter<TrackIte
                     .append(", ")
                     .append(dateTime.dayOfWeek().getAsShortText())
                     .toString();
-            mDate.setText(date);
+            if (mDate != null) {
+                mDate.setText(date);
+            }
         }
     }
 }

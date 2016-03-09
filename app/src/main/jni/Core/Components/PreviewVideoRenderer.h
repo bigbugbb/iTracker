@@ -31,11 +31,13 @@ protected:
     int Invalid();
     int Unload();
     int SetEOS();
-    int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
+    int GetInputPool(const GUID& requestor, ISamplePool** ppPool);
     
     virtual THREAD_RETURN ThreadProc();
     
     virtual void DeliverFrame(CFrame* pFrame);
+    
+    BOOL    m_bAgain;
 };
 
 #endif

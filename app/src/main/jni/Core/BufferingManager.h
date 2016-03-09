@@ -46,16 +46,16 @@ protected:
     
     virtual THREAD_RETURN ThreadProc();
     
-    int     m_nBufSize;
-    int     m_nCurSize;
+    int   m_nBufSize;
+    int   m_nCurSize;
     
-    double  m_lfProgress;
-    double  m_lfPart1;
-    double  m_lfPart1Progress;
-    double  m_lfPart2;
-    double  m_lfPart2Progress;
-    double  m_lfPart3;
-    double  m_lfPart3Progress;
+    float m_fProgress;
+    float m_fPart1;
+    float m_fPart1Progress;
+    float m_fPart2;
+    float m_fPart2Progress;
+    float m_fPart3;
+    float m_fPart3Progress;
     
     vector<IBufferingProbe*> m_vecBufProbes;
     
@@ -66,10 +66,10 @@ private:
     BOOL  m_bBuffering;
     CLock m_csBuffering;
     
-    CallbackData    m_cbdBeg;
-    CallbackData    m_cbdBuf;
-    CallbackData    m_cbdEnd;
-    CallbackData    m_cbdSpd;
+    CallbackData  m_cbdBeg;
+    CallbackData  m_cbdBuf;
+    CallbackData  m_cbdEnd;
+    CallbackData  m_cbdSpd;
 };
 
 #endif

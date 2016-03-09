@@ -9,6 +9,7 @@
 #ifndef QVOD_CompInterfaces_h
 #define QVOD_CompInterfaces_h
 
+
 struct IBufferingProbe
 {
     virtual BOOL IsProbing() = 0;
@@ -25,28 +26,26 @@ struct IFrameCapturer
     virtual int CaptureFrame() = 0;
 };
 
-#define CONNECTION_PEER_AUDIO   0
-#define CONNECTION_PEER_VIDEO   1
 struct IFFmpegDemuxer
 {
-    virtual int InitialConfig(const char* szURL, double lfOffset, BOOL bRemote) = 0;
-    virtual int ConnectedPeerNeedData(int nPeerType, BOOL bNeedData) = 0;
-    virtual int SetSeekPosition(double lfOffset) = 0;
-    virtual int GetMediaDuration(double* pDuration) = 0;
-    virtual int GetMediaStartTime(double* pTime) = 0;
+    virtual int InitialConfig(const char* szURL, float fOffset, BOOL bRemote) = 0;
+    virtual int SwitchAudioTrack(int nTrackID) = 0;
+    virtual int SwitchSubtitleTrack(int nTrackID) = 0;
+    virtual int SetSeekPosition(float fOffset) = 0;
+    virtual int GetMediaDuration(float* pDuration) = 0;
+    virtual int GetMediaStartTime(float* pTime) = 0;
     virtual int GetMediaBitrate(int* pBitrate) = 0;
     virtual int GetMediaFormatName(char* pName) = 0;
     virtual int GetAudioChannelCount(int* pCount) = 0;
     virtual int GetAudioTrackCount(int* pCount) = 0;
     virtual int GetAudioSampleFormat(int* pFormat) = 0;
-    virtual int GetAudioTimebase(double* lfTimebase) = 0;
-    virtual int GetVideoTimebase(double* lfTimebase) = 0;
+    virtual int GetAudioTimebase(float* pTimebase) = 0;
+    virtual int GetVideoTimebase(float* pTimebase) = 0;
     virtual int GetCurAudioTrack(int* pTrack) = 0;
-    virtual int SetCurAudioTrack(int nTrack) = 0;
-    virtual int GetAudioSampleRate(double* pSampleRate) = 0;
-    virtual int GetAudioFormatID(int* pFormatID) = 0;
-    virtual int GetVideoFormatID(int* pFormatID) = 0;
-    virtual int GetVideoFPS(int* pFPS) = 0;
+    virtual int GetAudioSampleRate(float* pSampleRate) = 0;
+    virtual int GetAudioCodecID(int* pCodecID) = 0;
+    virtual int GetVideoCodecID(int* pCodecID) = 0;
+    virtual int GetVideoFPS(float* pFPS) = 0;
 };
 
 #define DECODE_MODE_NONE    0
@@ -58,36 +57,36 @@ struct IFFmpegVideoDecoder
     virtual int GetVideoWidth(int* pWidth) = 0;
     virtual int GetVideoHeight(int* pHeight) = 0;
     virtual int SetDecodeMode(int nDecMode) = 0;
-    virtual int DiscardPackets(int nCount) = 0;
     virtual int EnableLoopFilter(BOOL bEnable) = 0;
 };
 
 struct IFFmpegAudioDecoder
 {
-    virtual int SetParameter(int nParam, void* pValue) = 0;
-    virtual int GetParameter(int nParam, void* pValue) = 0;
+};
+
+struct IFFmpegSubtitleDecoder
+{
 };
 
 struct IVideoRenderer
 {
-    virtual int SetTimebase(double lfTimebase) = 0;
-    virtual int SetMediaSeekTime(double lfTime) = 0;
-    virtual int GetMediaCurrentTime(double* pTime) = 0;
-    virtual int SetMediaStartTime(double lfTime) = 0;
+    virtual int SetTimebase(float fTimebase) = 0;
+    virtual int SetMediaSeekTime(float fTime) = 0;
+    virtual int GetMediaCurrentTime(float* pTime) = 0;
+    virtual int SetMediaStartTime(float fTime) = 0;
     virtual int EnableCaptureFrame(BOOL bCapture) = 0;
-    virtual int DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride) = 0; // not used on iOS
+    virtual int DeliverFrameReflection(BYTE* pDst, void* pSrc, int nStride, int nHeight) = 0; // not used on iOS
 };
 
 struct IAudioRenderer
 {
-    virtual int SetTimebase(double lfTimebase) = 0;
+    virtual int SetTimebase(float fTimebase) = 0;
     virtual int SetSampleRate(int nSampleRate) = 0;
     virtual int SetChannelCount(int nChannelCount) = 0;
     virtual int SetSampleFormat(int nSampleFormat) = 0;
-    virtual int SetMediaSeekTime(double lfTime) = 0;
-    virtual int GetMediaCurrentTime(double* pTime) = 0;
-    virtual int SetMediaStartTime(double lfTime) = 0;
-    virtual int Interrupt(BOOL bInterrupt) = 0;
+    virtual int SetMediaSeekTime(float fTime) = 0;
+    virtual int GetMediaCurrentTime(float* pTime) = 0;
+    virtual int SetMediaStartTime(float fTime) = 0;
     virtual int OutputAudio(BYTE* pData, unsigned int nDataByteSize) = 0;
 };
 

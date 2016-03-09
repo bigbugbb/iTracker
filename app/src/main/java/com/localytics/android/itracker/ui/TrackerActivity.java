@@ -68,13 +68,13 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     final int[] TAB_NAMES = new int[] {
             R.string.tab_name_action,
             R.string.tab_name_photo,
-            R.string.tab_name_movie,
+            R.string.tab_name_media,
             R.string.tab_name_friends,
     };
     final int[] TAB_ICONS = new int[] {
             R.drawable.ic_tab_action,
             R.drawable.ic_tab_photo,
-            R.drawable.ic_tab_movie,
+            R.drawable.ic_tab_media,
             R.drawable.ic_tab_friends
     };
 
@@ -282,7 +282,7 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         ViewPagerAdapter adapter = new ViewPagerAdapter(getFragmentManager());
         adapter.addFragment(new ActionFragment(), getString(TAB_NAMES[0]));
         adapter.addFragment(new PhotoFragment(), getString(TAB_NAMES[1]));
-        adapter.addFragment(new BlankFragment(), getString(TAB_NAMES[2]));
+        adapter.addFragment(new MediaFragment(), getString(TAB_NAMES[2]));
         adapter.addFragment(new BlankFragment(), getString(TAB_NAMES[3]));
         mViewPager.setAdapter(adapter);
     }

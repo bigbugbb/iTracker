@@ -22,7 +22,7 @@ public:
     CFrame();
     virtual ~CFrame();
     
-    int Resize(int nWidth, int nHeight, enum AVPixelFormat ePixFmt);
+    int Resize(int nWidth, int nHeight, AVPixelFormat ePixFmt);
     
     int           m_nType;
     BOOL          m_bShow;

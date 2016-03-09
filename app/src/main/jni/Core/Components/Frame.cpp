@@ -17,7 +17,7 @@ CFrame::CFrame()
     m_nDuration = 0;
     m_nWidth    = 0;
     m_nHeight   = 0;
-    
+
     av_frame_unref(&m_frame);
 }
 
@@ -26,7 +26,7 @@ CFrame::~CFrame()
     Free();
 }
 
-int CFrame::Resize(int nWidth, int nHeight, enum AVPixelFormat ePixFmt)
+int CFrame::Resize(int nWidth, int nHeight, AVPixelFormat ePixFmt)
 {
 	Log("CFrame::Resize, width: %d, height: %d\n", nWidth, nHeight);
     int nResult = S_OK;

@@ -13,11 +13,11 @@ using namespace::ios_qvod_player;
 
 CMemRing::CMemRing()
 {  
-    m_nHead = 0;
-    m_nTail = 0;
-    m_nUsed = 0;
+    m_nHead  = 0;
+    m_nTail  = 0;
+    m_nUsed  = 0;
     m_nCount = 0;
-    
+
     m_pCells = NULL;
     
     m_pBuffer  = NULL;

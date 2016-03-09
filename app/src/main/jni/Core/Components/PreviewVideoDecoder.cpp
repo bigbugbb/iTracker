@@ -11,6 +11,8 @@
 #include "GUIDs.h"
 #include "FFmpegData.h"
 
+#define MAX_WAITING_COUNT_FOR_PREVIEW   120
+
 
 CPreviewVideoDecoder::CPreviewVideoDecoder(const GUID& guid, IDependency* pDepend, int* pResult)
     : CFFmpegVideoDecoder(guid, pDepend, pResult)
@@ -32,28 +34,28 @@ int CPreviewVideoDecoder::Load()
     
     for (int i = 0; i < m_vecInObjs.size(); ++i) {
         const GUID& guid = m_vecInObjs[i]->GetGUID();
-        if (!memcmp(&guid, &GUID_PREVIEW_DEMUXER, sizeof(GUID))) {
+        if (guid == GUID_PREVIEW_DEMUXER) {
             pDemuxer = m_vecInObjs[i];
         }
     }
     if (!pDemuxer) {
         return E_FAIL;
     }
-    pDemuxer->GetSamplePool(GetGUID(), &m_pVideoPool);
+    pDemuxer->GetOutputPool(GetGUID(), &m_pVideoPool);
     if (!m_pVideoPool) {
         return E_FAIL;
     }
     
     for (int i = 0; i < m_vecOutObjs.size(); ++i) {
         const GUID& guid = m_vecOutObjs[i]->GetGUID();
-        if (!memcmp(&guid, &GUID_PREVIEW_VIDEO_RENDERER, sizeof(GUID))) {
+        if (guid == GUID_PREVIEW_VIDEO_RENDERER) {
             m_pRenderer = m_vecOutObjs[i];
         }
     }
     if (!m_pRenderer) {
         return E_FAIL;
     }
-    m_pRenderer->GetSamplePool(GetGUID(), &m_pFramePool);
+    m_pRenderer->GetInputPool(GetGUID(), &m_pFramePool);
     if (!m_pFramePool) {
         return E_FAIL;
     }
@@ -136,6 +138,15 @@ int CPreviewVideoDecoder::InterceptEvent(int nEvent, DWORD dwParam1, DWORD dwPar
     }
     
     return S_OK;
+}
+
+BOOL CPreviewVideoDecoder::IsWaitingKeyFrameCanceled()
+{
+    if (m_nNonKeyCount >= MAX_WAITING_COUNT_FOR_PREVIEW) {
+        return TRUE;
+    }
+    
+    return FALSE;
 }
 
 THREAD_RETURN CPreviewVideoDecoder::ThreadProc()

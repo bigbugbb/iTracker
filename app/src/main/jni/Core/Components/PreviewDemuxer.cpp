@@ -20,44 +20,36 @@
 CPreviewDemuxer::CPreviewDemuxer(const GUID& guid, IDependency* pDepend, int* pResult)
     : CFFmpegDemuxer(guid, pDepend, pResult)
 {
-    m_nJumpLimit = 0x7FFFFFFF;
+    m_nJumpLimit = INT32_MAX;
     m_llLastVideoTS = AV_NOPTS_VALUE;
-    
-    POOL_PROPERTIES request, actual;
-    request.nSize  = sizeof(AVPacket);
-    request.nCount = SCREENSHOT_VIDEO_POOL_SIZE;
-    m_VideoPool.SetProperties(&request, &actual);
-    request.nSize  = sizeof(AVPacket);
-    request.nCount = SCREENSHOT_AUDIO_POOL_SIZE;
-    m_AudioPool.SetProperties(&request, &actual);
 }
 
 CPreviewDemuxer::~CPreviewDemuxer()
 {
-    ReleaseResources();
+    Release();
 }
 
-int CPreviewDemuxer::InitialConfig(const char* szURL, double lfOffset, BOOL bRemote)
+int CPreviewDemuxer::InitialConfig(const char* szURL, float fOffset, BOOL bRemote)
 {
     if (strlen(szURL) <= 0) 
         return E_FAIL;
     
-    m_strURL   = szURL;
-    m_lfOffset = FFMIN(FFMAX(0, lfOffset), 1.0);
-    m_bRemote  = bRemote;
+    m_strURL  = szURL;
+    m_fOffset = FFMIN(FFMAX(0, fOffset), 1.0);
+    m_bRemote = bRemote;
     
-//    avio_set_remote(bRemote);
+    avio_set_remote(bRemote);
 //    av_set_notify_cb(AV_NOTIFY_RECONNECT, m_bRemote ? notify_reconnect_cb : NULL, &m_format);
     
     return S_OK;
 }
 
-int CPreviewDemuxer::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
+int CPreviewDemuxer::GetOutputPool(const GUID& requestor, ISamplePool** ppPool)
 {
     AssertValid(ppPool);
     
-    if (!memcmp(&guid, &GUID_PREVIEW_VIDEO_DECODER, sizeof(GUID))) {
-        *ppPool = &m_VideoPool;
+    if (requestor == GUID_PREVIEW_VIDEO_DECODER) {
+        *ppPool = m_PoolsV.GetCurPool();
     } else {
         *ppPool = NULL;
     }
@@ -68,38 +60,43 @@ int CPreviewDemuxer::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
 int CPreviewDemuxer::Load()
 {
     Log("CPreviewDemuxer::Load\n");
-//    maintain_avio();
-    ReleaseResources();
-    
-    if (avformat_open_input(&m_format.pFormatContext, m_strURL.c_str(), NULL, NULL) != 0) {
-        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
-        return E_FAIL;
-    }
-    if (avformat_find_stream_info(m_format.pFormatContext, NULL) < 0) {
-        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
-        return E_FAIL;
-    }
-    if (!PrepareCodecs(m_format.pFormatContext)) { // audio/video codec都找不到
-        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
-        return E_FAIL;
-    }
-    m_format.bDecodeAudio = PrepareAudioData(m_format.pFormatContext);
-    m_format.bDecodeVideo = PrepareVideoData(m_format.pFormatContext);
-    if (m_format.bDecodeVideo && !m_format.bDecodeAudio) {
-        m_llDisconThreshold = TS_JUMP_THRESHOLD / m_video.lfTimebase;
-    } else if (m_format.bDecodeAudio && m_format.bDecodeVideo) {
-        m_llDisconThreshold = TS_JUMP_THRESHOLD / m_video.lfTimebase;
-        m_lfConvert = m_video.lfTimebase / m_audio.lfTimebase;
-    } else {
-        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
-        return E_FAIL;
-    }
-    m_format.bDecodeAudio = FALSE; // audio is not used now for previewing
+    maintain_avio();
 
+    if (avformat_open_input(&m_format.pFmtCtx, m_strURL.c_str(), NULL, NULL) != 0) {
+        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
+        return E_FAIL;
+    }
+    if (avformat_find_stream_info(m_format.pFmtCtx, NULL) < 0) {
+        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
+        return E_FAIL;
+    }
+    if (!PrepareCodecs(m_format.pFmtCtx)) { // audio/video codec都找不到
+        NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
+        return E_FAIL;
+    }
+    m_format.bDecodeA = PrepareAudioData(m_format.pFmtCtx);
+    m_format.bDecodeV = PrepareVideoData(m_format.pFmtCtx);
+    m_format.bDecodeS = FALSE;
+    VideoTrack* pTrackV = m_format.GetCurVideoTrack(); 
+    AudioTrack* pTrackA = m_format.GetCurAudioTrack();
+    if (m_format.bDecodeV && !m_format.bDecodeA) {
+		m_llDisconThreshold = TS_JUMP_THRESHOLD / pTrackV->fTimebase;
+	} else if (m_format.bDecodeA && m_format.bDecodeV) {
+		m_llDisconThreshold = TS_JUMP_THRESHOLD / pTrackV->fTimebase;
+		m_format.bDecodeA = FALSE;
+	} else if (m_format.bDecodeA && !m_format.bDecodeV) {
+		m_llDisconThreshold = TS_JUMP_THRESHOLD / pTrackA->fTimebase;
+	} else {
+		NotifyEvent(EVENT_ENCOUNTER_ERROR, E_BADPREVIEW, 0, NULL);
+		return E_FAIL;
+	}
+    
     UpdateSyncPoint(0);
     m_llStartTime = m_llSyncPoint; // first key frame timestamp
-    m_lfOffset = m_lfOffset * m_video.llFormatDuration / AV_TIME_BASE;
-    Seek(m_lfOffset);
+    LONGLONG llDuration = m_format.bDecodeV ? pTrackV->llDuration : pTrackA->llDuration;
+    if (m_fOffset > 0 && m_fOffset <= llDuration / AV_TIME_BASE) {
+        Seek(m_fOffset);
+    }
     
     Create();
     m_sync.Signal();
@@ -164,6 +161,13 @@ int CPreviewDemuxer::Unload()
     return CFFmpegDemuxer::Unload();
 }
 
+int CPreviewDemuxer::Release()
+{
+    CFFmpegDemuxer::Release();
+    
+    return S_OK;
+}
+
 int CPreviewDemuxer::SetEOS()
 {
     Log("CPreviewDemuxer::SetEOS\n");
@@ -189,8 +193,13 @@ THREAD_RETURN CPreviewDemuxer::ThreadProc()
             continue;
         }
         
-        if (m_VideoPool.Size() < SCREENSHOT_VIDEO_POOL_SIZE) {
-            if (ReadPacket(m_format.pFormatContext, &packet)) {
+        if (m_format.bDecodeA && !m_format.bDecodeV) {
+            NotifyEvent(EVENT_PREVIEW_CAPTURED, 1, 0, m_format.GetCurAudioTrack());
+            m_bEOS = TRUE;
+        }
+        
+        if (m_PoolsV.GetCurPoolSize() < SCREENSHOT_VIDEO_POOL_SIZE) {
+            if (ReadPacket(m_format.pFmtCtx, &packet)) {
                 FillPacketPool(&packet);
                 nWait = 0;
             } else {

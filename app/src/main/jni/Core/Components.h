@@ -13,6 +13,7 @@
 #include "Components/FFmpegDemuxer.h"
 #include "Components/FFmpegVideoDecoder.h"
 #include "Components/FFmpegAudioDecoder.h"
+#include "Components/FFmpegSubtitleDecoder.h"
 #include "Components/VideoRenderer.h"
 #include "Components/AudioRenderer.h"
 #include "Components/PreviewDemuxer.h"

@@ -73,10 +73,6 @@ public class BaseActivity extends AppCompatActivity implements
 
     private boolean mManualSyncRequest;
 
-    static {
-        System.loadLibrary("media_player");
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

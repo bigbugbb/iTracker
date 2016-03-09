@@ -25,6 +25,7 @@ using std::vector;
 #define COMMAND_ENDFLUSH            6
 #define COMMAND_INVALID             7
 #define COMMAND_UNLOAD              8
+#define COMMAND_RELEASE             9
 
 typedef enum _DIR {
     DIR_IN = 0,
@@ -52,17 +53,24 @@ public:
     virtual int EndFlush();
     virtual int Invalid();
     virtual int Unload();
+    virtual int Release();
     virtual int SetEOS();
     virtual int Receive(ISamplePool* pPool);
     
-    virtual int GetSamplePool(const GUID& guid, ISamplePool** ppPool);
+    virtual int Dispatch(const GUID& receiver, int nType, void* pUserData);
+    virtual int RespondDispatch(const GUID& sender, int nType, void* pUserData);
+    virtual int Feedback(const GUID& receiver, int nType, void* pUserData);
+    virtual int RespondFeedback(const GUID& sender, int nType, void* pUserData);
+    
+    virtual int GetInputPool(const GUID& requestor, ISamplePool** ppPool);
+    virtual int GetOutputPool(const GUID& requestor, ISamplePool** ppPool);
     virtual int SetSyncSource(IReferenceClock* pRefClock);
     virtual int GetSyncSource(IReferenceClock** ppRefClock);
     
     const GUID& GetGUID();
     int GetState();
     int Enable(BOOL bEnable = TRUE);
-    int Connect(DIR nDir, CMediaObject* pObj);
+    int Connect(DIR eDir, CMediaObject* pObj);
     int Operate(int nCommand, void* pParam);
     
     BOOL IsEOS() const { return m_bEOS; }
@@ -134,6 +142,7 @@ public:
     BOOL            m_bIgnore;
     BOOL            m_bDiscon;
     CMediaObject*   m_pListener;
+    
 protected:
     void* GetOwner() const { return m_pOwner; }
     

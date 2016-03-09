@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Email address"
-        android:text="bigbugbb@gmail.com"
+        android:text=""
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:inputType="textEmailAddress"
         android:padding="8dp" />
@@ -22,7 +22,7 @@
         android:layout_marginTop="8dp"
         android:inputType="textPassword"
         android:hint="Password"
-        android:text="19862222"
+        android:text=""
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:padding="8dp" />
 

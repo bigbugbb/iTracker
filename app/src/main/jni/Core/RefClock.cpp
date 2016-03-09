@@ -89,7 +89,7 @@ void CReferenceClock::Play()
         Log("Play when started\n");
         return;
     }
-    
+            
     if (m_nState & CLK_STATE_PAUSED) {
         if (m_nState & CLK_STATE_WAITING) {
             Log("Play when pause & waiting\n");
@@ -225,12 +225,12 @@ CSystemRefClock::CSystemRefClock() : CReferenceClock()
 #ifdef ANDROID
     // do nothing now
 #else
-    int64_t llOneMillion = 1000 * 1000;
+    int64_t llOneMillion = 1000000;
     mach_timebase_info_data_t timebase_info;
     
     mach_timebase_info(&timebase_info);
     AssertValid(timebase_info.denom != 0);
-    m_lfTimebase = (double)timebase_info.numer / (timebase_info.denom * llOneMillion);
+    m_fTimebase = (float)timebase_info.numer / (timebase_info.denom * llOneMillion);
 #endif
 }
 
@@ -251,9 +251,9 @@ inline LONGLONG CSystemRefClock::GetCurTime()
 #ifdef ANDROID
     struct timeval tmNow;
     gettimeofday(&tmNow, NULL);
-    return tmNow.tv_sec * 1000 + tmNow.tv_usec * 0.001;
+    return (LONGLONG)tmNow.tv_sec * 1000 + tmNow.tv_usec * 0.001;
 #else
-    return mach_absolute_time() * m_lfTimebase; // milliseconds
+    return mach_absolute_time() * m_fTimebase; // milliseconds
 #endif
 }
 

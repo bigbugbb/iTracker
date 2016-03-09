@@ -39,7 +39,7 @@ void CBufferingManager::Initialize()
     m_nCurSize = 0;
     m_nBufSize = DEFAULT_BUFFER_SIZE;
 
-    m_lfProgress = 0;
+    m_fProgress = 0;
     m_bBuffering = FALSE;
     
     m_cbdBeg = g_CallbackManager->GetCallbackData(CALLBACK_BEGIN_BUFFERING);
@@ -71,7 +71,7 @@ void CBufferingManager::Reset()
     }
     
     m_nCurSize = 0;
-    m_lfProgress = 0;
+    m_fProgress = 0;
 }
 
 void CBufferingManager::UpdateBuffering(int nRecvSize)
@@ -131,18 +131,20 @@ THREAD_RETURN CBufferingManager::ThreadProc()
 
 int CBufferingManager::BeginBuffering()
 {
+    CAutoLock cObjectLock(&m_csBuffering);
+    
     NotifyEvent(EVENT_WAIT_FOR_RESOURCES, TRUE, FALSE, NULL);
     
     m_bBuffering = TRUE;
-    m_lfProgress = 0;
+    m_fProgress = 0;
     
-    m_lfPart1 = (25 + rand() % 36) * 0.01;
-    m_lfPart2 = (10 + rand() % 21) * 0.01;
-    m_lfPart3 = (90 + rand() % 10) * 0.01 - m_lfPart1 - m_lfPart2;
+    m_fPart1 = (25 + rand() % 36) * 0.01;
+    m_fPart2 = (10 + rand() % 21) * 0.01;
+    m_fPart3 = (90 + rand() % 10) * 0.01 - m_fPart1 - m_fPart2;
     
-    m_lfPart1Progress = 0;
-    m_lfPart2Progress = 0;
-    m_lfPart3Progress = 0;
+    m_fPart1Progress = 0;
+    m_fPart2Progress = 0;
+    m_fPart3Progress = 0;
     
     (*m_cbdBeg.pfnCallback)(m_cbdBeg.pUserData, m_cbdBeg.pReserved);
     
@@ -157,8 +159,8 @@ int CBufferingManager::OnBuffering()
     
     struct timeval tmNow;
     gettimeofday(&tmNow, NULL);
-    double lfInterval = tmNow.tv_sec - m_tmLast.tv_sec + (tmNow.tv_usec - m_tmLast.tv_usec) * 0.000001;
-    if (lfInterval >= 1) {
+    float fInterval = tmNow.tv_sec - m_tmLast.tv_sec + (tmNow.tv_usec - m_tmLast.tv_usec) * 0.000001;
+    if (fInterval >= 1) {
         m_tmLast = tmNow;
     } else {
         return S_OK;
@@ -167,36 +169,38 @@ int CBufferingManager::OnBuffering()
     int nSpeed = 0;
     (*m_cbdSpd.pfnCallback)(m_cbdBuf.pUserData, &nSpeed);
     if (nSpeed <= 0) {
-        (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_lfProgress);
+        (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_fProgress);
         return S_OK;
     }
     
-    if (m_lfPart1Progress < m_lfPart1) {
-        m_lfPart1Progress += rand() % (nSpeed > 60 ? (nSpeed > 180 ? 10 : 6) : 3) * 0.01;
+    if (m_fPart1Progress < m_fPart1) {
+        m_fPart1Progress += rand() % (nSpeed > 60 ? (nSpeed > 180 ? 11 : 6) : 3) * 0.01;
     }
-    if (m_lfPart2Progress < m_lfPart2) {
-        m_lfPart2Progress = (double)m_nCurSize / m_nBufSize * m_lfPart2;
+    if (m_fPart2Progress < m_fPart2) {
+        m_fPart2Progress = (float)m_nCurSize / m_nBufSize * m_fPart2;
     }
-    if (m_lfPart3Progress < m_lfPart3) {
-        m_lfPart3Progress += rand() % (nSpeed > 60 ? (nSpeed > 200 ? 4 : 3) : 2) * 0.01; 
+    if (m_fPart3Progress < m_fPart3) {
+        m_fPart3Progress += rand() % (nSpeed > 60 ? (nSpeed > 200 ? 6 : 4) : 2) * 0.01; 
     }
     
-    m_lfPart1Progress = (m_lfPart1Progress >= m_lfPart1) ? m_lfPart1 : m_lfPart1Progress;
-    m_lfPart2Progress = (m_lfPart2Progress >= m_lfPart2) ? m_lfPart2 : m_lfPart2Progress;
-    m_lfPart3Progress = (m_lfPart3Progress >= m_lfPart3) ? m_lfPart3 : m_lfPart3Progress;
+    m_fPart1Progress = (m_fPart1Progress >= m_fPart1) ? m_fPart1 : m_fPart1Progress;
+    m_fPart2Progress = (m_fPart2Progress >= m_fPart2) ? m_fPart2 : m_fPart2Progress;
+    m_fPart3Progress = (m_fPart3Progress >= m_fPart3) ? m_fPart3 : m_fPart3Progress;
     
-    m_lfProgress = m_lfPart1Progress + m_lfPart2Progress + m_lfPart3Progress;
-    (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_lfProgress);
+    m_fProgress = m_fPart1Progress + m_fPart2Progress + m_fPart3Progress;
+    (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_fProgress);
 
     return S_OK;
 }
 
 int CBufferingManager::EndBuffering()
 {
-    m_lfProgress = 1;
+    CAutoLock cObjectLock(&m_csBuffering);
+    
+    m_fProgress  = 1;
     m_bBuffering = FALSE;
 
-    (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_lfProgress);
+    (*m_cbdBuf.pfnCallback)(m_cbdBuf.pUserData, &m_fProgress);
     (*m_cbdEnd.pfnCallback)(m_cbdEnd.pUserData, m_cbdEnd.pReserved);
     
     NotifyEvent(EVENT_WAIT_FOR_RESOURCES, FALSE, FALSE, NULL);

@@ -23,7 +23,8 @@ public:
     
     CMediaObject* GetComponent(const GUID& guid);
     int EnableComponent(const GUID& guid, BOOL bEnable);
-    
+    BOOL IsComponentEnabled(const GUID& guid);
+
     void SetAudioEOS(BOOL bEOS) { m_bAudioEOS = bEOS; }
     void SetVideoEOS(BOOL bEOS) { m_bVideoEOS = bEOS; }
     
@@ -46,7 +47,7 @@ protected:
     virtual void OnInvalid(Argument& arg);
     
     vector<CMediaObject*> m_vecObjs;
-    
+
     BOOL    m_bAudioEOS;
     BOOL    m_bVideoEOS;
 private:

@@ -90,16 +90,16 @@ CMediaObject* CPreviewGraphManager::GetComponent(const GUID& guid)
             return m_vecObjs[i];
         }
     }
-    
+
     return NULL;
 }
 
 int CPreviewGraphManager::EnableComponent(const GUID& guid, BOOL bEnable)
 {
     CMediaObject* pObj = GetComponent(guid);
-    
+
     pObj->Enable(bEnable);
-    
+
     return S_OK;
 }
 
@@ -116,12 +116,12 @@ void CPreviewGraphManager::OnLoaded(Argument& arg)
     pVideoRenderer->SetQualityController(pVideoDecoder);
     pVideoRenderer->SetSyncSource(m_pRefClock);
 
-    double lfStartTime;
-    pDemuxer->GetMediaStartTime(&lfStartTime);
-    pVideoRenderer->SetMediaStartTime(lfStartTime);
-    double lfTimebase;
-    pDemuxer->GetVideoTimebase(&lfTimebase);
-    pVideoRenderer->SetTimebase(lfTimebase);
+    float fStartTime;
+    pDemuxer->GetMediaStartTime(&fStartTime);
+    pVideoRenderer->SetMediaStartTime(fStartTime);
+    float fTimebase;
+    pDemuxer->GetVideoTimebase(&fTimebase);
+    pVideoRenderer->SetTimebase(fTimebase);
     
     NotifyEvent(EVENT_PREVIEW_STARTED, 0, 0, NULL);
 }

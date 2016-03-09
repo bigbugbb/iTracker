@@ -13,6 +13,7 @@
 #include "FFmpegVideoDecoder.h"
 using namespace std;
 
+#define ALTER_THRESHOLD  350
 
 CFFmpegVideoDecoder::CFFmpegVideoDecoder(const GUID& guid, IDependency* pDepend, int* pResult)
     : CMediaObject(guid, pDepend)
@@ -25,7 +26,8 @@ CFFmpegVideoDecoder::CFFmpegVideoDecoder(const GUID& guid, IDependency* pDepend,
     m_bJumpBack  = FALSE;
     m_pCodecCtx  = NULL;
     m_pFramePool = NULL;
-    av_frame_unref(&m_YUV);
+
+    m_pYUV = av_frame_alloc();
     
 #ifdef iOS
     m_pSwsCtx = NULL;
@@ -37,12 +39,15 @@ CFFmpegVideoDecoder::CFFmpegVideoDecoder(const GUID& guid, IDependency* pDepend,
     
     m_bLoopFilter = TRUE;
 //    avcodec_set_loop_filter_probe_cb(avcodec_is_loop_filter);
-//    avcodec_enable_loop_filter(TRUE);
+    avcodec_enable_loop_filter(TRUE);
 }
 
 CFFmpegVideoDecoder::~CFFmpegVideoDecoder()
 {
-}
+    if (m_pYUV) {
+        av_frame_free(&m_pYUV);
+    }
+ }
 
 int CFFmpegVideoDecoder::GetVideoWidth(int* pWidth)
 {
@@ -71,6 +76,7 @@ int CFFmpegVideoDecoder::WaitKeyFrame(BOOL bWait)
     CAutoLock cObjectLock(&m_csDecode);
     
     m_bWaitI = bWait;
+    m_nNonKeyCount = 0;
     
     return S_OK;
 }
@@ -81,30 +87,6 @@ BOOL CFFmpegVideoDecoder::IsWaitingKeyFrame()
     CAutoLock cObjectLock(&m_csDecode);
     
     return m_bWaitI;
-}
-
-int CFFmpegVideoDecoder::DiscardPackets(int nCount)
-{
-    CAutoLock cObjectLock(&m_csDecode);
-    
-    CMediaSample sample;
-    Log("in DiscardPackets\n");
-    for (int i = 0; i < nCount; ++i) {
-        int nResult = m_pVideoPool->GetUnused(sample);
-        AssertValid(nResult == S_OK); // must be S_OK, or DiscardPackets should not be invoked
-        
-        AVPacket* pPacket = (AVPacket*)sample.m_pBuf;
-        if (pPacket->data) {
-            align_free(pPacket->data);
-            pPacket->data = NULL;
-        }
-        
-        m_pVideoPool->Recycle(sample);
-    }
-    WaitKeyFrame(TRUE);
-    Log("out DiscardPackets\n");
-    
-    return S_OK;
 }
 
 int CFFmpegVideoDecoder::EnableLoopFilter(BOOL bEnable)
@@ -146,7 +128,7 @@ int CFFmpegVideoDecoder::SetDecodeMode(int nDecMode)
 //                return S_OK;
 //            }
 //        }
-        m_pCodecCtx->skip_frame = AVDISCARD_BIDIR;
+        m_pCodecCtx->skip_frame = AVDISCARD_NONREF;
     } else if (nDecMode == DECODE_MODE_IPB) {
         //Log("Decode IPB\n");
         m_pCodecCtx->skip_frame = AVDISCARD_DEFAULT;
@@ -165,9 +147,9 @@ int CFFmpegVideoDecoder::AlterQuality(LONGLONG llLate) // ms
         llLate = 0;
     }
     
-    if (llLate <= 300) {
+    if (llLate <= ALTER_THRESHOLD) {
         SetDecodeMode(DECODE_MODE_IPB);
-    } else if (llLate > 300) {
+    } else if (llLate > ALTER_THRESHOLD) {
         SetDecodeMode(DECODE_MODE_IP);
     } 
     
@@ -211,7 +193,7 @@ int CFFmpegVideoDecoder::OnReceive(CMediaSample& sample)
     AssertValid(sample.m_nSize == sizeof(AVPacket));
     AVPacket* pPacket = (AVPacket*)sample.m_pBuf;
     m_pCodecCtx = (AVCodecContext*)sample.m_pExten; // always the same
-    m_pVideo = (VideoInfo*)sample.m_pSpecs;
+    m_pVideo = (VideoTrack*)sample.m_pSpecs;
     
     if (m_bFlush) {
         return E_RETRY;
@@ -228,7 +210,11 @@ int CFFmpegVideoDecoder::OnReceive(CMediaSample& sample)
     return nResult;
 }
 
-inline
+BOOL CFFmpegVideoDecoder::IsWaitingKeyFrameCanceled()
+{
+    return FALSE;
+}
+
 int CFFmpegVideoDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, const CMediaSample& sampleIn)
 {
     CMediaSample sample;
@@ -238,29 +224,29 @@ int CFFmpegVideoDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, co
     }
     
     int nGotPic = 0;
-    int nResult = avcodec_decode_video2(pCodecCtx, &m_YUV, &nGotPic, pPacket);
+    int nResult = avcodec_decode_video2(pCodecCtx, m_pYUV, &nGotPic, pPacket);
 
     CFrame& frame = *(CFrame*)sample.m_pExten;
     // resize & re-allocate the memory used for buffering decoded frames
     if (nGotPic && nResult > 0) {
-        if (frame.m_nWidth != m_YUV.width || frame.m_nHeight != m_YUV.height) {
+        if (frame.m_nWidth != m_pYUV->width || frame.m_nHeight != m_pYUV->height) {
             int nResult = S_OK;
 #ifdef ANDROID
             m_eDstFmt = pCodecCtx->pix_fmt; // on iOS, m_eDstFmt's default value is PIX_FMT_RGB565
 #endif
-            if ((nResult = frame.Resize(m_YUV.width, m_YUV.height, m_eDstFmt)) != S_OK) {
+            if ((nResult = frame.Resize(m_pYUV->width, m_pYUV->height, m_eDstFmt)) != S_OK) {
             	Log("CFFmpegVideoDecoder::Decode failed");
                 return nResult;
             }
-            if ((nResult = Resize(m_YUV.width, m_YUV.height, pCodecCtx->pix_fmt)) != S_OK) {
+            if ((nResult = Resize(m_pYUV->width, m_pYUV->height, pCodecCtx->pix_fmt)) != S_OK) {
             	Log("CFFmpegVideoDecoder::Decode failed");
                 return nResult;
             }
         }
     }
     
-    double lfJumpBack = (sampleIn.m_llTimestamp - sample.m_llSyncPoint) * m_pVideo->lfTimebase;
-    if (lfJumpBack < 0) {
+    float fJumpBack = (sampleIn.m_llTimestamp - sample.m_llSyncPoint) * m_pVideo->fTimebase;
+    if (fJumpBack < 0) {
         m_bJumpBack = TRUE;
         SetDecodeMode(DECODE_MODE_IP);
     } else {
@@ -270,32 +256,38 @@ int CFFmpegVideoDecoder::Decode(AVPacket* pPacket, AVCodecContext* pCodecCtx, co
         }
     }
 
-    if (m_YUV.pict_type == AV_PICTURE_TYPE_I) {
+    if (m_pYUV->pict_type == AV_PICTURE_TYPE_I) {
         WaitKeyFrame(FALSE);
-    } else if (m_YUV.pict_type == AV_PICTURE_TYPE_NONE) {
+    } else if (m_pYUV->pict_type == AV_PICTURE_TYPE_NONE) {
         if (IsIntraOnly(pCodecCtx->codec_id)) WaitKeyFrame(FALSE);
     }
     
-    frame.m_nType     = m_YUV.pict_type;
+    frame.m_nType     = m_pYUV->pict_type;
     //Log("nGotPic: %d, waitI: %d, ignore: %d\n", nGotPic, !IsWaitingKeyFrame(), sampleIn.m_bIgnore);
     frame.m_bShow     = nGotPic && !IsWaitingKeyFrame() && !sampleIn.m_bIgnore;
+    if (IsWaitingKeyFrame()) {
+		++m_nNonKeyCount;
+		if (IsWaitingKeyFrameCanceled()) {
+			WaitKeyFrame(FALSE); frame.m_bShow = TRUE;
+		}
+	}
     frame.m_nDuration = pPacket->duration;
     if (frame.m_bShow) {
 #ifdef iOS
         AVFrame* pRGB = &frame.m_frame;
         sws_scale(m_pSwsCtx, m_YUV.data, m_YUV.linesize, 0, m_nHeight, pRGB->data, pRGB->linesize);
 #else
-        av_picture_copy((AVPicture*)&frame.m_frame, (AVPicture*)&m_YUV, pCodecCtx->pix_fmt, m_nWidth, m_nHeight);
+        av_picture_copy((AVPicture*)&frame.m_frame, (AVPicture*)m_pYUV, pCodecCtx->pix_fmt, m_nWidth, m_nHeight);
 #endif
     }
     sample.m_bIgnore     = sampleIn.m_bIgnore;
-    sample.m_llTimestamp = nGotPic ? AdjustTimestamp(m_YUV.best_effort_timestamp, frame.m_nDuration) : pPacket->pts;
+    sample.m_llTimestamp = nGotPic ? AdjustTimestamp(m_pYUV->best_effort_timestamp, frame.m_nDuration) : pPacket->pts;
     sample.m_llSyncPoint = sampleIn.m_llSyncPoint;
-    //Log("best effort ts: %lld, last input ts: %lld, last output ts: %lld\n", m_pYUV->best_effort_timestamp, m_llLastInputTS, m_llLastOutputTS);
-    m_llLastInputTS  = nGotPic ? m_YUV.best_effort_timestamp : pPacket->pts;
+    //Log("best effort ts: %lld, last input ts: %lld, last output ts: %lld **********\n", m_YUV.best_effort_timestamp, m_llLastInputTS, m_llLastOutputTS);
+    m_llLastInputTS  = nGotPic ? m_pYUV->best_effort_timestamp : pPacket->pts;
     m_llLastOutputTS = sample.m_llTimestamp;
     AssertValid(!sampleIn.m_bIgnore);
-    //Log("pts: %lld, syncpt: %lld, frame type: %d, show: %d\n", sample.m_llTimestamp, sample.m_llSyncPoint, frame.m_nType, frame.m_bShow);
+    //Log("pts: %lld, syncpt: %lld, frame type: %d, show: %d, GOT: %d\n", sample.m_llTimestamp, sample.m_llSyncPoint, frame.m_nType, frame.m_bShow, nGotPic);
 
     m_pFramePool->Commit(sample);
     
@@ -306,11 +298,18 @@ inline
 LONGLONG CFFmpegVideoDecoder::AdjustTimestamp(LONGLONG llTimestamp, int nDuration)
 {
     if (m_llLastInputTS == AV_NOPTS_VALUE || m_llLastOutputTS == AV_NOPTS_VALUE) {
+        if (llTimestamp == AV_NOPTS_VALUE) {
+            llTimestamp = m_llLastOutputTS;
+        }
         return llTimestamp;
     }
     
     if (FFABS(llTimestamp - m_llLastInputTS) < nDuration * 0.2) {
         llTimestamp = m_llLastOutputTS + nDuration;
+    }
+    
+    if (llTimestamp == AV_NOPTS_VALUE) {
+        llTimestamp = m_llLastOutputTS;
     }
     
     return llTimestamp;
@@ -323,7 +322,7 @@ int CFFmpegVideoDecoder::Resize(int nWidth, int nHeight, AVPixelFormat eSrcFmt)
     if (m_nWidth != nWidth || m_nHeight != nHeight) {
         m_nWidth = nWidth; m_nHeight = nHeight;
 #ifdef iOS
-        m_pSwsCtx = sws_getCachedContext(m_pSwsCtx, nWidth, nHeight, eSrcFmt,
+        m_pSwsCtx = sws_getCachedContext(m_pSwsCtx, nWidth, nHeight, eSrcFmt, 
                 nWidth, nHeight, m_eDstFmt, SWS_FAST_BILINEAR, NULL, NULL, NULL);
         if (!m_pSwsCtx) {
             return E_FAIL;
@@ -358,34 +357,35 @@ int CFFmpegVideoDecoder::Load()
     
     for (int i = 0; i < m_vecInObjs.size(); ++i) {
         const GUID& guid = m_vecInObjs[i]->GetGUID();
-        if (!memcmp(&guid, &GUID_DEMUXER, sizeof(GUID))) {
+        if (guid == GUID_DEMUXER) {
             pDemuxer = m_vecInObjs[i];
         }
     }
     if (!pDemuxer) {
         return E_FAIL;
     }
-    pDemuxer->GetSamplePool(GetGUID(), &m_pVideoPool);
-    if (!m_pVideoPool) {
-        return E_FAIL;
-    }
+    pDemuxer->GetOutputPool(GetGUID(), &m_pVideoPool);
     
-    for (int i = 0; i < m_vecOutObjs.size(); ++i) {
-        const GUID& guid = m_vecOutObjs[i]->GetGUID();
-        if (!memcmp(&guid, &GUID_VIDEO_RENDERER, sizeof(GUID))) {
-            m_pRenderer = m_vecOutObjs[i];
+    if (!m_pVideoPool) {
+        Log("No Video Pool!\n");
+    } else {
+        for (int i = 0; i < m_vecOutObjs.size(); ++i) {
+            const GUID& guid = m_vecOutObjs[i]->GetGUID();
+            if (guid == GUID_VIDEO_RENDERER) {
+                m_pRenderer = m_vecOutObjs[i];
+            }
         }
-    }
-    if (!m_pRenderer) {
-        return E_FAIL;
-    }
-    m_pRenderer->GetSamplePool(GetGUID(), &m_pFramePool);
-    if (!m_pFramePool) {
-        return E_FAIL;
-    }
+        if (!m_pRenderer) {
+            return E_FAIL;
+        }
+        m_pRenderer->GetInputPool(GetGUID(), &m_pFramePool);
+        if (!m_pFramePool) {
+            return E_FAIL;
+        }
 
-    WaitKeyFrame(TRUE);
-    Create();
+        WaitKeyFrame(TRUE);
+        Create();
+    }
     m_sync.Signal();
     
     CMediaObject::Load();
@@ -499,11 +499,29 @@ int CFFmpegVideoDecoder::SetEOS()
     return CMediaObject::SetEOS();
 }
 
-int CFFmpegVideoDecoder::GetSamplePool(const GUID& guid, ISamplePool** ppPool)
+int CFFmpegVideoDecoder::RespondDispatch(const GUID& sender, int nType, void* pUserData)
 {
-    AssertValid(ppPool);
-
-    *ppPool = NULL;
+    if (nType == DISPATCH_DISCARD_PACKETS) {
+        int nCount = *static_cast<int*>(pUserData);
+        CAutoLock cObjectLock(&m_csDecode);
+        
+        CMediaSample sample;
+        Log("in DiscardPackets\n");
+        for (int i = 0; i < nCount; ++i) {
+            int nResult = m_pVideoPool->GetUnused(sample);
+            AssertValid(nResult == S_OK); // must be S_OK, or DiscardPackets should not be invoked
+            
+            AVPacket* pPacket = (AVPacket*)sample.m_pBuf;
+            if (pPacket->data) {
+                align_free(pPacket->data);
+                pPacket->data = NULL;
+            }
+            
+            m_pVideoPool->Recycle(sample);
+        }
+        WaitKeyFrame(TRUE);
+        Log("out DiscardPackets\n");
+    }
     
     return S_OK;
 }

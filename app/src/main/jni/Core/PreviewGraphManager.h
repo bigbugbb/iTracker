@@ -21,7 +21,7 @@ public:
     
     CMediaObject* GetComponent(const GUID& guid);
     int EnableComponent(const GUID& guid, BOOL bEnable);
-    
+
 protected:
     int BuildGraph();
     int DestroyGraph();

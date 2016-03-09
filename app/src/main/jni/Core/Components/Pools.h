@@ -18,6 +18,35 @@ public:
     int Flush();
 };
 
+#include <map>
+#include <list>
+
+class CPacketPoolList
+{
+public:
+    CPacketPoolList();
+    
+    void SetCurPool(int nTrackID);
+    CPacketPool* GetCurPool();
+    CPacketPool* GetPoolFromTrackID(int nTrackID);
+    int  GetCurPoolSize();
+    
+    void Add(int nTrackID, CPacketPool* pPool);
+    void Remove(int nTrackID);
+    void Flush();
+    void Clear();
+    
+    void EnableAutoRelease(BOOL bAutoRelease);
+    
+protected:
+    BOOL         m_bAutoRelease;
+    CLock        m_csPool;
+    CPacketPool* m_pCurPool;
+    
+    std::list<CPacketPool*>     m_listPools;
+    std::map<int, CPacketPool*> m_mapPools;
+};
+
 const int FRAME_POOL_SIZE = 6;
 
 class CFramePool : public CSamplePool
@@ -33,7 +62,7 @@ protected:
 };
 
 const int PCM_BUFFER_COUNT = 30;
-const int PCM_BUFFER_SIZE = MAX_AUDIO_FRAME_SIZE * PCM_BUFFER_COUNT * 3 / 2;
+const int PCM_BUFFER_SIZE = AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 * PCM_BUFFER_COUNT;
 
 class CPcmPool : public CSamplePool
 {
