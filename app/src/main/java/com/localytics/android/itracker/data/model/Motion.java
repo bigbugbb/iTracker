@@ -11,9 +11,8 @@ import org.joda.time.DateTime;
 
 import java.util.Arrays;
 
-public final class Motion implements Parcelable {
+public final class Motion extends BaseData implements Parcelable {
 
-    public long   time;
     public int    data;
     public int    sampling;
     public String device_id;

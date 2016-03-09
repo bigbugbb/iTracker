@@ -23,6 +23,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
+import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -286,62 +287,7 @@ public class SyncHelper {
 
         LOGD(TAG, "Starting track data sync.");
 
-        syncData(Activities.CONTENT_URI, new OnDataSyncingListener() {
-            @Override
-            public void onDataSyncing(final Uri uri, Cursor cursor) {
-                if (cursor.moveToFirst()) {
-                    long nextTime, prevTime = 0;
-                    final String deviceId = DeviceUtils.getDeviceUUID(mContext);
-                    final List<Activity> data = new ArrayList<>(60);
-                    final List<ContentProviderOperation> ops = new LinkedList<>();
-
-                    do {
-                        final Activity activity = new Activity(cursor);
-                        nextTime = activity.time - activity.time % DateUtils.HOUR_IN_MILLIS;
-                        if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
-                            final File file = makeUploadFile(String.format("activity_%d.csv", prevTime), data);
-
-                            if (file.exists()) {
-                                final String[] selectionArgs = new String[]{prevTime + "", nextTime + ""};
-                                final String bucket = Config.S3_BUCKET_NAME;
-                                final String key = getPrefixKey(prevTime) + "/activities_" + deviceId;
-                                final String url = mS3Client.getResourceUrl(bucket, key);
-                                TransferObserver observer = uploadFileToS3(bucket, key, file);
-                                observer.setTransferListener(new TransferListener() {
-                                    @Override
-                                    public void onStateChanged(int id, TransferState state) {
-                                        if (state == TransferState.COMPLETED) {
-                                            // Clear dirty column for data of this hour if the file has been uploaded successfully
-                                            ops.add(ContentProviderOperation.newUpdate(uri)
-                                                    .withValue(SyncColumns.DIRTY, null)
-                                                    .withSelection(SELECTION_BY_INTERVAL, selectionArgs)
-                                                    .build());
-                                            FileUtils.deleteQuietly(file);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-
-                                    }
-
-                                    @Override
-                                    public void onError(int id, Exception ex) {
-                                        FileUtils.deleteQuietly(file);
-                                    }
-                                });
-                            }
-
-                            data.clear();
-                        }
-                        data.add(activity);
-                        prevTime = nextTime;
-                    } while (cursor.moveToNext());
-                }
-
-                // TODO: update the url list with the s3 url
-            }
-        });
+        syncData(Activities.CONTENT_URI, mActivityDataSyncingListener);
 
         syncData(Locations.CONTENT_URI, new OnDataSyncingListener() {
             @Override
@@ -383,7 +329,70 @@ public class SyncHelper {
         }
     }
 
-    private File makeUploadFile(String filename, List<?> data) {
+    private OnDataSyncingListener mActivityDataSyncingListener = new OnDataSyncingListener() {
+        @Override
+        public void onDataSyncing(final Uri uri, Cursor cursor) {
+//            if (cursor.moveToFirst()) {
+//                long nextTime, prevTime = 0;
+//                final List<BaseData> data = new ArrayList<>(60);
+//                final List<ContentProviderOperation> ops = new LinkedList<>();
+//
+//                do {
+//                    final BaseData item = BaseData.objectForCursor(Activity.class, cursor);
+//                    nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
+//                    if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+//                        final String[] selectionArgs = new String[]{prevTime + "", nextTime + ""};
+//                        final File file = makeDataFileForUpload(getLocalFilename(Activity.class, prevTime), data);
+//                        TransferObserver observer = uploadDataFileForTimeRange(file, prevTime, nextTime);
+//                        observer.setTransferListener(new TransferListener() {
+//                            @Override
+//                            public void onStateChanged(int id, TransferState state) {
+//                                if (state == TransferState.COMPLETED) {
+//                                    // Clear dirty column for data of this hour if the file has been uploaded successfully
+//                                    ops.add(ContentProviderOperation.newUpdate(uri)
+//                                            .withValue(SyncColumns.DIRTY, null)
+//                                            .withSelection(SELECTION_BY_INTERVAL, selectionArgs)
+//                                            .build());
+//                                    FileUtils.deleteQuietly(file);
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+//
+//                            }
+//
+//                            @Override
+//                            public void onError(int id, Exception ex) {
+//                                FileUtils.deleteQuietly(file);
+//                            }
+//                        });
+//                        data.clear();
+//                    }
+//                    data.add(item);
+//                    prevTime = nextTime;
+//                } while (cursor.moveToNext());
+//            }
+
+            // TODO: update the url list with the s3 url
+        }
+    };
+
+    private TransferObserver uploadDataFileForTimeRange(final File file, long beginTime, long endTime) {
+
+        if (!file.exists() || file.length() == 0) {
+            return null;
+        }
+
+        final String deviceId = DeviceUtils.getDeviceUUID(mContext);
+        final String bucket = Config.S3_BUCKET_NAME;
+        final String key = getPrefixKey(beginTime) + "/activities_" + deviceId;
+        final String url = mS3Client.getResourceUrl(bucket, key);
+        TransferObserver observer = uploadFileToS3(bucket, key, file);
+        return observer;
+    }
+
+    private File makeDataFileForUpload(String filename, List<?> data) {
         File file = new File(mContext.getCacheDir(), filename);
         try {
             CSVWriter writer = new CSVWriter(new FileWriter(file, false));
@@ -411,6 +420,17 @@ public class SyncHelper {
             LOGE(TAG, "Write data to " + file + " failed: " + e.getMessage());
         }
         return file;
+    }
+
+    private String getLocalFilename(Class<?> cls, long time) {
+        if (cls.equals(Activity.class)) {
+            return String.format("activity_%d.csv", time);
+        } else if (cls.equals(Location.class)) {
+            return String.format("location_%d.csv", time);
+        } else if (cls.equals(Motion.class)) {
+            return String.format("motion_%d.csv", time);
+        }
+        return String.format("unknown_%d.csv", time);
     }
 
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {

@@ -9,9 +9,8 @@ import com.localytics.android.itracker.provider.TrackerContract;
 /**
  * Created by bigbug on 1/10/16.
  */
-public final class Location implements Parcelable {
+public final class Location extends BaseData implements Parcelable {
 
-    public long   time;
     public float  latitude;
     public float  longitude;
     public float  altitude;

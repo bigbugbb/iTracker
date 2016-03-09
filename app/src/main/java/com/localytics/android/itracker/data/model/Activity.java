@@ -14,9 +14,8 @@ import com.localytics.android.itracker.provider.TrackerContract;
 /**
  * Created by bigbug on 1/10/16.
  */
-public final class Activity implements Parcelable {
+public final class Activity extends BaseData implements Parcelable {
 
-    public long   time;
     public String type;
     public int    type_id;
     public int    confidence;

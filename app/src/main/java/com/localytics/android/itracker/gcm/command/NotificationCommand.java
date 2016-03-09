@@ -24,7 +24,6 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.gcm.GCMCommand;
 import com.localytics.android.itracker.util.TimeUtils;
 import com.localytics.android.itracker.util.UIUtils;
 

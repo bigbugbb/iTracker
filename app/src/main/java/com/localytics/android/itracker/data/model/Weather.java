@@ -9,9 +9,8 @@ import com.localytics.android.itracker.provider.TrackerContract;
 /**
  * Created by bigbug on 1/16/16.
  */
-public final class Weather implements Parcelable {
+public final class Weather extends BaseData implements Parcelable {
 
-    public long   time;
     public String city;
     public String weather;
     public int    temperature;

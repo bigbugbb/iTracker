@@ -17,8 +17,6 @@ package com.localytics.android.itracker.gcm.command;
 
 import android.content.Context;
 
-import com.localytics.android.itracker.gcm.GCMCommand;
-
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 

@@ -22,7 +22,6 @@ import android.content.Intent;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.localytics.android.itracker.gcm.GCMCommand;
 import com.localytics.android.itracker.sync.TriggerSyncReceiver;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGI;

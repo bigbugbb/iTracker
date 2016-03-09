@@ -20,7 +20,6 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.gcm.GCMCommand;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
