@@ -156,7 +156,7 @@ public class ActionFrameLayout extends FrameLayout {
                 Rect hitRect = new Rect();
                 mMotionsView.getGlobalVisibleRect(hitRect);
                 if (hitRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
-                    mFootprintFab.removeCallbacks(null);
+                    mFootprintFab.removeCallbacks(mShowFootprintFab);
                     mFootprintFab.hide();
                     showDateViewWithAnimation();
                 }
@@ -288,7 +288,7 @@ public class ActionFrameLayout extends FrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mFootprintFab.removeCallbacks(null);  // Remove all message in the message queue to prevent memory leak
+        mFootprintFab.removeCallbacks(mShowFootprintFab);  // Remove all message in the message queue to prevent memory leak
         mDatePopupView.removeCallbacks(null);
     }
 
@@ -304,13 +304,7 @@ public class ActionFrameLayout extends FrameLayout {
             return true;
         } else {
             if (MotionEventCompat.getActionMasked(ev) == MotionEvent.ACTION_UP) {
-                mFootprintFab.removeCallbacks(null);
-                mFootprintFab.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mFootprintFab.show();
-                    }
-                }, FOOTPRINT_FAB_SHOW_DELAY);
+                mFootprintFab.postDelayed(mShowFootprintFab, FOOTPRINT_FAB_SHOW_DELAY);
                 mDragging = false;
             }
         }
@@ -396,6 +390,13 @@ public class ActionFrameLayout extends FrameLayout {
                 (parentWidth + mDatePopupView.getWidth()) / 2,
                 0);
     }
+
+    private Runnable mShowFootprintFab = new Runnable() {
+        @Override
+        public void run() {
+            mFootprintFab.show();
+        }
+    };
 
     private int dpToPx(int dps) {
         return Math.round(getResources().getDisplayMetrics().density * dps);

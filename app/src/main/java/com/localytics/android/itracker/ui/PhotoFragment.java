@@ -15,8 +15,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -45,6 +47,8 @@ public class PhotoFragment extends TrackerFragment implements
     private FloatingActionButton mFabTakePhoto;
 
     private ThrottledContentObserver mPhotosObserver;
+
+    private static final long TAKE_PHOTO_FAB_SHOW_DELAY = 500;
 
     public PhotoFragment() {
         // Required empty public constructor
@@ -97,8 +101,36 @@ public class PhotoFragment extends TrackerFragment implements
             }
         });
 
+        mPhotoCollectionView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (mFabTakePhoto == null) {
+                    return false;
+                }
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        mFabTakePhoto.removeCallbacks(mShowTakePhotoFab);
+                        mFabTakePhoto.hide();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mFabTakePhoto.postDelayed(mShowTakePhotoFab, TAKE_PHOTO_FAB_SHOW_DELAY);
+                        break;
+                }
+                return false;
+            }
+        });
+
         return root;
     }
+
+    private Runnable mShowTakePhotoFab = new Runnable() {
+        @Override
+        public void run() {
+            if (mFabTakePhoto != null) {
+                mFabTakePhoto.show();
+            }
+        }
+    };
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -121,6 +153,9 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mFabTakePhoto != null) {
+            mFabTakePhoto.removeCallbacks(mShowTakePhotoFab);
+        }
     }
 
     @Override

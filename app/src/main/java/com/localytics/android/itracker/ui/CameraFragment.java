@@ -59,7 +59,7 @@ public class CameraFragment extends Fragment implements
     private Camera.ShutterCallback mShutterCallback;
     private Camera.PictureCallback mJpegCallback;
 
-    private static final int MAX_PREVIEW_WIDTH = 1920;
+    private static final int MAX_PREVIEW_WIDTH = 2560;
     private static final int MAX_PREVIEW_HEIGHT = 1440;
 
     /**
@@ -123,13 +123,12 @@ public class CameraFragment extends Fragment implements
                 FileOutputStream outStream = null;
                 try {
                     outStream = new FileOutputStream(String.format("/sdcard/%d.jpg", System.currentTimeMillis()));
-
                     outStream.write(data);
                     outStream.close();
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    LOGD(TAG, "FileNotFoundException: " + e.getMessage());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGD(TAG, "IOException: " + e.getMessage());
                 } finally {
                 }
 
@@ -193,9 +192,9 @@ public class CameraFragment extends Fragment implements
 
         Point displaySize = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
-        int rotatedPreviewWidth = width;
+        int rotatedPreviewWidth  = width;
         int rotatedPreviewHeight = height;
-        int maxPreviewWidth = displaySize.x;
+        int maxPreviewWidth  = displaySize.x;
         int maxPreviewHeight = displaySize.y;
 
 //        if (swappedDimensions) {
@@ -221,14 +220,10 @@ public class CameraFragment extends Fragment implements
             }
         }
 
-
-
-        // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-        // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-        // garbage capture data.
+        // Danger, W.R.! Attempting to use too large a preview size could exceed the camera
+        // bus' bandwidth limitation, resulting in gorgeous previews but the storage of garbage capture data.
         mPreviewSize = chooseOptimalSize(param.getSupportedPreviewSizes(),
-                rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
-                maxPreviewHeight, displaySize);
+                rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth, maxPreviewHeight, displaySize);
 
         // We fit the aspect ratio of TextureView to the size of preview we picked.
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -318,7 +313,7 @@ public class CameraFragment extends Fragment implements
      * @param textureViewHeight The height of the texture view relative to sensor coordinate
      * @param maxWidth          The maximum width that can be chosen
      * @param maxHeight         The maximum height that can be chosen
-     * @param aspectRatio       The aspect ratio
+     * @param aspectRatio       The display aspect ratio
      * @return The optimal {@code Size}, or an arbitrary one if none were big enough
      */
     private static Camera.Size chooseOptimalSize(List<Camera.Size> choices, int textureViewWidth,
