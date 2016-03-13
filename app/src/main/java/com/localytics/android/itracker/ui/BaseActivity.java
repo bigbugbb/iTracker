@@ -219,8 +219,10 @@ public class BaseActivity extends AppCompatActivity implements
         }
 
         final ActionBar ab = getSupportActionBar();
-        ab.setDisplayShowHomeEnabled(true);
-        ab.setDisplayUseLogoEnabled(true);
+        if (ab != null) {
+            ab.setDisplayShowHomeEnabled(true);
+            ab.setDisplayUseLogoEnabled(true);
+        }
 
 //        ab.setDisplayShowCustomEnabled(true);
 //        ab.setDisplayShowTitleEnabled(true);

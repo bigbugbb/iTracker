@@ -101,15 +101,6 @@
                 android:value=".ui.TrackerActivity"/>
         </activity>
         <activity
-            android:name=".ui.CameraActivity"
-            android:label="CameraActivity"
-            android:parentActivityName=".ui.TrackerActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.TrackerActivity"/>
-        </activity>
-        <activity
             android:name=".ui.PlayerActivity"
             android:label="PlayerActivity"
             android:parentActivityName=".ui.TrackerActivity"

@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -18,7 +20,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,7 +33,13 @@ import com.localytics.android.itracker.util.ThrottledContentObserver;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
@@ -44,10 +51,14 @@ public class PhotoFragment extends TrackerFragment implements
     private CollectionView mPhotoCollectionView;
     private PhotoCollectionAdapter mPhotoCollectionAdapter;
 
+    private String mCurrentPhotoPath;
     private FloatingActionButton mFabTakePhoto;
 
     private ThrottledContentObserver mPhotosObserver;
 
+    private static final int REQUEST_TAKE_PHOTO = 1;
+    private static final String JPEG_FILE_PREFIX = "IMG_";
+    private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final long TAKE_PHOTO_FAB_SHOW_DELAY = 500;
 
     public PhotoFragment() {
@@ -96,8 +107,23 @@ public class PhotoFragment extends TrackerFragment implements
         mFabTakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), CameraActivity.class);
-                startActivity(intent);
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                // Ensure that there's a camera activity to handle the intent
+                if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    // Create the File where the photo should go
+                    File photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                    } catch (IOException e) {
+                        // Error occurred while creating the File
+                        LOGE(TAG, "IOException while creating the file: " + e.getMessage());
+                    }
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                    }
+                }
             }
         });
 
@@ -156,6 +182,32 @@ public class PhotoFragment extends TrackerFragment implements
         if (mFabTakePhoto != null) {
             mFabTakePhoto.removeCallbacks(mShowTakePhotoFab);
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
+            galleryAddPhoto();
+            reloadPhotosWithRequiredPermission();
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = JPEG_FILE_PREFIX + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX, storageDir);
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void galleryAddPhoto() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File image = new File(mCurrentPhotoPath);
+        Uri contentUri = Uri.fromFile(image);
+        mediaScanIntent.setData(contentUri);
+        getActivity().sendBroadcast(mediaScanIntent);
     }
 
     @Override

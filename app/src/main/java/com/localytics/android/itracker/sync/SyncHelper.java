@@ -1,7 +1,6 @@
 package com.localytics.android.itracker.sync;
 
 import android.accounts.Account;
-import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
@@ -14,16 +13,13 @@ import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
-import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -31,7 +27,6 @@ import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.BaseDataColumns;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
-import com.localytics.android.itracker.provider.TrackerContract.SyncColumns;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -39,14 +34,11 @@ import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.UIUtils;
 import com.opencsv.CSVWriter;
 
-import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
