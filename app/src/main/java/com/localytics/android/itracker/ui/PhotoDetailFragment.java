@@ -2,7 +2,6 @@ package com.localytics.android.itracker.ui;
 
 
 import android.app.Fragment;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -13,8 +12,6 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Photo;
-
-import java.io.File;
 
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 

@@ -1,7 +1,5 @@
 package com.localytics.android.itracker;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.StrictMode;
 import android.text.format.DateUtils;
 
