@@ -152,6 +152,8 @@
     <string name="years">Years</string>
     <string name="title_activity_upcoming_events">Events</string>
 
+    <string name="back_pressed_prompt">Press again to quit</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_footprint">Footprint</string>

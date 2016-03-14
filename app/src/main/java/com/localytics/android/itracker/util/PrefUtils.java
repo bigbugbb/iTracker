@@ -40,6 +40,9 @@ public class PrefUtils {
 
     public static final String PREF_HARDWARE_DECODING = "_pref_hardware_decoding";
 
+    /** Long indicating when the date range filter is set */
+    public static final String PREF_LAST_DATE_RANGE_UPDATED = "_pref_last_date_range_updated";
+
     public static void init(final Context context) {}
 
     public static void markNotFirstUsage(final Context context) {
@@ -149,6 +152,16 @@ public class PrefUtils {
     public static void enableHardwareDecoding(final Context context, boolean enabled) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putBoolean(PREF_HARDWARE_DECODING, enabled).apply();
+    }
+
+    public static long getLastDateRangeUpdateTime(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getLong(PREF_LAST_DATE_RANGE_UPDATED, 0L);
+    }
+
+    public static void setLastDateRangeUpdateTime(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putLong(PREF_LAST_DATE_RANGE_UPDATED, UIUtils.getCurrentTime(context)).apply();
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,

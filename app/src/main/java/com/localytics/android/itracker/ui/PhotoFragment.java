@@ -3,6 +3,7 @@ package com.localytics.android.itracker.ui;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityOptions;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
@@ -195,7 +196,6 @@ public class PhotoFragment extends TrackerFragment implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
             galleryAddPhoto();
-            reloadPhotosWithRequiredPermission();
         }
     }
 
@@ -214,7 +214,12 @@ public class PhotoFragment extends TrackerFragment implements
         File image = new File(mCurrentPhotoPath);
         Uri contentUri = Uri.fromFile(image);
         mediaScanIntent.setData(contentUri);
-        getActivity().sendBroadcast(mediaScanIntent);
+        getActivity().sendOrderedBroadcast(mediaScanIntent, null, new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                reloadPhotosWithRequiredPermission();
+            }
+        }, null, Activity.RESULT_OK, null, null);
     }
 
     @Override

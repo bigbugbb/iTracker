@@ -6,11 +6,14 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PersistableBundle;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
@@ -29,11 +32,13 @@ import android.view.WindowManager;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.widget.FragmentPagerAdapter;
 import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.util.PrefUtils;
 
 import org.joda.time.DateTime;
 
@@ -64,6 +69,10 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     private final static String SELECTED_TAB = "selected_tab";
     private final static String BEGIN_DATE = "begin_date";
     private final static String END_DATE = "end_date";
+
+    private Handler mHandler = new Handler();
+
+    private boolean mReadyToFinish;
 
     final int[] TAB_NAMES = new int[] {
             R.string.tab_name_action,
@@ -96,12 +105,12 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         mViewPager.addOnPageChangeListener(new TrackerOnPageChangeListener(mTabLayout));
 
         if (savedInstanceState != null) {
-            mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
             mBeginDate = new DateTime(savedInstanceState.getLong(BEGIN_DATE));
             mEndDate = new DateTime(savedInstanceState.getLong(END_DATE));
+            updateOutdatedTimeRange();
+            mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
         } else {
-            mEndDate = DateTime.now();
-            mBeginDate = mEndDate.minusDays(Config.DEFAULT_DAYS_BACK_FROM_TODAY);
+            initTimeRange();
         }
 
         mTimeRange = LayoutInflater.from(this).inflate(R.layout.search_date_range, null);
@@ -146,11 +155,32 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
                 dialog.show();
             }
         });
+
+        setDateText(mBeginText, mBeginDate);
+        setDateText(mEndText, mEndDate);
+    }
+
+    private void initTimeRange() {
+        mEndDate = DateTime.now().plusDays(1).withTimeAtStartOfDay().minusSeconds(1);
+        mBeginDate = mEndDate.minusDays(Config.DEFAULT_DAYS_BACK_FROM_TODAY + 1).plusSeconds(1);
+    }
+
+    private void updateOutdatedTimeRange() {
+        long lastUpdatedTime = PrefUtils.getLastDateRangeUpdateTime(getApplicationContext());
+        if (lastUpdatedTime > 0) {
+            DateTime startOfLastDate = new DateTime(lastUpdatedTime).withTimeAtStartOfDay();
+            DateTime startOfToday = DateTime.now().withTimeAtStartOfDay();
+            if (!startOfLastDate.isEqual(startOfToday)) {
+                // It assumes the user won't bother the outdated time range setting.
+                initTimeRange();
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
@@ -179,6 +209,9 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     @Override
     protected void onStart() {
         super.onStart();
+        updateOutdatedTimeRange();
+        setDateText(mBeginText, mBeginDate);
+        setDateText(mEndText, mEndDate);
     }
 
     @Override
@@ -263,6 +296,30 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     }
 
     /**
+     * Take care of popping the fragment back stack or finishing the activity
+     * as appropriate.
+     */
+    @Override
+    public void onBackPressed() {
+        if (!mReadyToFinish) {
+            mReadyToFinish = true;
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mReadyToFinish = false;
+                }
+            }, 2000);
+
+//            Snackbar.make(findViewById(android.R.id.content), "Press again to quit", Snackbar.LENGTH_LONG)
+//                    .setActionTextColor(Color.BLACK)
+//                    .show();
+            Toast.makeText(this, getString(R.string.back_pressed_prompt), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    /**
      * Adding custom view to tab
      */
     private void populateTabViews(ViewPager viewPager) {
@@ -287,14 +344,22 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         mViewPager.setAdapter(adapter);
     }
 
+    private void setDateText(TextView textView, DateTime datetime) {
+        SpannableString text = new SpannableString(String.format("%02d/%02d/%02d",
+                datetime.getYear() - 2000, datetime.getMonthOfYear(), datetime.getDayOfMonth()));
+        text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
+        textView.setText(text);
+    }
+
     private DatePickerDialog.OnDateSetListener mBeginDateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
             mBeginDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            SpannableString text = new SpannableString(String.format("%02d/%02d/%02d", year - 2000, monthOfYear + 1, dayOfMonth));
-            text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
-            mBeginText.setText(text);
+            setDateText(mBeginText, mBeginDate);
+
+            PrefUtils.setLastDateRangeUpdateTime(getApplicationContext());
+
             if (mTimeRangeChangedListener != null) { // It shouldn't be null because we can set the date.
                 mTimeRangeChangedListener.onBeginTimeChanged(mBeginDate.getMillis());
             }
@@ -306,9 +371,10 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
             mEndDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            SpannableString text = new SpannableString(String.format("%02d/%02d/%02d", year - 2000, monthOfYear + 1, dayOfMonth));
-            text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
-            mEndText.setText(text);
+            setDateText(mEndText, mEndDate);
+
+            PrefUtils.setLastDateRangeUpdateTime(getApplicationContext());
+
             if (mTimeRangeChangedListener != null) {
                 mTimeRangeChangedListener.onEndTimeChanged(mEndDate.getMillis());
             }
