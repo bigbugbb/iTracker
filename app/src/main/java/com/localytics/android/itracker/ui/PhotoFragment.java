@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
@@ -20,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -36,7 +38,10 @@ import org.joda.time.DateTime;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -50,6 +55,8 @@ public class PhotoFragment extends TrackerFragment implements
 
     private CollectionView mPhotoCollectionView;
     private PhotoCollectionAdapter mPhotoCollectionAdapter;
+
+    private CollectionView.Inventory mPhotoInventory;
 
     private String mCurrentPhotoPath;
     private FloatingActionButton mFabTakePhoto;
@@ -223,10 +230,10 @@ public class PhotoFragment extends TrackerFragment implements
 
         switch (loader.getId()) {
             case PhotosQuery.TOKEN_NORMAL: {
-                CollectionView.Inventory photoInventory = Photo.photoInventoryFromCursor(data);
-                if (photoInventory != null) {
-                    updateInventoryDisplayColumns(photoInventory);
-                    mPhotoCollectionView.updateInventory(photoInventory, true);
+                mPhotoInventory = Photo.photoInventoryFromCursor(data);
+                if (mPhotoInventory != null) {
+                    updateInventoryDisplayColumns(mPhotoInventory);
+                    mPhotoCollectionView.updateInventory(mPhotoInventory, true);
                 }
                 break;
             }
@@ -275,7 +282,20 @@ public class PhotoFragment extends TrackerFragment implements
         }
     }
 
-    private static class PhotoCollectionAdapter implements CollectionViewCallbacks {
+    private ArrayList<Photo> inventoryToList(CollectionView.Inventory inventory) {
+        ArrayList<Photo> photos = new ArrayList<>();
+        for (CollectionView.InventoryGroup group : inventory) {
+            for (int i = 0; i < group.getItemCount(); ++i) {
+                Object itemTag = group.getItemTag(i);
+                if (itemTag instanceof Photo) {
+                    photos.add((Photo) itemTag);
+                }
+            }
+        }
+        return photos;
+    }
+
+    private class PhotoCollectionAdapter implements CollectionViewCallbacks {
 
         @Override
         public View newCollectionHeaderView(Context context, int groupId, ViewGroup parent) {
@@ -298,12 +318,13 @@ public class PhotoFragment extends TrackerFragment implements
         }
 
         @Override
-        public void bindCollectionItemView(Context context, View view, int groupId, int indexInGroup, int dataIndex, Object itemTag) {
+        public void bindCollectionItemView(final Context context, View view, int groupId, int indexInGroup, int dataIndex, Object itemTag) {
             final Object tag = view.getTag();
             if (tag instanceof ItemViewHolder) {
                 final ItemViewHolder holder = (ItemViewHolder) tag;
                 final Photo photo = (Photo) itemTag;
                 if (holder.photoImage != null) {
+                    holder.registerListener(context, view, photo);
                     Glide.with(context)
                             .load(photo.data)
                             .centerCrop()
@@ -342,8 +363,22 @@ public class PhotoFragment extends TrackerFragment implements
             return sb.toString();
         }
 
-        private static class ItemViewHolder {
+        private class ItemViewHolder {
             ImageView photoImage;
+
+            void registerListener(final Context context, final View view, final Photo photo) {
+                photoImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final Intent i = new Intent(context, PhotoDetailActivity.class);
+                        i.putExtra(PhotoDetailActivity.EXTRA_SELECTED_PHOTO, photo);
+                        i.putExtra(PhotoDetailActivity.EXTRA_AVAILABLE_PHOTOS, inventoryToList(mPhotoInventory));
+                        ActivityOptions options =
+                                ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+                        context.startActivity(i, options.toBundle());
+                    }
+                });
+            }
         }
     }
 }

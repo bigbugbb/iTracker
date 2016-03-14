@@ -8,6 +8,10 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        if (BuildConfig.DEBUG) {
+            Config.enableStrictMode();
+        }
 //        registerActivityLifecycleCallbacks(new LocalyticsActivityLifecycleCallbacks(this));
     }
 }

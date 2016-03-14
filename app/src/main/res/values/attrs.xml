@@ -61,8 +61,8 @@
     </declare-styleable>
 
     <declare-styleable name="CollectionView">
-        <attr name="internalPadding" format="dimension" />
-        <attr name="contentTopClearance" format="dimension" />
+        <attr name="internalPadding" format="dimension"/>
+        <attr name="contentTopClearance" format="dimension"/>
     </declare-styleable>
 
     <!-- Declare custom theme attributes that allow changing which styles are

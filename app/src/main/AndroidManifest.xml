@@ -101,6 +101,15 @@
                 android:value=".ui.TrackerActivity"/>
         </activity>
         <activity
+            android:name=".ui.PhotoDetailActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:parentActivityName=".ui.TrackerActivity"
+            android:theme="@style/FullscreenTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.TrackerActivity"/>
+        </activity>
+        <activity
             android:name=".ui.PlayerActivity"
             android:label="PlayerActivity"
             android:parentActivityName=".ui.TrackerActivity"

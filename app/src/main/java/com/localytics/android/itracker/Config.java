@@ -1,6 +1,12 @@
 package com.localytics.android.itracker;
 
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.os.StrictMode;
 import android.text.format.DateUtils;
+
+import com.localytics.android.itracker.ui.TrackerActivity;
+import com.localytics.android.itracker.util.SdkVersionUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.format.DateTimeFormat;
@@ -71,4 +77,25 @@ public class Config {
 
     // S3 Key prefix pattern
     public static final DateTimeFormatter S3_KEY_PREFIX_PATTERN = DateTimeFormat.forPattern("yyyy/MM/dd/HH");
+
+    public static void enableStrictMode() {
+        if (SdkVersionUtils.hasGingerbread()) {
+            StrictMode.ThreadPolicy.Builder threadPolicyBuilder =
+                    new StrictMode.ThreadPolicy.Builder()
+                            .detectAll()
+                            .penaltyLog();
+            StrictMode.VmPolicy.Builder vmPolicyBuilder =
+                    new StrictMode.VmPolicy.Builder()
+                            .detectAll()
+                            .penaltyLog();
+
+            if (SdkVersionUtils.hasHoneycomb()) {
+                threadPolicyBuilder.penaltyFlashScreen();
+                vmPolicyBuilder
+                        .setClassInstanceLimit(TrackerActivity.class, 1);
+            }
+            StrictMode.setThreadPolicy(threadPolicyBuilder.build());
+            StrictMode.setVmPolicy(vmPolicyBuilder.build());
+        }
+    }
 }

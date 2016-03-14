@@ -157,4 +157,7 @@
     <string name="title_activity_footprint">Footprint</string>
     <string name="title_activity_sign_in">SignInActivity</string>
 
+    <string name="title_activity_photo_detail">PhotoDetailActivity</string>
+    <string name="imageview_description">Image Thumbnail</string>
+
 </resources>

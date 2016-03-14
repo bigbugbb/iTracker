@@ -665,6 +665,10 @@ public class CollectionView extends ListView {
             return this;
         }
 
+        public int getItemCount() {
+            return mItemCount;
+        }
+
         public InventoryGroup setItemCount(int count) {
             mItemCount = count;
             return this;

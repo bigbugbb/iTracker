@@ -13,9 +13,8 @@ import org.joda.time.DateTime;
 /**
  * Created by bbo on 1/29/16.
  */
-public final class Photo implements Parcelable {
+public final class Photo extends BaseData implements Parcelable {
 
-    public long   time;
     public String title;
     public String data;
     public String mime;
