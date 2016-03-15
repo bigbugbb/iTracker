@@ -84,6 +84,8 @@ public class TrackerContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
     public static final String SELECTION_BY_DIRTY = String.format("%s = ?", SyncColumns.DIRTY);
+    public static final String SELECTION_BY_INTERVAL = String.format("%s >= ? AND %s < ?", BaseDataColumns.TIME, BaseDataColumns.TIME);
+    public static final String ORDER_BY_TIME_ASC = BaseDataColumns.TIME + " ASC";
 
     public static class Tracks implements TrackColumns, SyncColumns, BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("tracks").build();

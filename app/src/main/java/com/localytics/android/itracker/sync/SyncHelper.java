@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.sync;
 
 import android.accounts.Account;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
@@ -13,18 +14,20 @@ import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
+import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.BaseDataColumns;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.util.AccountUtils;
@@ -34,11 +37,13 @@ import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.UIUtils;
 import com.opencsv.CSVWriter;
 
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -61,8 +66,12 @@ public class SyncHelper {
     private AmazonS3Client mS3Client;
     private TransferUtility mTransferUtility;
 
-    private String SELECTION_BY_INTERVAL =
-            String.format("%s >= ? AND %s < ?", BaseDataColumns.TIME, BaseDataColumns.TIME);
+    private String mAuthToken;
+    private String mAccountName;
+
+    private final List<ContentProviderOperation> mOps = new LinkedList<>();
+
+    private final static String ACTIVITY_TYPE_STR = "activity_";
 
     public SyncHelper(Context context) {
         mContext = context;
@@ -116,7 +125,8 @@ public class SyncHelper {
         boolean dataChanged = false;
 
         // Get auth token and use it for each data request
-        final String authToken = AccountUtils.getAuthToken(mContext);
+        mAuthToken = AccountUtils.getAuthToken(mContext);
+        mAccountName = AccountUtils.getActiveAccountName(mContext);
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -167,7 +177,7 @@ public class SyncHelper {
                     case OP_USER_DATA_SYNC:
                         break;
                     case OP_TRACK_DATA_SYNC:
-                        dataChanged |= doTrackDataSync(authToken);
+                        dataChanged |= doTrackerDataSync();
                         break;
 //                    case OP_USER_FEEDBACK_SYNC:
 //                        doUserFeedbackSync();
@@ -266,7 +276,7 @@ public class SyncHelper {
      * @return Whether or not data was changed.
      * @throws IOException if there is a problem downloading or importing the data.
      */
-    private boolean doTrackDataSync(@NonNull final String authToken) throws IOException {
+    private boolean doTrackerDataSync() throws IOException {
         if (!isOnline()) {
             LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return false;
@@ -279,23 +289,11 @@ public class SyncHelper {
 
         LOGD(TAG, "Starting track data sync.");
 
-        syncData(Activities.CONTENT_URI, mActivityDataSyncingListener);
+        syncData(Activities.CONTENT_URI, mDataSyncingListener);
+        syncData(Locations.CONTENT_URI, mDataSyncingListener);
+        syncData(Motions.CONTENT_URI, mDataSyncingListener);
 
-        syncData(Locations.CONTENT_URI, new OnDataSyncingListener() {
-            @Override
-            public void onDataSyncing(final Uri uri, Cursor cursor) {
-
-            }
-        });
-
-        syncData(Motions.CONTENT_URI, new OnDataSyncingListener() {
-            @Override
-            public void onDataSyncing(final Uri uri, Cursor cursor) {
-
-            }
-        });
-
-        // TODO: upload the payload with the track data and the track url list (dirty)
+        // TODO: upload the payload with the track data and the track url list (dirty) to the app server
 
         return true;
     }
@@ -308,7 +306,7 @@ public class SyncHelper {
                     null,
                     TrackerContract.SELECTION_BY_DIRTY,
                     new String[]{ Integer.toString(1) },
-                    TrackerContract.BaseDataColumns.TIME + " ASC");
+                    TrackerContract.ORDER_BY_TIME_ASC);
             if (cursor != null && listener != null) {
                 listener.onDataSyncing(uri, cursor);
             }
@@ -321,56 +319,45 @@ public class SyncHelper {
         }
     }
 
-    private OnDataSyncingListener mActivityDataSyncingListener = new OnDataSyncingListener() {
+    private OnDataSyncingListener mDataSyncingListener = new OnDataSyncingListener() {
         @Override
         public void onDataSyncing(final Uri uri, Cursor cursor) {
-//            if (cursor.moveToFirst()) {
-//                long nextTime, prevTime = 0;
-//                final List<BaseData> data = new ArrayList<>(60);
-//                final List<ContentProviderOperation> ops = new LinkedList<>();
-//
-//                do {
-//                    final BaseData item = BaseData.objectForCursor(Activity.class, cursor);
-//                    nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
-//                    if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
-//                        final String[] selectionArgs = new String[]{prevTime + "", nextTime + ""};
-//                        final File file = makeDataFileForUpload(getLocalFilename(Activity.class, prevTime), data);
-//                        TransferObserver observer = uploadDataFileForTimeRange(file, prevTime, nextTime);
-//                        observer.setTransferListener(new TransferListener() {
-//                            @Override
-//                            public void onStateChanged(int id, TransferState state) {
-//                                if (state == TransferState.COMPLETED) {
-//                                    // Clear dirty column for data of this hour if the file has been uploaded successfully
-//                                    ops.add(ContentProviderOperation.newUpdate(uri)
-//                                            .withValue(SyncColumns.DIRTY, null)
-//                                            .withSelection(SELECTION_BY_INTERVAL, selectionArgs)
-//                                            .build());
-//                                    FileUtils.deleteQuietly(file);
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-//
-//                            }
-//
-//                            @Override
-//                            public void onError(int id, Exception ex) {
-//                                FileUtils.deleteQuietly(file);
-//                            }
-//                        });
-//                        data.clear();
-//                    }
-//                    data.add(item);
-//                    prevTime = nextTime;
-//                } while (cursor.moveToNext());
-//            }
+            if (cursor.moveToFirst()) {
+                long nextTime, prevTime = 0;
+                final List<BaseData> data = new LinkedList<>();
 
-            // TODO: update the url list with the s3 url
+                do {
+                    final BaseData item = dataItemFromCursor(uri, cursor);
+                    nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
+                    if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+                        final File file = makeDataFileForUpload(uri, getLocalFilename(uri, prevTime), data);
+                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime);
+                        data.clear();
+                    }
+                    data.add(item);
+                    prevTime = nextTime;
+                } while (cursor.moveToNext());
+            }
         }
     };
 
-    private TransferObserver uploadDataFileForTimeRange(final File file, long beginTime, long endTime) {
+    private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) {
+        if (uri == Activities.CONTENT_URI) {
+            return new Activity(cursor);
+        } else if (uri == Locations.CONTENT_URI) {
+            return new Location(cursor);
+        } else if (uri == Motions.CONTENT_URI) {
+            return new Motion(cursor);
+        } else {
+            // TODO: make some better self defined exceptions
+            throw new RuntimeException();
+        }
+    }
+
+    private TransferObserver uploadDataFileForTimeRange(@NonNull final Uri uri,
+                                                        @NonNull final File file,
+                                                        long beginTime,
+                                                        long endTime) {
 
         if (!file.exists() || file.length() == 0) {
             return null;
@@ -378,48 +365,99 @@ public class SyncHelper {
 
         final String deviceId = DeviceUtils.getDeviceUUID(mContext);
         final String bucket = Config.S3_BUCKET_NAME;
-        final String key = getPrefixKey(beginTime) + "/activities_" + deviceId;
+        final String key = getDataFileKey(uri, beginTime, deviceId);
         final String url = mS3Client.getResourceUrl(bucket, key);
+        final String[] selectionArgs = new String[]{Long.toString(beginTime), Long.toString(endTime)};
+
         TransferObserver observer = uploadFileToS3(bucket, key, file);
+        observer.setTransferListener(new TransferListener() {
+            @Override
+            public void onStateChanged(int id, TransferState state) {
+                if (state == TransferState.COMPLETED) {
+                    // Clear dirty column for data of this hour if the file has been uploaded successfully
+                    mOps.add(ContentProviderOperation.newUpdate(uri)
+                            .withValue(TrackerContract.SyncColumns.DIRTY, null)
+                            .withSelection(TrackerContract.SELECTION_BY_INTERVAL, selectionArgs)
+                            .build());
+                    FileUtils.deleteQuietly(file);
+
+                    // TODO: update the url list with the s3 url
+                }
+            }
+
+            @Override
+            public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+            }
+
+            @Override
+            public void onError(int id, Exception ex) {
+                FileUtils.deleteQuietly(file);
+            }
+        });
         return observer;
     }
 
-    private File makeDataFileForUpload(String filename, List<?> data) {
+    private File makeDataFileForUpload(@NonNull Uri uri, String filename, List<? extends BaseData> data) {
         File file = new File(mContext.getCacheDir(), filename);
+        CSVWriter writer = null;
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter(file, false));
-            for (Object item : data) {
-                if (item instanceof Activity) {
+            writer = new CSVWriter(new FileWriter(file, false));
+            if (uri == Activities.CONTENT_URI) {
+                for (Object item : data) {
                     Activity activity = (Activity) item;
                     writer.writeNext(new String[]{
-                            activity.time + "",
+                            Long.toString(activity.time),
                             activity.type,
-                            activity.type_id + "",
-                            activity.confidence + "",
-                            activity.device_id
+                            Integer.toString(activity.type_id),
+                            Integer.toString(activity.confidence),
                     });
-                } else if (item instanceof Location) {
-                    Location location = (Location) item;
-                } else if (item instanceof Motion) {
-                    Motion motion = (Motion) item;
-                } else {
-                    // TODO: make some better self defined exceptions
-                    throw new RuntimeException();
                 }
+            } else if (uri == Locations.CONTENT_URI) {
+                for (Object item : data) {
+                    Location location = (Location) item;
+                    writer.writeNext(new String[]{
+                            Long.toString(location.time),
+                            Float.toString(location.latitude),
+                            Float.toString(location.longitude),
+                            Float.toString(location.altitude),
+                            Float.toString(location.accuracy),
+                            Float.toString(location.speed),
+                    });
+                }
+            } else if (uri == Motions.CONTENT_URI) {
+                for (Object item : data) {
+                    Motion motion = (Motion) item;
+                    writer.writeNext(new String[]{
+                            Long.toString(motion.time),
+                            Integer.toString(motion.data),
+                            Integer.toString(motion.sampling),
+                    });
+                }
+            } else {
+                // TODO: make some better self defined exceptions
+                throw new RuntimeException();
             }
-            writer.close();
         } catch (IOException e) {
             LOGE(TAG, "Write data to " + file + " failed: " + e.getMessage());
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return file;
     }
 
-    private String getLocalFilename(Class<?> cls, long time) {
-        if (cls.equals(Activity.class)) {
+    private String getLocalFilename(Uri uri, long time) {
+        if (uri == Activities.CONTENT_URI) {
             return String.format("activity_%d.csv", time);
-        } else if (cls.equals(Location.class)) {
+        } else if (uri == Locations.CONTENT_URI) {
             return String.format("location_%d.csv", time);
-        } else if (cls.equals(Motion.class)) {
+        } else if (uri == Motions.CONTENT_URI) {
             return String.format("motion_%d.csv", time);
         }
         return String.format("unknown_%d.csv", time);
@@ -433,8 +471,24 @@ public class SyncHelper {
         return mTransferUtility.upload(bucket, key, fileToUpload, metadata);
     }
 
-    private String getPrefixKey(long time) {
-        return new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN);
+    private String getDataFileKey(@NonNull Uri uri, long time, @NonNull final String deviceId) {
+        String type = "unknown_";
+        if (uri == Activities.CONTENT_URI) {
+            type = "activity_";
+        } else if (uri == Locations.CONTENT_URI) {
+            type = "location_";
+        } else if (uri == Motions.CONTENT_URI) {
+            type = "motion_";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(mAccountName)
+            .append('/')
+            .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
+            .append('/')
+            .append(type)
+            .append(deviceId);
+        return sb.toString();
     }
 
     // Returns whether we are connected to the internet.

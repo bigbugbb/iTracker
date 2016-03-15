@@ -46,10 +46,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         final String logSanitizedAccountName = sSanitizeAccountNamePattern.matcher(account.name).replaceAll("$1...$2@");
 
-        if (uploadOnly) {
-            return;
-        }
-
         LOGI(TAG, "Beginning sync for account " + logSanitizedAccountName + "," +
                 " uploadOnly=" + uploadOnly +
                 " manualSync=" + manualSync +

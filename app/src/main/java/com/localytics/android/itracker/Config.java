@@ -68,7 +68,7 @@ public class Config {
     public static final boolean WIFI_ONLY_SYNC_ENABLED = true;
 
     // AWS cognito identity pool id
-    public static final String COGNITO_IDENTITY_POOL_ID = "us-east-1:5095d3b3-1e80-4f42-82dd-28087482a5b1";
+    public static final String COGNITO_IDENTITY_POOL_ID = "us-east-1:d05df8cf-b6a0-43ce-a478-ba6960a5acc6";
 
     // S3 Bucket name
     public static final String S3_BUCKET_NAME = "itracker-track-data";
