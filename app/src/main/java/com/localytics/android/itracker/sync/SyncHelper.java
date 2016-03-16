@@ -45,6 +45,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -145,18 +146,13 @@ public class SyncHelper {
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 
         if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
-            /*
-            Code removed because it was causing a runaway sync; probably because we are setting
-            syncResult.delayUntil incorrectly.
-
             Random r = new Random();
             long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
                     + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
             LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
                     + "ms ago. Requesting delay of " + toWait + "ms.");
-            syncResult.fullSyncRequested = true;
             syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
-            return false;*/
+            return false;
         }
 
         LogUtils.LOGI(TAG, "Performing sync for account: " + account);
