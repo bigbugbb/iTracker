@@ -4,6 +4,7 @@ def platform = "armeabi"
 
 model {
     repositories {
+        // TODO: rebuild ffmpeg with swscale
         libs(PrebuiltLibraries) {
             avcodec {
                 binaries.withType(StaticLibraryBinary) {
@@ -68,7 +69,7 @@ model {
         // CFlags is configured in similar way as cppFlags
         CFlags.add("-I${file("src/main/jni/native_app_glue")}".toString())
         cppFlags.add("-I${file("src/ffmpeg/${platform}/include")}".toString())
-        cppFlags.addAll(["-fno-exceptions", "-frtti"])
+        cppFlags.addAll(["-fno-exceptions", "-frtti", "-fno-permissive"]) // -fno-permissive seems not working
         ldFlags.add("-I${file("ffmpeg/${platform}/lib")}".toString())
         ldLibs.addAll(["android", "EGL", "GLESv1_CM", "dl", "log", "z"])
         stl = "stlport_static"

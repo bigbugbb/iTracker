@@ -23,6 +23,7 @@ public final class Weather extends BaseData implements Parcelable {
         city = cursor.getString(cursor.getColumnIndex(TrackerContract.Weathers.CITY));
         weather = cursor.getString(cursor.getColumnIndex(TrackerContract.Weathers.WEATHER));
         temperature = cursor.getInt(cursor.getColumnIndex(TrackerContract.Weathers.TEMPERATURE));
+        track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Weathers.TRACK_ID));
     }
 
     @Override

@@ -1,10 +1,9 @@
 package com.localytics.android.itracker.data.model;
 
-/**
- * Created by bbo on 3/2/16.
- */
+
 public class BaseData implements Comparable<BaseData> {
     public long time;
+    public long track_id;
 
     /**
      * Compares this object to the specified object to determine their relative
@@ -55,7 +54,7 @@ public class BaseData implements Comparable<BaseData> {
             return false;
         }
         BaseData data = (BaseData) o;
-        return time == data.time;
+        return time == data.time && track_id == data.track_id;
     }
 
     /**

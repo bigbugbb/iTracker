@@ -12,7 +12,7 @@
 void* align_malloc(size_t size, size_t align)
 {
     char* data = (char*)malloc(size + align);
-    int offset = align - (unsigned int)data % align;
+    int offset = align - (size_t)data % align;
     
     if (offset == align) {
         *(data + align - 1) = align;

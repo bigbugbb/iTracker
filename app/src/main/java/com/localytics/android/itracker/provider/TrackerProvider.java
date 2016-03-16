@@ -235,10 +235,10 @@ public class TrackerProvider extends ContentProvider {
         // uses a thread local SQLiteSession object for all manipulations
         db.beginTransaction();
         try {
-            final ContentProviderResult[] retResult = super.applyBatch(operations);
+            final ContentProviderResult[] results = super.applyBatch(operations);
             db.setTransactionSuccessful();
 //            getContext().getContentResolver().notifyChange(LentItemsContract.CONTENT_URI, null);
-            return retResult;
+            return results;
         } finally {
             mIsInBatchMode.remove();
             db.endTransaction();

@@ -11,9 +11,7 @@ import com.google.android.gms.location.DetectedActivity;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.provider.TrackerContract;
 
-/**
- * Created by bigbug on 1/10/16.
- */
+
 public final class Activity extends BaseData implements Parcelable {
 
     public String type;
@@ -30,6 +28,7 @@ public final class Activity extends BaseData implements Parcelable {
         type_id = cursor.getInt(cursor.getColumnIndex(TrackerContract.Activities.TYPE_ID));
         confidence = cursor.getInt(cursor.getColumnIndex(TrackerContract.Activities.CONFIDENCE));
         device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Activities.DEVICE_ID));
+        track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Activities.TRACK_ID));
     }
 
     public Drawable getActivityIcon(Context context) {

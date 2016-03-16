@@ -6,9 +6,7 @@ import android.os.Parcelable;
 
 import com.localytics.android.itracker.provider.TrackerContract;
 
-/**
- * Created by bigbug on 1/10/16.
- */
+
 public final class Location extends BaseData implements Parcelable {
 
     public float  latitude;
@@ -29,6 +27,7 @@ public final class Location extends BaseData implements Parcelable {
         accuracy = cursor.getFloat(cursor.getColumnIndex(TrackerContract.Locations.ACCURACY));
         speed = cursor.getFloat(cursor.getColumnIndex(TrackerContract.Locations.SPEED));
         device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Locations.DEVICE_ID));
+        track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Locations.TRACK_ID));
     }
 
     // The cursor window should be larger than the whole block of data.

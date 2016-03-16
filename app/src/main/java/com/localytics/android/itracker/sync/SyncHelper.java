@@ -3,7 +3,9 @@ package com.localytics.android.itracker.sync;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -26,10 +28,12 @@ import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
+import com.localytics.android.itracker.player.MediaPlayerService;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
+import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -43,6 +47,7 @@ import org.joda.time.DateTime;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -70,7 +75,7 @@ public class SyncHelper {
     private String mAuthToken;
     private String mAccountName;
 
-    private final List<ContentProviderOperation> mOps = new LinkedList<>();
+    private final ArrayList<ContentProviderOperation> mOps = new ArrayList<>();
 
     private final static String ACTIVITY_TYPE_STR = "activity_";
 
@@ -317,27 +322,28 @@ public class SyncHelper {
 
     private OnDataSyncingListener mDataSyncingListener = new OnDataSyncingListener() {
         @Override
-        public void onDataSyncing(final Uri uri, Cursor cursor) {
+        public void onDataSyncing(final Uri uri, Cursor cursor) throws IOException {
             if (cursor.moveToFirst()) {
-                long nextTime, prevTime = 0;
+                long nextTime, prevTime = 0, trackId = -1;
                 final List<BaseData> data = new LinkedList<>();
 
                 do {
                     final BaseData item = dataItemFromCursor(uri, cursor);
                     nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
-                    if (prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+                    if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
                         final File file = makeDataFileForUpload(uri, getLocalFilename(uri, prevTime), data);
-                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime);
+                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
                         data.clear();
                     }
                     data.add(item);
                     prevTime = nextTime;
+                    trackId = item.track_id;
                 } while (cursor.moveToNext());
             }
         }
     };
 
-    private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) {
+    private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) throws NotSupportedDataException {
         if (uri == Activities.CONTENT_URI) {
             return new Activity(cursor);
         } else if (uri == Locations.CONTENT_URI) {
@@ -345,15 +351,15 @@ public class SyncHelper {
         } else if (uri == Motions.CONTENT_URI) {
             return new Motion(cursor);
         } else {
-            // TODO: make some better self defined exceptions
-            throw new RuntimeException();
+            throw new NotSupportedDataException(String.format("Data type from uri(%s) not supported.", uri));
         }
     }
 
     private TransferObserver uploadDataFileForTimeRange(@NonNull final Uri uri,
                                                         @NonNull final File file,
-                                                        long beginTime,
-                                                        long endTime) {
+                                                        final long beginTime,
+                                                        final long endTime,
+                                                        final long trackId) {
 
         if (!file.exists() || file.length() == 0) {
             return null;
@@ -366,18 +372,36 @@ public class SyncHelper {
         final String[] selectionArgs = new String[]{Long.toString(beginTime), Long.toString(endTime)};
 
         TransferObserver observer = uploadFileToS3(bucket, key, file);
-        observer.setTransferListener(new TransferListener() {
+        observer.setTransferListener(new TransferListener() { // Triggered in main thread
             @Override
             public void onStateChanged(int id, TransferState state) {
                 if (state == TransferState.COMPLETED) {
-                    // Clear dirty column for data of this hour if the file has been uploaded successfully
-                    mOps.add(ContentProviderOperation.newUpdate(uri)
+                    FileUtils.deleteQuietly(file);
+
+                    // Clear dirty column for data in this hour if the file has been uploaded successfully
+                    mOps.add(ContentProviderOperation.newUpdate(TrackerContract.addCallerIsSyncAdapterParameter(uri))
                             .withValue(TrackerContract.SyncColumns.DIRTY, null)
                             .withSelection(TrackerContract.SELECTION_BY_INTERVAL, selectionArgs)
                             .build());
-                    FileUtils.deleteQuietly(file);
 
-                    // TODO: update the url list with the s3 url
+                    // Update links table with the s3 url for the uploaded file
+                    ContentValues values = new ContentValues();
+                    values.put(Links.LINK, url);
+                    values.put(Links.TYPE, getDataType(uri));
+                    values.put(Links.START_TIME, beginTime);
+                    values.put(Links.END_TIME, endTime);
+                    values.put(Links.DEVICE_ID, DeviceUtils.getDeviceUUID(mContext));
+                    values.put(Links.TRACK_ID, trackId);
+                    values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
+                    mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Links.CONTENT_URI))
+                            .withValues(values)
+                            .build());
+
+                    // Trigger the import operations
+                    Intent intent = new Intent(mContext, DatabaseImportService.class);
+                    intent.setAction(DatabaseImportService.INTENT_ACTION_IMPORT_LINKS);
+                    intent.putParcelableArrayListExtra(DatabaseImportService.EXTRA_CONTENT_PROVIDER_OPERATIONS, mOps);
+                    mContext.startService(intent);
                 }
             }
 
@@ -394,7 +418,7 @@ public class SyncHelper {
         return observer;
     }
 
-    private File makeDataFileForUpload(@NonNull Uri uri, String filename, List<? extends BaseData> data) {
+    private File makeDataFileForUpload(@NonNull Uri uri, String filename, List<? extends BaseData> data) throws IOException {
         File file = new File(mContext.getCacheDir(), filename);
         CSVWriter writer = null;
         try {
@@ -431,11 +455,8 @@ public class SyncHelper {
                     });
                 }
             } else {
-                // TODO: make some better self defined exceptions
-                throw new RuntimeException();
+                throw new NotSupportedDataException(String.format("Data type from uri(%s) not supported.", uri));
             }
-        } catch (IOException e) {
-            LOGE(TAG, "Write data to " + file + " failed: " + e.getMessage());
         } finally {
             if (writer != null) {
                 try {
@@ -448,15 +469,19 @@ public class SyncHelper {
         return file;
     }
 
-    private String getLocalFilename(Uri uri, long time) {
+    private String getDataType(@NonNull Uri uri) {
         if (uri == Activities.CONTENT_URI) {
-            return String.format("activity_%d.csv", time);
+            return "activity";
         } else if (uri == Locations.CONTENT_URI) {
-            return String.format("location_%d.csv", time);
+            return "location";
         } else if (uri == Motions.CONTENT_URI) {
-            return String.format("motion_%d.csv", time);
+            return "motion";
         }
-        return String.format("unknown_%d.csv", time);
+        return "unknown";
+    }
+
+    private String getLocalFilename(@NonNull Uri uri, long time) {
+        return String.format("%s_%d.csv", getDataType(uri), time);
     }
 
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {
@@ -542,6 +567,6 @@ public class SyncHelper {
     }
 
     private interface OnDataSyncingListener {
-        void onDataSyncing(Uri uri, Cursor cursor);
+        void onDataSyncing(Uri uri, Cursor cursor) throws IOException;
     }
 }

@@ -10,9 +10,7 @@ import com.localytics.android.itracker.ui.widget.CollectionView;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 
-/**
- * Created by bbo on 1/29/16.
- */
+
 public final class Photo extends BaseData implements Parcelable {
 
     public String title;

@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
+import android.os.Handler;
 
 import com.localytics.android.itracker.BuildConfig;
 import com.localytics.android.itracker.util.LogUtils;
@@ -21,7 +22,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final Pattern sSanitizeAccountNamePattern = Pattern.compile("(.).*?(.?)@");
 
     private final Context mContext;
-
+    
     public SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mContext = context;

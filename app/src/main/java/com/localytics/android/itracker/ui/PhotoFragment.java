@@ -374,7 +374,7 @@ public class PhotoFragment extends TrackerFragment implements
                     public void onClick(View v) {
                         final Intent i = new Intent(context, PhotoDetailActivity.class);
                         i.putExtra(PhotoDetailActivity.EXTRA_SELECTED_PHOTO, photo);
-                        i.putExtra(PhotoDetailActivity.EXTRA_AVAILABLE_PHOTOS, inventoryToList(mPhotoInventory));
+                        i.putParcelableArrayListExtra(PhotoDetailActivity.EXTRA_AVAILABLE_PHOTOS, inventoryToList(mPhotoInventory));
                         ActivityOptions options =
                                 ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
                         context.startActivity(i, options.toBundle());
