@@ -47,6 +47,18 @@ public final class Location extends BaseData implements Parcelable {
     }
 
     @Override
+    public String[] convertToCsvLine() {
+        return new String[]{
+            Long.toString(time),
+            Float.toString(latitude),
+            Float.toString(longitude),
+            Float.toString(altitude),
+            Float.toString(accuracy),
+            Float.toString(speed)
+        };
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }

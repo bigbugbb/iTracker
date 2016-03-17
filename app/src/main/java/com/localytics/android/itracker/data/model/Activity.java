@@ -56,6 +56,16 @@ public final class Activity extends BaseData implements Parcelable {
     }
 
     @Override
+    public String[] convertToCsvLine() {
+        return new String[]{
+            Long.toString(time),
+            type,
+            Integer.toString(type_id),
+            Integer.toString(confidence)
+        };
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }

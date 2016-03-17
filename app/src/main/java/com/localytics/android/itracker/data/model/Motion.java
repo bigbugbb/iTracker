@@ -66,6 +66,15 @@ public final class Motion extends BaseData implements Parcelable {
     }
 
     @Override
+    public String[] convertToCsvLine() {
+        return new String[]{
+            Long.toString(time),
+            Integer.toString(data),
+            Integer.toString(sampling)
+        };
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }

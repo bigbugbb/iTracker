@@ -2,7 +2,6 @@ package com.localytics.android.itracker.sync;
 
 import android.app.Service;
 import android.content.ContentProviderOperation;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Handler;
@@ -12,11 +11,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.localytics.android.itracker.data.model.Activity;
-import com.localytics.android.itracker.data.model.Link;
-import com.localytics.android.itracker.data.model.Location;
-import com.localytics.android.itracker.data.model.Motion;
-import com.localytics.android.itracker.player.ITrackerMediaPlayer;
 import com.localytics.android.itracker.provider.TrackerContract;
 
 import java.io.FileDescriptor;
@@ -105,7 +99,7 @@ public class DatabaseImportService extends Service {
         try {
             if (action.equals(INTENT_ACTION_IMPORT_LINKS)) {
                 ArrayList<ContentProviderOperation> ops = intent.getParcelableArrayListExtra(EXTRA_CONTENT_PROVIDER_OPERATIONS);
-                getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+//                getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
             } else if (action.equals(INTENT_ACTION_IMPORT_ACTIVITIES)) {
             } else if (action.equals(INTENT_ACTION_IMPORT_LOCATIONS)) {
             } else if (action.equals(INTENT_ACTION_IMPORT_MOTIONS)) {

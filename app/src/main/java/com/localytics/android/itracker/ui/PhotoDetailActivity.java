@@ -70,7 +70,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements View.OnCli
 
         // Set the selected item based on the extra passed in to this activity
         final Photo selectedPhoto = getIntent().getParcelableExtra(EXTRA_SELECTED_PHOTO);
-        if (selectedPhoto != null ) {
+        if (selectedPhoto != null) {
             int itemIndex = availablePhotos.indexOf(selectedPhoto);
             if (itemIndex != -1) {
                 mPager.setCurrentItem(itemIndex);

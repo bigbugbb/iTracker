@@ -28,17 +28,15 @@ import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
-import com.localytics.android.itracker.player.MediaPlayerService;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
+import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
-import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.UIUtils;
 import com.opencsv.CSVWriter;
 
 import org.apache.commons.io.FileUtils;
@@ -50,7 +48,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -146,17 +143,17 @@ public class SyncHelper {
         mTransferUtility = new TransferUtility(mS3Client, mContext);
 
         long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
-        long now = UIUtils.getCurrentTime(mContext);
+        long now = System.currentTimeMillis();
         long timeSinceAttempt = now - lastAttemptTime;
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 
         if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
-            Random r = new Random();
-            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
-                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
-            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
-                    + "ms ago. Requesting delay of " + toWait + "ms.");
-            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
+//            Random r = new Random();
+//            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
+//                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
+//            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
+//                    + "ms ago. Requesting delay of " + toWait + "ms.");
+//            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
             return false;
         }
 
@@ -343,7 +340,7 @@ public class SyncHelper {
         }
     };
 
-    private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) throws NotSupportedDataException {
+    private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) {
         if (uri == Activities.CONTENT_URI) {
             return new Activity(cursor);
         } else if (uri == Locations.CONTENT_URI) {
@@ -351,7 +348,7 @@ public class SyncHelper {
         } else if (uri == Motions.CONTENT_URI) {
             return new Motion(cursor);
         } else {
-            throw new NotSupportedDataException(String.format("Data type from uri(%s) not supported.", uri));
+            throw new UnsupportedOperationException(String.format("Data type from uri(%s) not supported.", uri));
         }
     }
 
@@ -426,36 +423,20 @@ public class SyncHelper {
             if (uri == Activities.CONTENT_URI) {
                 for (Object item : data) {
                     Activity activity = (Activity) item;
-                    writer.writeNext(new String[]{
-                            Long.toString(activity.time),
-                            activity.type,
-                            Integer.toString(activity.type_id),
-                            Integer.toString(activity.confidence),
-                    });
+                    writer.writeNext(activity.convertToCsvLine());
                 }
             } else if (uri == Locations.CONTENT_URI) {
                 for (Object item : data) {
                     Location location = (Location) item;
-                    writer.writeNext(new String[]{
-                            Long.toString(location.time),
-                            Float.toString(location.latitude),
-                            Float.toString(location.longitude),
-                            Float.toString(location.altitude),
-                            Float.toString(location.accuracy),
-                            Float.toString(location.speed),
-                    });
+                    writer.writeNext(location.convertToCsvLine());
                 }
             } else if (uri == Motions.CONTENT_URI) {
                 for (Object item : data) {
                     Motion motion = (Motion) item;
-                    writer.writeNext(new String[]{
-                            Long.toString(motion.time),
-                            Integer.toString(motion.data),
-                            Integer.toString(motion.sampling),
-                    });
+                    writer.writeNext(motion.convertToCsvLine());
                 }
             } else {
-                throw new NotSupportedDataException(String.format("Data type from uri(%s) not supported.", uri));
+                throw new UnsupportedOperationException(String.format("Data type from uri(%s) not supported.", uri));
             }
         } finally {
             if (writer != null) {
