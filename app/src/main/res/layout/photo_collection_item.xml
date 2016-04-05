@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="100dp">
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/selected_photo_background">
 
     <ImageView
         android:id="@+id/photo_image"
@@ -9,5 +10,14 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:scaleType="centerCrop"/>
+
+    <ImageView
+        android:id="@+id/photo_selected"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:alpha="0"
+        android:src="@drawable/ic_photo_selected"/>
 
 </FrameLayout>
