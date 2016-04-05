@@ -162,4 +162,6 @@
     <string name="title_activity_photo_detail">PhotoDetailActivity</string>
     <string name="imageview_description">Image Thumbnail</string>
 
+    <string name="invite_friends">Invite friends to iTracker</string>
+
 </resources>
