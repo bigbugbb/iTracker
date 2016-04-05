@@ -40,7 +40,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements View.OnCli
         mAdapter = new PhotoPagerAdapter(getFragmentManager(), availablePhotos);
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
-        mPager.setPageMargin((int) getResources().getDimension(R.dimen.horizontal_page_margin));
+//        mPager.setPageMargin((int) getResources().getDimension(R.dimen.horizontal_page_margin));
         mPager.setOffscreenPageLimit(2);
 
         // Enable some additional newer visibility and ActionBar features to create a more
@@ -71,12 +71,13 @@ public class PhotoDetailActivity extends AppCompatActivity implements View.OnCli
         // Set the selected item based on the extra passed in to this activity
         final Photo selectedPhoto = getIntent().getParcelableExtra(EXTRA_SELECTED_PHOTO);
         if (selectedPhoto != null) {
-            int itemIndex = availablePhotos.indexOf(selectedPhoto);
-            if (itemIndex != -1) {
-                mPager.setCurrentItem(itemIndex);
+            for (int i = 0; i < availablePhotos.size(); ++i) {
+                if (availablePhotos.get(i).data.equals(selectedPhoto.data)) {
+                    mPager.setCurrentItem(i);
+                    break;
+                }
             }
         }
-
 
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE

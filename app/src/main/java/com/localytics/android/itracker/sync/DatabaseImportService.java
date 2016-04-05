@@ -11,8 +11,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.localytics.android.itracker.provider.TrackerContract;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;

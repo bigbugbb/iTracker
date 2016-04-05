@@ -398,6 +398,9 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     @Override
     public void onTabUnselected(TabLayout.Tab tab) {
         LOGD(TAG, String.format("tab %d is unselected", tab.getPosition()));
+        ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+        TrackerFragment fragment = (TrackerFragment) adapter.getItem(tab.getPosition());
+        fragment.onFragmentUnselected();
     }
 
     /**
@@ -446,7 +449,8 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         }
 
         ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
-        Fragment fragment = adapter.getItem(tab.getPosition());
+        TrackerFragment fragment = (TrackerFragment) adapter.getItem(tab.getPosition());
+        fragment.onFragmentSelected();
         if (fragment instanceof OnTimeRangeChangedListener) {
             mTimeRangeChangedListener = (OnTimeRangeChangedListener) fragment;
         } else {

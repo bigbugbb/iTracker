@@ -84,7 +84,6 @@ public class PhotoDetailFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         Glide.with(this)
                 .load(mPhoto.data)
-                .centerCrop()
                 .crossFade()
                 .into(mImageView);
     }

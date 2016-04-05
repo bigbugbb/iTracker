@@ -48,6 +48,12 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
         mHandler.removeCallbacksAndMessages(null);
     }
 
+    public void onFragmentSelected() {
+    }
+
+    public void onFragmentUnselected() {
+    }
+
     public void trackTimeRange(long beginTime, long endTime) {
         mBeginTime = beginTime;
         mEndTime = endTime;

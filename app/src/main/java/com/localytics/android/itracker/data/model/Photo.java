@@ -7,6 +7,7 @@ import android.provider.MediaStore;
 
 import com.localytics.android.itracker.ui.widget.CollectionView;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 
@@ -37,6 +38,15 @@ public final class Photo extends BaseData implements Parcelable {
         longitude = cursor.getFloat(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.LONGITUDE));
     }
 
+    public static Photo validPhotoFromCursor(Cursor cursor) {
+        Photo photo = new Photo(cursor);
+        if (FileUtils.getFile(photo.data).length() > 0) {
+            return photo;
+        } else {
+            return null;
+        }
+    }
+
     // The cursor window should be larger than the whole block of data.
     public static Photo[] photosFromCursor(Cursor cursor) {
         if (cursor != null && cursor.moveToFirst()) {
@@ -44,7 +54,7 @@ public final class Photo extends BaseData implements Parcelable {
             Photo[] images = new Photo[size];
             int i = 0;
             do {
-                images[i++] = new Photo(cursor);
+                images[i++] = validPhotoFromCursor(cursor);
             } while (cursor.moveToNext());
             cursor.moveToFirst();
             return images;
@@ -60,7 +70,7 @@ public final class Photo extends BaseData implements Parcelable {
             DateTime previousDate = null;
             CollectionView.InventoryGroup group;
             do {
-                final Photo photo = new Photo(cursor);
+                final Photo photo = validPhotoFromCursor(cursor);
                 final DateTime currentDate = new DateTime(photo.time * DateUtils.MILLIS_PER_SECOND).withTimeAtStartOfDay();
                 if (previousDate == null || !currentDate.equals(previousDate)) {
                     // Add a new group for each date

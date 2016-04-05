@@ -69,7 +69,8 @@ model {
         // CFlags is configured in similar way as cppFlags
         CFlags.add("-I${file("src/main/jni/native_app_glue")}".toString())
         cppFlags.add("-I${file("src/ffmpeg/${platform}/include")}".toString())
-        cppFlags.addAll(["-fno-exceptions", "-frtti", "-fno-permissive"]) // -fno-permissive seems not working
+        cppFlags.addAll(["-fno-exceptions", "-frtti", "-fno-permissive"])
+        // -fno-permissive seems not working
         ldFlags.add("-I${file("ffmpeg/${platform}/lib")}".toString())
         ldLibs.addAll(["android", "EGL", "GLESv1_CM", "dl", "log", "z"])
         stl = "stlport_static"
@@ -132,6 +133,8 @@ model {
         exclude 'META-INF/LGPL2.1'
     }
 }
+
+
 
 
 
