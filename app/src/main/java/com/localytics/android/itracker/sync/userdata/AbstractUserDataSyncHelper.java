@@ -23,7 +23,6 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +89,7 @@ public abstract class AbstractUserDataSyncHelper {
         // sync'ed at once to a file on AppData folder. We only use the dirty flag to decide if
         // the local content was changed or not. If it was, we replace the remote content.
         boolean hasPendingLocalData = false;
-        ArrayList<UserAction> actions = Lists.newArrayList();
+        ArrayList<UserAction> actions = new ArrayList<>();
         while (scheduleData.moveToNext()) {
 
             UserAction userAction = new UserAction();
@@ -132,7 +131,7 @@ public abstract class AbstractUserDataSyncHelper {
     }
 
     private void resetDirtyFlag(ArrayList<UserAction> actions) {
-        ArrayList<ContentProviderOperation> ops = Lists.newArrayList();
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         for (UserAction action: actions) {
 //            ContentProviderOperation op = ContentProviderOperation.newUpdate(
 //                    TrackerContract.addCallerIsSyncAdapterParameter(
