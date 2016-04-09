@@ -61,4 +61,8 @@ public class SdkVersionUtils {
     public static boolean hasLollipop() {
         return Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP;
     }
+
+    public static boolean hasMarshmallow() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.M;
+    }
 }
