@@ -30,7 +30,7 @@
  */
 enum AVStereo3DType {
     /**
-     * Video is not stereoscopic (and metadata has to be there).
+     * VideoData is not stereoscopic (and metadata has to be there).
      */
     AV_STEREO3D_2D,
 

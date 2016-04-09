@@ -107,6 +107,7 @@ public class BaseActivity extends AppCompatActivity implements
         ArrayList<String> permissionList = new ArrayList<>();
         permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
         permissionList.add(Manifest.permission.READ_PHONE_STATE);
+        permissionList.add(Manifest.permission.GET_ACCOUNTS);
         if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
             permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
@@ -162,7 +163,8 @@ public class BaseActivity extends AppCompatActivity implements
 
     private boolean checkBasicPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
         if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
@@ -193,9 +195,10 @@ public class BaseActivity extends AppCompatActivity implements
         if (requestCode == REQUEST_BASIC_PERMISSIONS) {
             boolean v1 = permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) && grantResults[0] == PackageManager.PERMISSION_GRANTED;
             boolean v2 = permissions[1].equals(Manifest.permission.READ_PHONE_STATE) && grantResults[1] == PackageManager.PERMISSION_GRANTED;
-            if (v1 && v2) {
+            boolean v3 = permissions[2].equals(Manifest.permission.GET_ACCOUNTS) && grantResults[2] == PackageManager.PERMISSION_GRANTED;
+            if (v1 && v2 && v3) {
                 if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
-                    if (permissions[2].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
+                    if (permissions[3].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) && grantResults[3] == PackageManager.PERMISSION_GRANTED) {
                         setupBackgroundMonitor();
                     } else {
                         // Permission was denied. Display an error message.

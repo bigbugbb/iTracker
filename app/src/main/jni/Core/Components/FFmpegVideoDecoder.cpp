@@ -367,7 +367,7 @@ int CFFmpegVideoDecoder::Load()
     pDemuxer->GetOutputPool(GetGUID(), &m_pVideoPool);
     
     if (!m_pVideoPool) {
-        Log("No Video Pool!\n");
+        Log("No VideoData Pool!\n");
     } else {
         for (int i = 0; i < m_vecOutObjs.size(); ++i) {
             const GUID& guid = m_vecOutObjs[i]->GetGUID();

@@ -590,7 +590,7 @@ typedef struct AVCodecDescriptor {
 
 /**
  * Codec uses only intra compression.
- * Video codecs only.
+ * VideoData codecs only.
  */
 #define AV_CODEC_PROP_INTRA_ONLY    (1 << 0)
 /**
@@ -1677,7 +1677,7 @@ typedef struct AVCodecContext {
      * Decoding: Number of frames delay in addition to what a standard decoder
      *           as specified in the spec would produce.
      *
-     * Video:
+     * VideoData:
      *   Number of frames the decoded output will be delayed relative to the
      *   encoded input.
      *
@@ -2405,7 +2405,7 @@ typedef struct AVCodecContext {
      *
      * @see avcodec_default_get_buffer2()
      *
-     * Video:
+     * VideoData:
      *
      * If AV_GET_BUFFER_FLAG_REF is set in flags then the frame may be reused
      * (read and/or written to if it is writable) later by libavcodec.

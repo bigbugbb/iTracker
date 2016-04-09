@@ -196,7 +196,9 @@ public class PhotoFragment extends TrackerFragment implements
         }
     }
 
+    @Override
     public void onFragmentUnselected() {
+        super.onFragmentUnselected();
         mFabTakePhoto.show();
     }
 

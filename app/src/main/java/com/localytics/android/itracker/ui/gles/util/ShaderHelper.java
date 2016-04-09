@@ -108,7 +108,7 @@ public class ShaderHelper {
         // Attach the fragment shader to the program.
         glAttachShader(programObjectId, fragmentShaderId);
 
-        // Link the two shaders together into a program.
+        // VideoData the two shaders together into a program.
         glLinkProgram(programObjectId);
 
         // Get the link status.
@@ -162,7 +162,7 @@ public class ShaderHelper {
         int vertexShader = compileVertexShader(vertexShaderSource);
         int fragmentShader = compileFragmentShader(fragmentShaderSource);
 
-        // Link them into a shader program.
+        // VideoData them into a shader program.
         program = linkProgram(vertexShader, fragmentShader);
 
         if (LoggerConfig.ON) {

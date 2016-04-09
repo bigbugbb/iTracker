@@ -324,10 +324,7 @@ public class SensorMonitorService extends IntentService
 
     @Override
     public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
         LOGI(TAG, "Connection suspended");
-        mGoogleApiClient.connect();
     }
 
     @Override

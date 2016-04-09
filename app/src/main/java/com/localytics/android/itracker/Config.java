@@ -76,6 +76,9 @@ public class Config {
     // S3 Key prefix pattern
     public static final DateTimeFormatter S3_KEY_PREFIX_PATTERN = DateTimeFormat.forPattern("yyyy/MM/dd/HH");
 
+    // YouTube upload playlist id
+    public static final String YOUTUBE_UPLOAD_PLAYLIST = "WL";
+
     public static void enableStrictMode() {
         if (SdkVersionUtils.hasGingerbread()) {
             StrictMode.ThreadPolicy.Builder threadPolicyBuilder =

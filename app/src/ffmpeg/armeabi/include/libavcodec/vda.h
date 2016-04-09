@@ -72,7 +72,7 @@ struct vda_context {
     VDADecoder          decoder;
 
     /**
-     * The Core Video pixel buffer that contains the current image data.
+     * The Core VideoData pixel buffer that contains the current image data.
      *
      * encoding: unused
      * decoding: Set by libavcodec. Unset by user.

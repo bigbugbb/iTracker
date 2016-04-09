@@ -43,6 +43,9 @@ public class PrefUtils {
     /** Long indicating when the date range filter is set */
     public static final String PREF_LAST_DATE_RANGE_UPDATED = "_pref_last_date_range_updated";
 
+    /** String indicating the chosen google account name for youtube data */
+    public static final String PREF_CHOSEN_GOOGLE_ACCOUNT_NAME = "_pref_chosen_google_account_name";
+
     public static void init(final Context context) {}
 
     public static void markNotFirstUsage(final Context context) {
@@ -162,6 +165,16 @@ public class PrefUtils {
     public static void setLastDateRangeUpdateTime(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putLong(PREF_LAST_DATE_RANGE_UPDATED, System.currentTimeMillis()).apply();
+    }
+
+    public static String getChosenGoogleAccountName(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getString(PREF_CHOSEN_GOOGLE_ACCOUNT_NAME, "");
+    }
+
+    public static void setChosenGoogleAccountName(final Context context, String chosenAccountName) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putString(PREF_CHOSEN_GOOGLE_ACCOUNT_NAME, chosenAccountName).apply();
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,

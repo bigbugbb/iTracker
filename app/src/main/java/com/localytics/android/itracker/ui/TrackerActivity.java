@@ -200,8 +200,7 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
             }
         }
 
-        // Switch to the current fragment
-        mTabLayout.getTabAt(position).select();
+        mTabLayout.getTabAt(position).select(); // Switch to the current fragment
     }
 
     @Override
@@ -272,6 +271,15 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+        for (Fragment fragment : adapter.mFragments) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     /**
