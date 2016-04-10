@@ -539,7 +539,7 @@ public class MediaFragment extends TrackerFragment implements
                 published = (TextView) itemView.findViewById(R.id.media_published_at_and_views);
             }
 
-            public void bindData(Video video) {
+            public void bindData(final Video video) {
                 VideoSnippet snippet = video.getSnippet();
                 VideoStatistics statistics = video.getStatistics();
                 VideoContentDetails contentDetails = video.getContentDetails();
@@ -558,7 +558,7 @@ public class MediaFragment extends TrackerFragment implements
                     @Override
                     public void onClick(View v) {
                         // TODO: play the media in another activity or the floating view
-                        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
+                        YouTubeExtractor extractor = new YouTubeExtractor(video.getId());
                         extractor.extract(new YouTubeExtractor.Callback() {
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
@@ -596,6 +596,8 @@ public class MediaFragment extends TrackerFragment implements
                         sb.append("0:");
                     }
                     sb.append(indexS - startIndex < 2 ? "0" : "").append(duration.substring(startIndex, indexS));
+                } else {
+                    sb.append("00");
                 }
                 return sb.toString();
             }
