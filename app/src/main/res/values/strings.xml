@@ -35,6 +35,7 @@
 
     <string name="show_timeline">SHOW ACTIVITY TIMELINE</string>
     <string name="hide_timeline">HIDE ACTIVITY TIMELINE</string>
+    <string name="need_time_for_timelines">Time is needed to get the activity timeline.</string>
 
     <!-- Activity detection strings -->
     <string name="in_vehicle">In a vehicle</string>

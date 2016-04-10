@@ -150,7 +150,8 @@ public class MediaFragment extends TrackerFragment implements
         mMediaView.setAdapter(mMediaAdapter);
 
         mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
-        mProgressView.setVisibility(mMediaAdapter.hasVideos() ? View.GONE : View.VISIBLE);
+        mProgressView.setVisibility(mMediaAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
+
 //        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
 //        extractor.extract(new YouTubeExtractor.Callback() {
 //            @Override
@@ -516,10 +517,6 @@ public class MediaFragment extends TrackerFragment implements
             mVideos.clear();
             mVideos.addAll(videos);
             notifyDataSetChanged();
-        }
-
-        public boolean hasVideos() {
-            return mVideos.size() > 0;
         }
 
         @Override

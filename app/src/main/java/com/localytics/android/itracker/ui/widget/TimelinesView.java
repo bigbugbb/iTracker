@@ -4,12 +4,15 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.util.LogUtils;
@@ -25,7 +28,8 @@ public class TimelinesView extends RelativeLayout {
     private final int DEFAULT_OVERSCROLL_SIZE = 32;
 
     private View     mOverScrollView;
-    private ListView mContentView;
+    private TextView mEmptyView;
+    private ListView mListView;
 
     private int mOverScrollSize;
     private Drawable mOverScrollBackground;
@@ -51,8 +55,16 @@ public class TimelinesView extends RelativeLayout {
         initViews();
     }
 
-    public ListView getContentView() {
-        return mContentView;
+    public ListView getListView() {
+        return mListView;
+    }
+
+    public View getContentView() {
+        ListAdapter adapter = mListView.getAdapter();
+        if (adapter != null && adapter.getCount() > 0) {
+            return mListView;
+        }
+        return mEmptyView;
     }
 
     public View getOverScrollView() {
@@ -63,9 +75,18 @@ public class TimelinesView extends RelativeLayout {
         mOverScrollView = new View(getContext());
         mOverScrollView.setId(generateViewId());
 
-        mContentView = new ListView(getContext());
-        mContentView.setId(generateViewId());
-        mContentView.setDivider(null);
+        int padding = dpToPx(getContext(), 16);
+        mEmptyView = new TextView(getContext());
+        mEmptyView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        mEmptyView.setId(android.R.id.empty);
+        mEmptyView.setGravity(Gravity.CENTER);
+        mEmptyView.setPadding(padding, padding, padding, padding);
+        mEmptyView.setText(R.string.need_time_for_timelines);
+
+        mListView = new ListView(getContext());
+        mListView.setId(generateViewId());
+        mListView.setDivider(null);
+        mListView.setEmptyView(mEmptyView);
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, mOverScrollSize);
         params.addRule(ALIGN_PARENT_TOP);
@@ -75,10 +96,12 @@ public class TimelinesView extends RelativeLayout {
         params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         params.addRule(BELOW, mOverScrollView.getId());
         params.addRule(ALIGN_PARENT_BOTTOM);
-        mContentView.setLayoutParams(params);
+        mListView.setLayoutParams(params);
+        mEmptyView.setLayoutParams(params);
 
         addView(mOverScrollView);
-        addView(mContentView);
+        addView(mListView);
+        addView(mEmptyView);
     }
 
     public static class TimelineItemAdapter extends ArrayAdapter<TimelineItem.Timeline> {

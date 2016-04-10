@@ -138,9 +138,9 @@ public class ActionFragment extends TrackerFragment implements
         mTracksView.setItemAnimator(new DefaultItemAnimator());
         mTracksView.setAdapter(mTrackItemAdapter);
 
-        ListView contentView = mTimelinesView.getContentView();
-        contentView.setAdapter(new TimelinesView.TimelineItemAdapter(getActivity()));
-        contentView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        ListView listView = mTimelinesView.getListView();
+        listView.setAdapter(new TimelinesView.TimelineItemAdapter(getActivity()));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TimelinesView.TimelineItemAdapter adapter = (TimelinesView.TimelineItemAdapter) parent.getAdapter();
@@ -155,7 +155,7 @@ public class ActionFragment extends TrackerFragment implements
                 mMotionsView.moveViewport(timeline.getStartTime(), timeline.getStopTime());
             }
         });
-        contentView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 return false;
@@ -219,7 +219,7 @@ public class ActionFragment extends TrackerFragment implements
             }
             case ActivitiesQuery.TOKEN_NORMAL: {
                 TimelinesView.TimelineItemAdapter adapter =
-                        (TimelinesView.TimelineItemAdapter) mTimelinesView.getContentView().getAdapter();
+                        (TimelinesView.TimelineItemAdapter) mTimelinesView.getListView().getAdapter();
                 adapter.setNotifyOnChange(false);
                 adapter.clear();
                 adapter.addAll(TimelineItem.Timeline.fromActivities(data));
