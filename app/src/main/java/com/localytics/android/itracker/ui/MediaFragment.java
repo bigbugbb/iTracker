@@ -123,6 +123,8 @@ public class MediaFragment extends TrackerFragment implements
 
         mChosenAccountName = PrefUtils.getChosenGoogleAccountName(getActivity());
         mCredential.setSelectedAccountName(mChosenAccountName);
+
+        mMediaAdapter = new MediaAdapter(getActivity());
     }
 
     @Override
@@ -139,8 +141,6 @@ public class MediaFragment extends TrackerFragment implements
         mMediaView = (RecyclerView) view.findViewById(R.id.media_view);
         mMediaView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mMediaView.setItemAnimator(new DefaultItemAnimator());
-
-        mMediaAdapter = new MediaAdapter(getActivity());
         mMediaView.setAdapter(mMediaAdapter);
 
 //        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
