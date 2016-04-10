@@ -49,8 +49,6 @@
 
     <color name="map_info_1">#ff000000</color>
     <color name="map_info_2">#ff777777</color>
-    <color name="map_floorselect_active">#FF000000</color>
-    <color name="map_floorselect_inactive">#FF333333</color>
 
     <color name="gray_background">#e5e5e5</color>
     <color name="dark_divider">#32000000</color>
@@ -76,4 +74,5 @@
     <color name="my_schedule_conflict">#db4437</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="media_duration_border">#8affffff</color>
 </resources>

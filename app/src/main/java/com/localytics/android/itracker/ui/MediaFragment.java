@@ -5,10 +5,10 @@ import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,13 +16,18 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.commit451.youtubeextractor.YouTubeExtractor;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -44,16 +49,12 @@ import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.api.services.youtube.model.VideoSnippet;
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.data.model.VideoData;
 import com.localytics.android.itracker.util.PrefUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -69,6 +70,9 @@ public class MediaFragment extends TrackerFragment implements
 
     private GoogleApiClient mGoogleApiClient;
     private GoogleAccountCredential mCredential;
+
+    private RecyclerView mMediaView;
+    private MediaAdapter mMediaAdapter;
 
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
@@ -132,19 +136,25 @@ public class MediaFragment extends TrackerFragment implements
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
-        extractor.extract(new YouTubeExtractor.Callback() {
-            @Override
-            public void onSuccess(YouTubeExtractor.Result result) {
-                Uri hdUri = result.getHd1080VideoUri();
-                //See the sample for more
-            }
+        mMediaView = (RecyclerView) view.findViewById(R.id.media_view);
+        mMediaView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mMediaView.setItemAnimator(new DefaultItemAnimator());
 
-            @Override
-            public void onFailure(Throwable t) {
-                t.printStackTrace();
-            }
-        });
+        mMediaAdapter = new MediaAdapter(getActivity());
+        mMediaView.setAdapter(mMediaAdapter);
+
+//        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
+//        extractor.extract(new YouTubeExtractor.Callback() {
+//            @Override
+//            public void onSuccess(YouTubeExtractor.Result result) {
+//                LOGD(TAG, result.getHd720VideoUri().toString());
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable t) {
+//                t.printStackTrace();
+//            }
+//        });
     }
 
     @Override
@@ -221,13 +231,14 @@ public class MediaFragment extends TrackerFragment implements
 
     private void reloadYouTubeMedia() {
         final String accountName = mCredential.getSelectedAccountName();
+
         if (TextUtils.isEmpty(accountName)) {
             return;
         }
 
-        new AsyncTask<Void, Void, List<VideoData>>() {
+        new AsyncTask<Void, Void, List<Video>>() {
             @Override
-            protected List<VideoData> doInBackground(Void... voids) {
+            protected List<Video> doInBackground(Void... voids) {
 
                 YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
                         .setApplicationName("iTracker")
@@ -248,13 +259,13 @@ public class MediaFragment extends TrackerFragment implements
                             .getContentDetails().getRelatedPlaylists()
                             .getWatchHistory();
 
-                    List<VideoData> videos = new ArrayList<>();
+                    List<Video> videos = new ArrayList<>();
 
                     // Get videos from user's upload playlist with a playlist items list request
                     PlaylistItemListResponse pilr = youtube.playlistItems()
                             .list("id,contentDetails")
                             .setPlaylistId(uploadsPlaylistId)
-                            .setMaxResults(20l).execute();
+                            .setMaxResults(50l).execute();
                     List<String> videoIds = new ArrayList<>();
 
                     // Iterate over playlist item list response to get uploaded videos' ids.
@@ -270,19 +281,9 @@ public class MediaFragment extends TrackerFragment implements
                     // Add only the public videos to the local videos list.
                     for (Video video : vlr.getItems()) {
                         if ("public".equals(video.getStatus().getPrivacyStatus())) {
-                            VideoData videoData = new VideoData();
-                            videoData.setVideo(video);
-                            videos.add(videoData);
+                            videos.add(video);
                         }
                     }
-
-                    // Sort videos by title
-                    Collections.sort(videos, new Comparator<VideoData>() {
-                        @Override
-                        public int compare(VideoData videoData, VideoData videoData2) {
-                            return videoData.getTitle().compareTo(videoData2.getTitle());
-                        }
-                    });
 
                     return videos;
 
@@ -300,9 +301,10 @@ public class MediaFragment extends TrackerFragment implements
             }
 
             @Override
-            protected void onPostExecute(List<VideoData> videos) {
+            protected void onPostExecute(List<Video> videos) {
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
+                    mMediaAdapter.updateVideos(videos);
                     return;
                 }
             }
@@ -415,14 +417,6 @@ public class MediaFragment extends TrackerFragment implements
         });
     }
 
-    private void haveGooglePlayServices() {
-        // check if there is already an account selected
-        if (TextUtils.isEmpty(mCredential.getSelectedAccountName())) {
-            // ask user to choose account
-            chooseAccount();
-        }
-    }
-
     private void chooseAccount() {
         startActivityForResult(mCredential.newChooseAccountIntent(), TrackerActivity.REQUEST_ACCOUNT_PICKER);
     }
@@ -443,34 +437,34 @@ public class MediaFragment extends TrackerFragment implements
         startActivityForResult(intent, TrackerActivity.REQUEST_VIDEO_CAPTURE);
     }
 
-    private void directTag(final VideoData video) {
-        final Video updateVideo = new Video();
-        VideoSnippet snippet = video
-                .addTags(Arrays.asList(
-                        "iTracker",
-                        generateKeywordFromPlaylistId(Config.YOUTUBE_UPLOAD_PLAYLIST)));
-        updateVideo.setSnippet(snippet);
-        updateVideo.setId(video.getYouTubeId());
-
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
-                        .setApplicationName("iTracker")
-                        .build();
-                try {
-                    youtube.videos().update("snippet", updateVideo).execute();
-                } catch (UserRecoverableAuthIOException e) {
-                    startActivityForResult(e.getIntent(), TrackerActivity.REQUEST_AUTHORIZATION);
-                } catch (IOException e) {
-                    LOGE(TAG, e.getMessage());
-                }
-                return null;
-            }
-
-        }.execute();
-
-        Toast.makeText(getActivity(), R.string.video_submitted_to_youtube, Toast.LENGTH_LONG).show();
+    private void directTag(final Video video) {
+//        final Video updateVideo = new Video();
+//        VideoSnippet snippet = video
+//                .addTags(Arrays.asList(
+//                        "iTracker",
+//                        generateKeywordFromPlaylistId(Config.YOUTUBE_UPLOAD_PLAYLIST)));
+//        updateVideo.setSnippet(snippet);
+//        updateVideo.setId(video.getYouTubeId());
+//
+//        new AsyncTask<Void, Void, Void>() {
+//            @Override
+//            protected Void doInBackground(Void... voids) {
+//                YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
+//                        .setApplicationName("iTracker")
+//                        .build();
+//                try {
+//                    youtube.videos().update("snippet", updateVideo).execute();
+//                } catch (UserRecoverableAuthIOException e) {
+//                    startActivityForResult(e.getIntent(), TrackerActivity.REQUEST_AUTHORIZATION);
+//                } catch (IOException e) {
+//                    LOGE(TAG, e.getMessage());
+//                }
+//                return null;
+//            }
+//
+//        }.execute();
+//
+//        Toast.makeText(getActivity(), R.string.video_submitted_to_youtube, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -499,5 +493,74 @@ public class MediaFragment extends TrackerFragment implements
             keyword = keyword.substring(0, 30);
         }
         return keyword;
+    }
+
+    private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
+
+        private Context mContext;
+        private List<Video> mVideos = new ArrayList<>();
+
+        public MediaAdapter(Context context) {
+            mContext = context;
+        }
+
+        public void updateVideos(List<Video> videos) {
+            mVideos.clear();
+            mVideos.addAll(videos);
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View item = LayoutInflater.from(mContext).inflate(R.layout.item_media, parent, false);
+            return new ViewHolder(item);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            holder.bindData(mVideos.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return mVideos.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView thumbnail;
+            TextView  duration;
+            TextView  title;
+            TextView  owner;
+            TextView  published;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                thumbnail = (ImageView) itemView.findViewById(R.id.media_thumbnail);
+                duration  = (TextView) itemView.findViewById(R.id.media_duration);
+                title     = (TextView) itemView.findViewById(R.id.media_title);
+                owner     = (TextView) itemView.findViewById(R.id.media_owner);
+                published = (TextView) itemView.findViewById(R.id.media_published_at_and_views);
+            }
+
+            public void bindData(Video video) {
+                VideoSnippet snippet = video.getSnippet();
+                duration.setText("");
+                title.setText(snippet.getTitle());
+                owner.setText(snippet.getChannelTitle());
+                published.setText(snippet.getPublishedAt().toString());
+                Glide.with(MediaFragment.this)
+                        .load(snippet.getThumbnails().getDefault().getUrl())
+                        .centerCrop()
+                        .crossFade()
+                        .into(thumbnail);
+
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // TODO: play the media in another activity or the floating view
+                    }
+                });
+            }
+        }
     }
 }
