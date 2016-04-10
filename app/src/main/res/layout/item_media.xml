@@ -37,6 +37,7 @@
             android:paddingBottom="2dp"
             android:background="@drawable/media_duration_background"
             android:textColor="@android:color/white"
+            android:textSize="11.5sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
             tools:text="4:02"/>
 

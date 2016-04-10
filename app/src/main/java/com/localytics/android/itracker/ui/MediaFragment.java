@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +77,8 @@ public class MediaFragment extends TrackerFragment implements
 
     private RecyclerView mMediaView;
     private MediaAdapter mMediaAdapter;
+
+    private ProgressBar mProgressView;
 
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
@@ -146,6 +149,8 @@ public class MediaFragment extends TrackerFragment implements
         mMediaView.setItemAnimator(new DefaultItemAnimator());
         mMediaView.setAdapter(mMediaAdapter);
 
+        mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
+        mProgressView.setVisibility(mMediaAdapter.hasVideos() ? View.GONE : View.VISIBLE);
 //        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
 //        extractor.extract(new YouTubeExtractor.Callback() {
 //            @Override
@@ -308,7 +313,7 @@ public class MediaFragment extends TrackerFragment implements
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
                     mMediaAdapter.updateVideos(videos);
-                    return;
+                    mProgressView.setVisibility(View.GONE);
                 }
             }
 
@@ -511,6 +516,10 @@ public class MediaFragment extends TrackerFragment implements
             mVideos.clear();
             mVideos.addAll(videos);
             notifyDataSetChanged();
+        }
+
+        public boolean hasVideos() {
+            return mVideos.size() > 0;
         }
 
         @Override
