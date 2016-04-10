@@ -40,6 +40,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.YouTubeScopes;
@@ -47,8 +48,10 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoContentDetails;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.api.services.youtube.model.VideoSnippet;
+import com.google.api.services.youtube.model.VideoStatistics;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.util.PrefUtils;
 
@@ -275,7 +278,7 @@ public class MediaFragment extends TrackerFragment implements
 
                     // Get details of uploaded videos with a videos list request.
                     VideoListResponse vlr = youtube.videos()
-                            .list("id,snippet,status")
+                            .list("id,snippet,status,statistics,contentDetails")
                             .setId(TextUtils.join(",", videoIds)).execute();
 
                     // Add only the public videos to the local videos list.
@@ -544,10 +547,13 @@ public class MediaFragment extends TrackerFragment implements
 
             public void bindData(Video video) {
                 VideoSnippet snippet = video.getSnippet();
-                duration.setText("");
+                VideoStatistics statistics = video.getStatistics();
+                VideoContentDetails contentDetails = video.getContentDetails();
+
+                duration.setText(formatDuration(contentDetails.getDuration().substring(2)));
                 title.setText(snippet.getTitle());
                 owner.setText(snippet.getChannelTitle());
-                published.setText(snippet.getPublishedAt().toString());
+                published.setText(formatPublishedAtAndViews(snippet.getPublishedAt(), statistics.getViewCount().longValue()));
                 Glide.with(MediaFragment.this)
                         .load(snippet.getThumbnails().getDefault().getUrl())
                         .centerCrop()
@@ -560,6 +566,43 @@ public class MediaFragment extends TrackerFragment implements
                         // TODO: play the media in another activity or the floating view
                     }
                 });
+            }
+
+            private String formatDuration(String duration) {
+                StringBuilder sb = new StringBuilder();
+                int startIndex = 0;
+                int indexH = duration.indexOf("H");
+                if (indexH != -1) {
+                    sb.append(duration.substring(startIndex, indexH))
+                            .append(':');
+                    startIndex = indexH + 1;
+                }
+                int indexM = duration.indexOf("M");
+                if (indexM != -1) {
+                    sb.append(indexM - startIndex < 2 && startIndex > 0 ? "0" : "")
+                            .append(duration.substring(startIndex, indexM))
+                            .append(':');
+                    startIndex = indexM + 1;
+                }
+                int indexS = duration.indexOf("S");
+                if (indexS != -1) {
+                    if (startIndex == 0) {
+                        sb.append("0:");
+                    }
+                    sb.append(indexS - startIndex < 2 ? "0" : "").append(duration.substring(startIndex, indexS));
+                }
+                return sb.toString();
+            }
+
+            private String formatPublishedAtAndViews(DateTime time, long viewCount) {
+                String publishedAt = time.toString().substring(0, 10);
+                if (viewCount >= 1000000) {
+                    return String.format("%s · %.1fM views", publishedAt, viewCount / 1000000.0);
+                } else if (viewCount >= 1000) {
+                    return String.format("%s · %dK views", publishedAt, viewCount / 1000);
+                } else {
+                    return String.format("%s · %d views", publishedAt, viewCount);
+                }
             }
         }
     }
