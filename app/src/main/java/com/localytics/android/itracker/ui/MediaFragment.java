@@ -29,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.commit451.youtubeextractor.YouTubeExtractor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -151,19 +152,6 @@ public class MediaFragment extends TrackerFragment implements
 
         mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
         mProgressView.setVisibility(mMediaAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
-
-//        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
-//        extractor.extract(new YouTubeExtractor.Callback() {
-//            @Override
-//            public void onSuccess(YouTubeExtractor.Result result) {
-//                LOGD(TAG, result.getHd720VideoUri().toString());
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable t) {
-//                t.printStackTrace();
-//            }
-//        });
     }
 
     @Override
@@ -561,7 +549,7 @@ public class MediaFragment extends TrackerFragment implements
                 owner.setText(snippet.getChannelTitle());
                 published.setText(formatPublishedAtAndViews(snippet.getPublishedAt(), statistics.getViewCount().longValue()));
                 Glide.with(MediaFragment.this)
-                        .load(snippet.getThumbnails().getDefault().getUrl())
+                        .load(snippet.getThumbnails().getHigh().getUrl())
                         .centerCrop()
                         .crossFade()
                         .into(thumbnail);
@@ -570,6 +558,18 @@ public class MediaFragment extends TrackerFragment implements
                     @Override
                     public void onClick(View v) {
                         // TODO: play the media in another activity or the floating view
+                        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
+                        extractor.extract(new YouTubeExtractor.Callback() {
+                            @Override
+                            public void onSuccess(YouTubeExtractor.Result result) {
+                                LOGD(TAG, result.getHd720VideoUri().toString());
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                t.printStackTrace();
+                            }
+                        });
                     }
                 });
             }
