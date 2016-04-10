@@ -5,10 +5,15 @@
     android:layout_height="match_parent"
     tools:context=".ui.PhotoFragment">
 
-    <ListView
-        android:id="@+id/streaming_urls_view"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/media_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:paddingTop="4dp"
+        android:clipToPadding="false"
+        android:background="@color/tracks_background"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
 
 </android.support.design.widget.CoordinatorLayout>
 

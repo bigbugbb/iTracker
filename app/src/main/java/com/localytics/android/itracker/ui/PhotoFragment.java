@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.ui;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.BroadcastReceiver;
@@ -10,6 +11,7 @@ import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.R;
@@ -61,10 +64,14 @@ public class PhotoFragment extends TrackerFragment implements
 
     private ThrottledContentObserver mPhotosObserver;
 
-    private static final int REQUEST_TAKE_PHOTO = 1;
+    private boolean mPermissionRequested = true;
+
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final long TAKE_PHOTO_FAB_SHOW_DELAY = 500;
+
+    private static final int REQUEST_PERMISSIONS_TO_ACCESS_PHOTOS = 100;
+    private static final int REQUEST_PERMISSIONS_TO_TAKE_PHOTO    = 101;
 
     public PhotoFragment() {
         // Required empty public constructor
@@ -107,27 +114,16 @@ public class PhotoFragment extends TrackerFragment implements
         mPhotoCollectionView = (CollectionView) root.findViewById(R.id.photos_view);
         mPhotoCollectionAdapter = new PhotoCollectionAdapter();
         mPhotoCollectionView.setCollectionAdapter(mPhotoCollectionAdapter);
+        if (mPhotoInventory != null) {
+            mPhotoCollectionView.updateInventory(mPhotoInventory, true);
+        }
 
         mFabTakePhoto = (FloatingActionButton) root.findViewById(R.id.fab_take_photo);
         mFabTakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                // Ensure that there's a camera activity to handle the intent
-                if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                    // Create the File where the photo should go
-                    File photoFile = null;
-                    try {
-                        photoFile = createImageFile();
-                    } catch (IOException e) {
-                        // Error occurred while creating the File
-                        LOGE(TAG, "IOException while creating the file: " + e.getMessage());
-                    }
-                    // Continue only if the File was successfully created
-                    if (photoFile != null) {
-                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-                        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-                    }
+                if (!requestPhotoTakingPermissions()) {
+                    takePhoto();
                 }
             }
         });
@@ -163,6 +159,26 @@ public class PhotoFragment extends TrackerFragment implements
         }
     };
 
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                // Error occurred while creating the File
+                LOGE(TAG, "IOException while creating the file: " + e.getMessage());
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, TrackerActivity.REQUEST_PHOTO_CAPTURE);
+            }
+        }
+    }
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -171,14 +187,17 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        LOGD(TAG, "Reloading data as a result of onResume()");
-        reloadPhotosWithRequiredPermission();
+        if (mSelected) {
+            reloadPhotosWithRequiredPermission();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mPhotosObserver.cancelPendingCallback();
+        if (mSelected) {
+            mPhotosObserver.cancelPendingCallback();
+        }
     }
 
     @Override
@@ -191,9 +210,89 @@ public class PhotoFragment extends TrackerFragment implements
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
+        if (requestCode == TrackerActivity.REQUEST_PHOTO_CAPTURE && resultCode == Activity.RESULT_OK) {
             galleryAddPhoto();
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean requestPhotoTakingPermissions() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ArrayList<String> permissions = new ArrayList<>();
+            permissions.add(Manifest.permission.CAMERA);
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            // No explanation needed, we always have to request these permissions.
+            requestPermissions(permissions.toArray(new String[permissions.size()]), REQUEST_PERMISSIONS_TO_TAKE_PHOTO);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean requestPhotosAccessPermission() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ArrayList<String> permissions = new ArrayList<>();
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            if (mPermissionRequested) {
+                requestPermissions(permissions.toArray(new String[permissions.size()]), REQUEST_PERMISSIONS_TO_ACCESS_PHOTOS);
+                mPermissionRequested = false; // so the next onResume won't trigger another request
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        // It is possible that the permissions request interaction with the user is interrupted.
+        // In this case you will receive empty permissions and results arrays which should be treated as a cancellation.
+        if (permissions.length == 0) {
+            if (requestCode == REQUEST_PERMISSIONS_TO_TAKE_PHOTO) {
+                requestPhotoTakingPermissions();
+            } else if (requestCode == REQUEST_PERMISSIONS_TO_ACCESS_PHOTOS) {
+                requestPhotosAccessPermission();
+            }
+            return;
+        }
+
+        switch (requestCode) {
+            case REQUEST_PERMISSIONS_TO_TAKE_PHOTO: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    takePhoto();
+                } else {
+                    Toast.makeText(getActivity(), R.string.require_take_photo_permissions, Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+            case REQUEST_PERMISSIONS_TO_ACCESS_PHOTOS: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    reloadPhotosWithRequiredPermission();
+                } else {
+                    Toast.makeText(getActivity(), R.string.require_photos_access_permission, Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void onFragmentSelected() {
+        super.onFragmentSelected();
+        mPermissionRequested = true;
+        reloadPhotosWithRequiredPermission();
     }
 
     @Override
@@ -238,8 +337,9 @@ public class PhotoFragment extends TrackerFragment implements
 
         switch (loader.getId()) {
             case PhotosQuery.TOKEN_NORMAL: {
-                mPhotoInventory = Photo.photoInventoryFromCursor(data);
-                if (mPhotoInventory != null) {
+                CollectionView.Inventory newInventory = Photo.photoInventoryFromCursor(data);
+                if (newInventory != null && !Photo.containSamePhotos(mPhotoInventory, newInventory)) {
+                    mPhotoInventory = newInventory;
                     updateInventoryDisplayColumns(mPhotoInventory);
                     mPhotoCollectionView.updateInventory(mPhotoInventory, true);
                 }
@@ -270,8 +370,7 @@ public class PhotoFragment extends TrackerFragment implements
     }
 
     private void reloadPhotosWithRequiredPermission() {
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (!requestPhotosAccessPermission()) {
             reloadPhotos(getLoaderManager(), mBeginTime, mEndTime, this);
         }
     }

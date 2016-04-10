@@ -40,7 +40,6 @@ public class Config {
     public static final long MONITORING_DURATION_IN_MICROS = 1000 * 1000 * MONITORING_DURATION_IN_SECONDS;
 
     // Data saver config
-    public static final boolean USE_EXTERNAL_DIRECTORY = true;
     public static final Format TRACKER_FILENAME_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HHZZ");
 
     // Values for the EventPoint feedback API. Sync happens at the same time as schedule sync,

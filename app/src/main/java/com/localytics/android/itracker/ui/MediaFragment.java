@@ -1,21 +1,28 @@
 package com.localytics.android.itracker.ui;
 
+import android.Manifest;
 import android.accounts.AccountManager;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.commit451.youtubeextractor.YouTubeExtractor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -49,6 +56,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
@@ -62,6 +70,8 @@ public class MediaFragment extends TrackerFragment implements
     private GoogleApiClient mGoogleApiClient;
     private GoogleAccountCredential mCredential;
 
+    private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
+
     /**
      * Define a global instance of the HTTP transport.
      */
@@ -73,14 +83,6 @@ public class MediaFragment extends TrackerFragment implements
     public static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
     private String mChosenAccountName;
-
-    private static final int REQUEST_GOOGLE_PLAY_SERVICES = 0;
-    private static final int REQUEST_GMS_ERROR_DIALOG = 1;
-    private static final int REQUEST_ACCOUNT_PICKER = 2;
-    private static final int REQUEST_AUTHORIZATION = 3;
-    private static final int RESULT_PICK_IMAGE_CROP = 4;
-    private static final int RESULT_VIDEO_CAP = 5;
-    private static final int REQUEST_DIRECT_TAG = 6;
 
     // Register an API key here: https://console.developers.google.com
     public static final String KEY = "AIzaSyBKpl_2cbamvaAd8xbCE9KzW5KYEz-DEZo";
@@ -129,6 +131,20 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        YouTubeExtractor extractor = new YouTubeExtractor("1pyfMnF6j_g");
+        extractor.extract(new YouTubeExtractor.Callback() {
+            @Override
+            public void onSuccess(YouTubeExtractor.Result result) {
+                Uri hdUri = result.getHd1080VideoUri();
+                //See the sample for more
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -173,7 +189,39 @@ public class MediaFragment extends TrackerFragment implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        if (TextUtils.isEmpty(Plus.AccountApi.getAccountName(mGoogleApiClient))) {
+        if (!requestGetAccountsPermission()) {
+            final String accountName = Plus.AccountApi.getAccountName(mGoogleApiClient);
+            mChosenAccountName = accountName;
+            mCredential.setSelectedAccountName(accountName);
+            PrefUtils.setChosenGoogleAccountName(getActivity(), mChosenAccountName);
+        }
+
+        reloadYouTubeMedia();
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        LOGI(TAG, "Connection suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            Toast.makeText(getActivity(), R.string.connection_to_google_play_failed, Toast.LENGTH_SHORT).show();
+
+            LOGE(TAG, String.format("Connection to Play Services Failed, error: %d, reason: %s",
+                    connectionResult.getErrorCode(), connectionResult.toString()));
+            try {
+                connectionResult.startResolutionForResult(getActivity(), TrackerActivity.REQUEST_AUTHORIZATION);
+            } catch (IntentSender.SendIntentException e) {
+                LOGE(TAG, e.toString(), e);
+            }
+        }
+    }
+
+    private void reloadYouTubeMedia() {
+        final String accountName = mCredential.getSelectedAccountName();
+        if (TextUtils.isEmpty(accountName)) {
             return;
         }
 
@@ -241,7 +289,7 @@ public class MediaFragment extends TrackerFragment implements
                 } catch (final GooglePlayServicesAvailabilityIOException availabilityException) {
                     showGooglePlayServicesAvailabilityErrorDialog(availabilityException.getConnectionStatusCode());
                 } catch (UserRecoverableAuthIOException userRecoverableException) {
-                    startActivityForResult(userRecoverableException.getIntent(), REQUEST_AUTHORIZATION);
+                    startActivityForResult(userRecoverableException.getIntent(), TrackerActivity.REQUEST_AUTHORIZATION);
                 } catch (IOException e) {
                     LOGE(TAG, e.getMessage());
                 } catch (Exception e) {
@@ -253,7 +301,8 @@ public class MediaFragment extends TrackerFragment implements
 
             @Override
             protected void onPostExecute(List<VideoData> videos) {
-                if (isAdded() && videos == null) {
+                if (isAdded() && videos != null) {
+                    LOGD(TAG, "Load videos successfully: " + videos);
                     return;
                 }
             }
@@ -261,22 +310,39 @@ public class MediaFragment extends TrackerFragment implements
         }.execute();
     }
 
-    @Override
-    public void onConnectionSuspended(int cause) {
-        LOGI(TAG, "Connection suspended");
+    @TargetApi(Build.VERSION_CODES.M)
+    protected boolean requestGetAccountsPermission() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.GET_ACCOUNTS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ArrayList<String> permissions = new ArrayList<>();
+            permissions.add(Manifest.permission.GET_ACCOUNTS);
+
+            requestPermissions(permissions.toArray(new String[permissions.size()]), REQUEST_PERMISSIONS_TO_GET_ACCOUNTS);
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        if (connectionResult.hasResolution()) {
-            Toast.makeText(getActivity(), R.string.connection_to_google_play_failed, Toast.LENGTH_SHORT).show();
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        // It is possible that the permissions request interaction with the user is interrupted.
+        // In this case you will receive empty permissions and results arrays which should be treated as a cancellation.
+        if (permissions.length == 0) {
+            requestGetAccountsPermission();
+            return;
+        }
 
-            LOGE(TAG, String.format("Connection to Play Services Failed, error: %d, reason: %s",
-                    connectionResult.getErrorCode(), connectionResult.toString()));
-            try {
-                connectionResult.startResolutionForResult(getActivity(), 0);
-            } catch (IntentSender.SendIntentException e) {
-                LOGE(TAG, e.toString(), e);
+        switch (requestCode) {
+            case REQUEST_PERMISSIONS_TO_GET_ACCOUNTS: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mGoogleApiClient.connect();
+                } else {
+                    Toast.makeText(getActivity(), R.string.require_get_accounts_permission, Toast.LENGTH_SHORT).show();
+                }
+                break;
             }
         }
     }
@@ -285,20 +351,9 @@ public class MediaFragment extends TrackerFragment implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case REQUEST_GMS_ERROR_DIALOG:
+            case TrackerActivity.REQUEST_GMS_ERROR_DIALOG:
                 break;
-//            case RESULT_PICK_IMAGE_CROP:
-//                if (resultCode == RESULT_OK) {
-//                    mFileURI = data.getData();
-//                    if (mFileURI != null) {
-//                        Intent intent = new Intent(this, ReviewActivity.class);
-//                        intent.setData(mFileURI);
-//                        startActivity(intent);
-//                    }
-//                }
-//                break;
-//
-            case RESULT_VIDEO_CAP:
+            case TrackerActivity.REQUEST_VIDEO_CAPTURE:
                 if (resultCode == Activity.RESULT_OK) {
 //                    mFileURI = data.getData();
 //                    if (mFileURI != null) {
@@ -308,19 +363,17 @@ public class MediaFragment extends TrackerFragment implements
 //                    }
                 }
                 break;
-            case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode == Activity.RESULT_OK) {
-                    haveGooglePlayServices();
-                } else {
+            case TrackerActivity.REQUEST_GOOGLE_PLAY_SERVICES:
+                if (resultCode != Activity.RESULT_OK) {
                     checkGooglePlayServicesAvailable();
                 }
                 break;
-            case REQUEST_AUTHORIZATION:
+            case TrackerActivity.REQUEST_AUTHORIZATION:
                 if (resultCode != Activity.RESULT_OK) {
                     chooseAccount();
                 }
                 break;
-            case REQUEST_ACCOUNT_PICKER:
+            case TrackerActivity.REQUEST_ACCOUNT_PICKER:
                 if (resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
                     String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
@@ -330,7 +383,7 @@ public class MediaFragment extends TrackerFragment implements
                     }
                 }
                 break;
-//            case REQUEST_DIRECT_TAG:
+//            case TrackerActivity.REQUEST_DIRECT_TAG:
 //                if (resultCode == Activity.RESULT_OK && data != null
 //                        && data.getExtras() != null) {
 //                    String youtubeId = data.getStringExtra(YOUTUBE_ID);
@@ -356,7 +409,7 @@ public class MediaFragment extends TrackerFragment implements
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
                 Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
-                        connectionStatusCode, getActivity(), REQUEST_GOOGLE_PLAY_SERVICES);
+                        connectionStatusCode, getActivity(), TrackerActivity.REQUEST_GOOGLE_PLAY_SERVICES);
                 dialog.show();
             }
         });
@@ -371,7 +424,7 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     private void chooseAccount() {
-        startActivityForResult(mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+        startActivityForResult(mCredential.newChooseAccountIntent(), TrackerActivity.REQUEST_ACCOUNT_PICKER);
     }
 
     public void recordVideo(View view) {
@@ -387,7 +440,7 @@ public class MediaFragment extends TrackerFragment implements
         intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 
         // start the Video Capture Intent
-        startActivityForResult(intent, RESULT_VIDEO_CAP);
+        startActivityForResult(intent, TrackerActivity.REQUEST_VIDEO_CAPTURE);
     }
 
     private void directTag(final VideoData video) {
@@ -402,14 +455,13 @@ public class MediaFragment extends TrackerFragment implements
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-
                 YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
                         .setApplicationName("iTracker")
                         .build();
                 try {
                     youtube.videos().update("snippet", updateVideo).execute();
                 } catch (UserRecoverableAuthIOException e) {
-                    startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
+                    startActivityForResult(e.getIntent(), TrackerActivity.REQUEST_AUTHORIZATION);
                 } catch (IOException e) {
                     LOGE(TAG, e.getMessage());
                 }
@@ -417,6 +469,7 @@ public class MediaFragment extends TrackerFragment implements
             }
 
         }.execute();
+
         Toast.makeText(getActivity(), R.string.video_submitted_to_youtube, Toast.LENGTH_LONG).show();
     }
 

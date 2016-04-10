@@ -1,8 +1,6 @@
 package com.localytics.android.itracker.util;
 
-import android.content.Context;
 import android.location.Location;
-import android.os.Environment;
 
 import com.localytics.android.itracker.Config;
 import com.opencsv.CSVParser;
@@ -13,7 +11,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.lang3.time.DateFormatUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -29,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -45,33 +41,33 @@ public class DataFileUtils {
     private static final int INVALID_DATA = -1;
     private static final int SUMMARY_COUNT = 24 * 60 * Config.MONITORING_DURATION_IN_SECONDS;
 
-    public static String getSensorDataBaseDirPath(Context context) {
-        String dirPath;
-        if (Config.USE_EXTERNAL_DIRECTORY) {
-            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + ".iTracker";
-            new File(dirPath).mkdirs();
-        } else {
-            dirPath = context.getFilesDir().getPath();
-        }
-        return new StringBuilder()
-                .append(dirPath)
-                .append(File.separator).append("data")
-                .append(File.separator).append("sensors")
-                .append(File.separator)
-                .toString();
-    }
-
-    public static String getSensorDataDirPath(Context context, Date date) {
-        if (date == null) {
-            date = new Date();
-        }
-        String baseDir = getSensorDataBaseDirPath(context);
-        StringBuilder builder = new StringBuilder();
-        return builder.append(baseDir)
-                .append(DateFormatUtils.ISO_DATE_FORMAT.format(date)).append(File.separator)
-                .append(HourFormat.format(date)).append(File.separator)
-                .toString();
-    }
+//    public static String getSensorDataBaseDirPath(Context context) {
+//        String dirPath;
+//        if (Config.USE_EXTERNAL_DIRECTORY) {
+//            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + ".iTracker";
+//            new File(dirPath).mkdirs();
+//        } else {
+//            dirPath = context.getFilesDir().getPath();
+//        }
+//        return new StringBuilder()
+//                .append(dirPath)
+//                .append(File.separator).append("data")
+//                .append(File.separator).append("sensors")
+//                .append(File.separator)
+//                .toString();
+//    }
+//
+//    public static String getSensorDataDirPath(Context context, Date date) {
+//        if (date == null) {
+//            date = new Date();
+//        }
+//        String baseDir = getSensorDataBaseDirPath(context);
+//        StringBuilder builder = new StringBuilder();
+//        return builder.append(baseDir)
+//                .append(DateFormatUtils.ISO_DATE_FORMAT.format(date)).append(File.separator)
+//                .append(HourFormat.format(date)).append(File.separator)
+//                .toString();
+//    }
 
     public static void writeFile(String data, File file) throws IOException {
         writeFile(data.getBytes(Charset.forName("UTF-8")), file);

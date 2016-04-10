@@ -85,6 +85,14 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
             R.drawable.ic_tab_friends
     };
 
+    static final int REQUEST_GOOGLE_PLAY_SERVICES = 0;
+    static final int REQUEST_GMS_ERROR_DIALOG     = 1;
+    static final int REQUEST_ACCOUNT_PICKER       = 2;
+    static final int REQUEST_AUTHORIZATION        = 3;
+    static final int REQUEST_PHOTO_CAPTURE        = 4;
+    static final int REQUEST_VIDEO_CAPTURE        = 5;
+    static final int REQUEST_DIRECT_TAG           = 6;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

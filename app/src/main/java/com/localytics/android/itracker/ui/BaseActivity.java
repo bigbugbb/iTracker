@@ -22,16 +22,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
+import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.OptionalPendingResult;
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.gcm.RegistrationIntentService;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
@@ -96,91 +91,29 @@ public class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if (checkBasicPermissions()) {
+        if (!requestPermissions()) {
             setupBackgroundMonitor();
-        } else {
-            requestBasicPermissions();
         }
     }
 
-    private void requestBasicPermissions() {
-        ArrayList<String> permissionList = new ArrayList<>();
-        permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        permissionList.add(Manifest.permission.READ_PHONE_STATE);
-        permissionList.add(Manifest.permission.GET_ACCOUNTS);
-        if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
-            permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        }
-        final String[] permissions = permissionList.toArray(new String[permissionList.size()]);
-        ActivityCompat.requestPermissions(this, permissions, REQUEST_BASIC_PERMISSIONS);
-    }
+    protected boolean requestPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
 
-    private boolean checkSignIn() {
-        // First validate the server client id format.
-        String serverClientId = getString(R.string.server_client_id);
-        String suffix = ".apps.googleusercontent.com";
-        if (!serverClientId.trim().endsWith(suffix)) {
-            throw new RuntimeException("Invalid server client ID in strings.xml, must end with " + suffix);
-        }
+            ArrayList<String> permissions = new ArrayList<>();
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            permissions.add(Manifest.permission.READ_PHONE_STATE);
 
-        // [START configure_signin]
-        // Request only the user's ID token, which can be used to identify the
-        // user securely to your backend. This will contain the user's basic
-        // profile (name, profile picture URL, etc) so you should not need to
-        // make an additional call to personalize your application.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .build();
-        // [END configure_signin]
-
-        // Build GoogleAPIClient with the Google Sign-In API and the above options.
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-        // Try to make a silent sign in.
-        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (opr.isDone()) {
-            // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
-            // and the GoogleSignInResult will be available instantly.
-            LOGD(TAG, "Got cached sign-in");
-            GoogleSignInResult result = opr.get();
-            GoogleSignInAccount account = result.getSignInAccount();
-
-            final String IdToken = account.getIdToken();
-            final String personEmail = account.getEmail();
-            final String personName = account.getDisplayName();
-            final String personId = account.getId();
-            final Uri personPhoto = account.getPhotoUrl();
+            // No explanation needed, we always have to request these permissions.
+            ActivityCompat.requestPermissions(this, permissions.toArray(new String[permissions.size()]),
+                    REQUEST_BASIC_PERMISSIONS);
 
             return true;
-        } else {
-            return false;
         }
-    }
 
-    private boolean checkBasicPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
-            return false;
-        }
-        if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void setupBackgroundMonitor() {
-        if (!PrefUtils.isAlarmSetupDone(getApplicationContext())) {
-            Intent intent = new Intent(TrackerBroadcastReceiver.ACTION_BOOTSTRAP_MONITOR_ALARM);
-            sendBroadcast(intent);
-            PrefUtils.markAlarmSetupDone(getApplicationContext());
-        }
+        return false;
     }
 
     @Override
@@ -188,27 +121,42 @@ public class BaseActivity extends AppCompatActivity implements
         // It is possible that the permissions request interaction with the user is interrupted.
         // In this case you will receive empty permissions and results arrays which should be treated as a cancellation.
         if (permissions.length == 0) {
-            requestBasicPermissions();
+            requestPermissions();
             return;
         }
 
         if (requestCode == REQUEST_BASIC_PERMISSIONS) {
-            boolean v1 = permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-            boolean v2 = permissions[1].equals(Manifest.permission.READ_PHONE_STATE) && grantResults[1] == PackageManager.PERMISSION_GRANTED;
-            boolean v3 = permissions[2].equals(Manifest.permission.GET_ACCOUNTS) && grantResults[2] == PackageManager.PERMISSION_GRANTED;
-            if (v1 && v2 && v3) {
-                if (Config.USE_EXTERNAL_DIRECTORY /*&& !SdkVersionUtils.hasKitKat()*/) {
-                    if (permissions[3].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) && grantResults[3] == PackageManager.PERMISSION_GRANTED) {
-                        setupBackgroundMonitor();
-                    } else {
-                        // Permission was denied. Display an error message.
-                    }
-                } else {
-                    setupBackgroundMonitor();
+            boolean granted = true;
+
+            for (int i = 0; i < permissions.length; ++i) {
+                final int grantResult = grantResults[i];
+                final String permission = permissions[i];
+
+                switch (permission) {
+                    case Manifest.permission.ACCESS_FINE_LOCATION:
+                    case Manifest.permission.READ_PHONE_STATE:
+                        if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                            granted = false;
+                        }
+                        break;
                 }
-            } else {
-                // Permission was denied. Display an error message.
             }
+
+            if (!granted) {
+                Toast.makeText(this, R.string.require_all_basic_permissions, Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                // Yeah! We've got all the permissions, let's start background monitoring.
+                setupBackgroundMonitor();
+            }
+        }
+    }
+
+    private void setupBackgroundMonitor() {
+        if (!PrefUtils.isAlarmSetupDone(getApplicationContext())) {
+            Intent intent = new Intent(TrackerBroadcastReceiver.ACTION_BOOTSTRAP_MONITOR_ALARM);
+            sendBroadcast(intent);
+            PrefUtils.markAlarmSetupDone(getApplicationContext());
         }
     }
 

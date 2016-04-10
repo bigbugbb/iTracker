@@ -92,6 +92,22 @@ public final class Photo extends BaseData implements Parcelable {
         return null;
     }
 
+    public static boolean containSamePhotos(CollectionView.Inventory oldInv, CollectionView.Inventory newInv) {
+        if (oldInv == null) {
+            return false;
+        }
+
+        if (oldInv.getTotalItemCount() != newInv.getTotalItemCount()) {
+            return false;
+        }
+
+        if (oldInv.getGroupCount() != newInv.getGroupCount()) {
+            return false;
+        }
+
+        return true; // Skip elements test for simplicity, should be fine for this app.
+    }
+
     @Override
     public int describeContents() {
         return 0;
