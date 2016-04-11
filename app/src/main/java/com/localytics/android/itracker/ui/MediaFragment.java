@@ -183,15 +183,21 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onFragmentSelected() {
         super.onFragmentSelected();
-        if (!mGoogleApiClient.isConnecting()) {
-            mGoogleApiClient.connect();
+        if (isAdded()) {
+            if (mGoogleApiClient != null && !mGoogleApiClient.isConnecting()) {
+                mGoogleApiClient.connect();
+            }
         }
     }
 
     @Override
     public void onFragmentUnselected() {
         super.onFragmentUnselected();
-        mGoogleApiClient.disconnect();
+        if (isAdded()) {
+            if (mGoogleApiClient != null) {
+                mGoogleApiClient.disconnect();
+            }
+        }
     }
 
     @Override

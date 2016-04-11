@@ -111,7 +111,6 @@ public class ActionFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mHandler = new Handler();
     }
 
     @Override

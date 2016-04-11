@@ -291,14 +291,18 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onFragmentSelected() {
         super.onFragmentSelected();
-        mPermissionRequested = true;
-        reloadPhotosWithRequiredPermission();
+        if (isAdded()) {
+            mPermissionRequested = true;
+            reloadPhotosWithRequiredPermission();
+        }
     }
 
     @Override
     public void onFragmentUnselected() {
         super.onFragmentUnselected();
-        mFabTakePhoto.show();
+        if (isAdded()) {
+            mFabTakePhoto.show();
+        }
     }
 
     private File createImageFile() throws IOException {
