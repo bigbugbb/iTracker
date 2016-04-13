@@ -569,6 +569,7 @@ public class MediaFragment extends TrackerFragment implements
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
                                 LOGD(TAG, result.getHd720VideoUri().toString());
+                                return;
                             }
 
                             @Override

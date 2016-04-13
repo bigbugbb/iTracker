@@ -87,11 +87,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.SignInActivity"
-            android:label="@string/title_activity_sign_in"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
             android:name=".ui.FootprintActivity"
             android:label="@string/title_activity_footprint"
             android:parentActivityName=".ui.TrackerActivity"

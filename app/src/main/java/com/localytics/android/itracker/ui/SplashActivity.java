@@ -1,5 +1,6 @@
 package com.localytics.android.itracker.ui;
 
+import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
@@ -33,12 +34,35 @@ public class SplashActivity extends AppCompatActivity {
 
         PrefUtils.init(getApplicationContext());
 
-        AccountUtils.startAuthenticationFlow(
-            this, // This must be the activity context to start the authenticate activity.
-            AccountUtils.ACCOUNT_TYPE,
-            AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
-            new SimpleAccountManagerCallback(this)
-        );
+        if (!AccountUtils.hasToken(this)) {
+            AccountUtils.startAuthenticationFlow(
+                    this, // This must be the activity context to start the authenticate activity.
+                    AccountUtils.ACCOUNT_TYPE,
+                    AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
+                    new SimpleAccountManagerCallback(this)
+            );
+        } else {
+            Intent intent = new Intent(this, TrackerActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        try {
+            if (!AccountUtils.hasToken(this)) {
+                Thread.sleep(1000); // yeah, I know, this is stupid...
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        // do nothing to prevent user closing the app from the back button
     }
 
     private static class SimpleAccountManagerCallback implements AccountManagerCallback<Bundle> {

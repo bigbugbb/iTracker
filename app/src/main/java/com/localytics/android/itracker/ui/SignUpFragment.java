@@ -65,8 +65,8 @@ public class SignUpFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mEmail = (EditText) view.findViewById(R.id.email);
-        mPassword = (EditText) view.findViewById(R.id.password);
+        mEmail = (EditText) view.findViewById(R.id.edit_email);
+        mPassword = (EditText) view.findViewById(R.id.edit_password);
         mPasswordConfirmation = (EditText) view.findViewById(R.id.password_confirmation);
 
         mSignUp = (Button) view.findViewById(R.id.sign_up);
