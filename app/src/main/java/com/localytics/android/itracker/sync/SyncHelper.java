@@ -363,6 +363,7 @@ public class SyncHelper {
                     ContentValues values = new ContentValues();
                     values.put(Links.LINK, url);
                     values.put(Links.TYPE, getDataType(uri));
+                    values.put(Links.STATE, TrackerContract.LinkState.UPLOADED.state());
                     values.put(Links.START_TIME, beginTime);
                     values.put(Links.END_TIME, endTime);
                     values.put(Links.TRACK_ID, trackId);

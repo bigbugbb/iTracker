@@ -76,6 +76,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Links.UPDATED + " INTEGER NOT NULL,"
                 + Links.LINK + " INTEGER UNIQUE NOT NULL,"
                 + Links.TYPE + " TEXT NOT NULL,"
+                + Links.STATE + " TEXT NOT NULL,"
                 + Links.START_TIME + " INTEGER NOT NULL,"
                 + Links.END_TIME + " INTEGER NOT NULL,"
                 + Links.TRACK_ID + " INTEGER NOT NULL,"

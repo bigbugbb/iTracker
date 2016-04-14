@@ -47,6 +47,7 @@ public class TrackerContract {
     interface LinkColumns {
         String LINK = "link";
         String TYPE = "data_type";
+        String STATE = "state";
         String START_TIME = "start_time";
         String END_TIME = "end_time";
         String TRACK_ID = "track_id";
@@ -127,6 +128,23 @@ public class TrackerContract {
             }
 
             return trackId;
+        }
+    }
+
+    public enum LinkState {
+        STOPPED     ("stopped"),
+        UPLOADED    ("uploaded"),
+        DOWNLOADED  ("downloaded"),
+        DOWNLOADING ("downloading");
+
+        private final String mState;
+
+        LinkState(String state) {
+            mState = state;
+        }
+
+        public String state() {
+            return mState;
         }
     }
 
