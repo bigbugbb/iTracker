@@ -24,7 +24,6 @@ public final class Motion extends BaseData implements Parcelable {
         time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Motions.TIME));
         data = cursor.getInt(cursor.getColumnIndex(TrackerContract.Motions.DATA));
         sampling = cursor.getInt(cursor.getColumnIndex(TrackerContract.Motions.SAMPLING));
-        device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Motions.DEVICE_ID));
         track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Motions.TRACK_ID));
     }
 

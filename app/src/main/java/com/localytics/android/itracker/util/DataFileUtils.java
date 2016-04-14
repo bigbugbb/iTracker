@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
@@ -37,37 +38,28 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 public class DataFileUtils {
     private static final String TAG = makeLogTag(DataFileUtils.class);
 
-    private static final SimpleDateFormat HourFormat = new SimpleDateFormat("HH");
     private static final int INVALID_DATA = -1;
     private static final int SUMMARY_COUNT = 24 * 60 * Config.MONITORING_DURATION_IN_SECONDS;
 
-//    public static String getSensorDataBaseDirPath(Context context) {
-//        String dirPath;
-//        if (Config.USE_EXTERNAL_DIRECTORY) {
-//            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + ".iTracker";
-//            new File(dirPath).mkdirs();
-//        } else {
-//            dirPath = context.getFilesDir().getPath();
-//        }
-//        return new StringBuilder()
-//                .append(dirPath)
-//                .append(File.separator).append("data")
-//                .append(File.separator).append("sensors")
-//                .append(File.separator)
-//                .toString();
-//    }
-//
-//    public static String getSensorDataDirPath(Context context, Date date) {
-//        if (date == null) {
-//            date = new Date();
-//        }
-//        String baseDir = getSensorDataBaseDirPath(context);
-//        StringBuilder builder = new StringBuilder();
-//        return builder.append(baseDir)
-//                .append(DateFormatUtils.ISO_DATE_FORMAT.format(date)).append(File.separator)
-//                .append(HourFormat.format(date)).append(File.separator)
-//                .toString();
-//    }
+    public static void zip(String sourceFile, String zipFile) {
+        try {
+            GZIPOutputStream out = new GZIPOutputStream(new FileOutputStream(zipFile));
+            FileInputStream in = new FileInputStream(sourceFile);
+
+            int len;
+            byte[] buffer = new byte[4096];
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+
+            in.close();
+
+            out.finish();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void writeFile(String data, File file) throws IOException {
         writeFile(data.getBytes(Charset.forName("UTF-8")), file);

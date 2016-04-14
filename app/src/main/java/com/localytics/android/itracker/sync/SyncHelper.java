@@ -34,6 +34,7 @@ import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.util.DataFileUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
@@ -198,18 +199,6 @@ public class SyncHelper {
         }
         remoteSyncDuration = System.currentTimeMillis() - opStart;
 
-        // If data has changed, there are a few chores we have to do
-        opStart = System.currentTimeMillis();
-        if (dataChanged) {
-            try {
-                performPostSyncChores(mContext);
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-                LOGE(TAG, "Error performing post sync chores.");
-            }
-        }
-        choresDuration = System.currentTimeMillis() - opStart;
-
         int operations = mTrackerDataHandler.getContentProviderOperationsDone();
         if (syncResult != null && syncResult.stats != null) {
             syncResult.stats.numEntries += operations;
@@ -217,12 +206,11 @@ public class SyncHelper {
         }
 
         if (dataChanged) {
-            long totalDuration = choresDuration + remoteSyncDuration;
+            long totalDuration = remoteSyncDuration;
             LOGD(TAG, "SYNC STATS:\n" +
                     " *  Account synced: " + (account == null ? "null" : account.name) + "\n" +
                     " *  Content provider operations: " + operations + "\n" +
                     " *  Remote sync took: " + remoteSyncDuration + "ms\n" +
-                    " *  Post-sync chores took: " + choresDuration + "ms\n" +
                     " *  Total time: " + totalDuration + "ms\n" +
                     " *  Total data read from cache: \n" +
                     (mRemoteDataFetcher.getTotalBytesReadFromCache() / 1024) + "kB\n" +
@@ -235,23 +223,6 @@ public class SyncHelper {
         updateSyncInterval(mContext, account);
 
         return dataChanged;
-    }
-
-    public static void performPostSyncChores(final Context context) {
-        // Update search index
-        LOGD(TAG, "Updating search index.");
-//        context.getContentResolver().update(TrackerContract.SearchIndex.CONTENT_URI,
-//                new ContentValues(), null, null);
-
-        // Sync calendars
-        LOGD(TAG, "Session data changed. Syncing starred sessions with Calendar.");
-        syncCalendar(context);
-    }
-
-    private static void syncCalendar(Context context) {
-//        Intent intent = new Intent(SessionCalendarService.ACTION_UPDATE_ALL_SESSIONS_CALENDAR);
-//        intent.setClass(context, SessionCalendarService.class);
-//        context.startService(intent);
     }
 
     private void doUserFeedbackSync() {
@@ -320,22 +291,20 @@ public class SyncHelper {
     private OnDataSyncingListener mDataSyncingListener = new OnDataSyncingListener() {
         @Override
         public void onDataSyncing(final Uri uri, Cursor cursor) throws IOException {
-            if (cursor.moveToFirst()) {
-                long nextTime, prevTime = 0, trackId = -1;
-                final List<BaseData> data = new LinkedList<>();
+            long nextTime, prevTime = 0, trackId = -1;
+            final List<BaseData> data = new ArrayList<>(cursor.getCount());
 
-                do {
-                    final BaseData item = dataItemFromCursor(uri, cursor);
-                    nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
-                    if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
-                        final File file = makeDataFileForUpload(uri, getLocalFilename(uri, prevTime), data);
-                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
-                        data.clear();
-                    }
-                    data.add(item);
-                    prevTime = nextTime;
-                    trackId = item.track_id;
-                } while (cursor.moveToNext());
+            while (cursor.moveToNext()) {
+                final BaseData item = dataItemFromCursor(uri, cursor);
+                nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
+                if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+                    final File file = makeUploadDataFile(getLocalFilename(uri, prevTime), data);
+                    uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
+                    data.clear();
+                }
+                data.add(item);
+                prevTime = nextTime;
+                trackId = item.track_id;
             }
         }
     };
@@ -359,21 +328,30 @@ public class SyncHelper {
                                                         final long trackId) {
 
         if (!file.exists() || file.length() == 0) {
+            LOGE(TAG, "Couldn't handle the original file: " + file);
             return null;
         }
 
-        final String deviceId = DeviceUtils.getDeviceUUID(mContext);
         final String bucket = Config.S3_BUCKET_NAME;
-        final String key = getDataFileKey(uri, beginTime, deviceId);
+        final String key = getDataFileKey(uri, beginTime);
         final String url = mS3Client.getResourceUrl(bucket, key);
         final String[] selectionArgs = new String[]{Long.toString(beginTime), Long.toString(endTime)};
 
-        TransferObserver observer = uploadFileToS3(bucket, key, file);
+        // zip the original file
+        DataFileUtils.zip(file.getAbsolutePath(), file.getAbsolutePath() + ".gz");
+        final File gzFile = new File(file.getAbsolutePath() + ".gz");
+        if (!gzFile.exists() || gzFile.length() == 0) {
+            LOGE(TAG, "Couldn't compress file: " + file);
+            return null;
+        }
+
+        TransferObserver observer = uploadFileToS3(bucket, key, gzFile);
         observer.setTransferListener(new TransferListener() { // Triggered in main thread
             @Override
             public void onStateChanged(int id, TransferState state) {
                 if (state == TransferState.COMPLETED) {
                     FileUtils.deleteQuietly(file);
+                    FileUtils.deleteQuietly(gzFile);
 
                     // Clear dirty column for data in this hour if the file has been uploaded successfully
                     mOps.add(ContentProviderOperation.newUpdate(TrackerContract.addCallerIsSyncAdapterParameter(uri))
@@ -387,7 +365,6 @@ public class SyncHelper {
                     values.put(Links.TYPE, getDataType(uri));
                     values.put(Links.START_TIME, beginTime);
                     values.put(Links.END_TIME, endTime);
-                    values.put(Links.DEVICE_ID, DeviceUtils.getDeviceUUID(mContext));
                     values.put(Links.TRACK_ID, trackId);
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                     mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Links.CONTENT_URI))
@@ -415,28 +392,14 @@ public class SyncHelper {
         return observer;
     }
 
-    private File makeDataFileForUpload(@NonNull Uri uri, String filename, List<? extends BaseData> data) throws IOException {
+    private File makeUploadDataFile(@NonNull String filename,
+                                    @NonNull List<? extends BaseData> data) throws IOException {
         File file = new File(mContext.getCacheDir(), filename);
         CSVWriter writer = null;
         try {
             writer = new CSVWriter(new FileWriter(file, false));
-            if (uri == Activities.CONTENT_URI) {
-                for (Object item : data) {
-                    Activity activity = (Activity) item;
-                    writer.writeNext(activity.convertToCsvLine());
-                }
-            } else if (uri == Locations.CONTENT_URI) {
-                for (Object item : data) {
-                    Location location = (Location) item;
-                    writer.writeNext(location.convertToCsvLine());
-                }
-            } else if (uri == Motions.CONTENT_URI) {
-                for (Object item : data) {
-                    Motion motion = (Motion) item;
-                    writer.writeNext(motion.convertToCsvLine());
-                }
-            } else {
-                throw new UnsupportedOperationException(String.format("Data type from uri(%s) not supported.", uri));
+            for (BaseData item : data) {
+                writer.writeNext(item.convertToCsvLine());
             }
         } finally {
             if (writer != null) {
@@ -473,24 +436,20 @@ public class SyncHelper {
         return mTransferUtility.upload(bucket, key, fileToUpload, metadata);
     }
 
-    private String getDataFileKey(@NonNull Uri uri, long time, @NonNull final String deviceId) {
-        String type = "unknown_";
+    private String getDataFileKey(@NonNull Uri uri, long time) {
+        String type = "unknown";
         if (uri == Activities.CONTENT_URI) {
-            type = "activity_";
+            type = "activity";
         } else if (uri == Locations.CONTENT_URI) {
-            type = "location_";
+            type = "location";
         } else if (uri == Motions.CONTENT_URI) {
-            type = "motion_";
+            type = "motion";
         }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(mAccountName)
-            .append('/')
-            .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
-            .append('/')
-            .append(type)
-            .append(deviceId);
-        return sb.toString();
+        return new StringBuilder().append(mAccountName)
+                .append('/')
+                .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
+                .append('/')
+                .append(type).toString();
     }
 
     // Returns whether we are connected to the internet.

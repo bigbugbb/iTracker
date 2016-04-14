@@ -98,13 +98,10 @@ public class BaseActivity extends AppCompatActivity implements
 
     protected boolean requestPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ArrayList<String> permissions = new ArrayList<>();
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-            permissions.add(Manifest.permission.READ_PHONE_STATE);
 
             // No explanation needed, we always have to request these permissions.
             ActivityCompat.requestPermissions(this, permissions.toArray(new String[permissions.size()]),
@@ -134,7 +131,6 @@ public class BaseActivity extends AppCompatActivity implements
 
                 switch (permission) {
                     case Manifest.permission.ACCESS_FINE_LOCATION:
-                    case Manifest.permission.READ_PHONE_STATE:
                         if (grantResult != PackageManager.PERMISSION_GRANTED) {
                             granted = false;
                         }

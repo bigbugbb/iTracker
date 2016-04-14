@@ -89,16 +89,14 @@ public class TrackItemAdapter extends BaseAbstractRecyclerCursorAdapter<TrackIte
             DateTime dateTime = new DateTime(track.date);
             String date = new StringBuilder()
                     .append(dateTime.year().getAsText())
-                    .append(", ")
-                    .append(dateTime.monthOfYear().getAsText())
+                    .append(" ")
+                    .append(dateTime.monthOfYear().getAsShortText())
                     .append(" ")
                     .append(dateTime.dayOfMonth().getAsText())
                     .append(", ")
-                    .append(dateTime.dayOfWeek().getAsShortText())
+                    .append(dateTime.dayOfWeek().getAsText())
                     .toString();
-            if (mDate != null) {
-                mDate.setText(date);
-            }
+            mDate.setText(date);
         }
     }
 }

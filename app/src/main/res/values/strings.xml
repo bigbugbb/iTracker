@@ -173,7 +173,7 @@
     <string name="not_signed_in">Not signed in</string>
 
     <!-- Permission request prompt -->
-    <string name="require_all_basic_permissions">The app needs all the basic permissions to track your data.</string>
+    <string name="require_all_basic_permissions">The app needs the basic permission to track your data.</string>
     <string name="require_take_photo_permissions">The app needs the permission to take a picture and save it on your device.</string>
     <string name="require_photos_access_permission">The app needs the permission to read your photos.</string>
     <string name="require_get_accounts_permission">The app needs this permission to choose your google account before accessing your youtube.</string>

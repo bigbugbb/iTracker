@@ -1,6 +1,5 @@
 package com.localytics.android.itracker.ui;
 
-import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;

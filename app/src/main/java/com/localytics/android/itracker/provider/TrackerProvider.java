@@ -20,7 +20,6 @@ import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
-import com.localytics.android.itracker.provider.TrackerContract.Weathers;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.SelectionBuilder;
@@ -86,9 +85,6 @@ public class TrackerProvider extends ContentProvider {
 
         matcher.addURI(authority, "activities", ACTIVITIES);
         matcher.addURI(authority, "activities/*", ACTIVITIES_ID);
-
-        matcher.addURI(authority, "weathers", WEATHERS);
-        matcher.addURI(authority, "weathers/*", WEATHERS_ID);
 
         return matcher;
     }
@@ -217,10 +213,6 @@ public class TrackerProvider extends ContentProvider {
                 return Activities.CONTENT_TYPE;
             case ACTIVITIES_ID:
                 return Activities.CONTENT_ITEM_TYPE;
-            case WEATHERS:
-                return Weathers.CONTENT_TYPE;
-            case WEATHERS_ID:
-                return Weathers.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -351,11 +343,6 @@ public class TrackerProvider extends ContentProvider {
                 notifyChange(uri);
                 return Activities.buildActivityUri("" + newId);
             }
-            case WEATHERS: {
-                long newId = db.insertOrThrow(Tables.WEATHERS, null, values);
-                notifyChange(uri);
-                return Weathers.buildWeatherUri("" + newId);
-            }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
             }
@@ -435,13 +422,6 @@ public class TrackerProvider extends ContentProvider {
             case ACTIVITIES_ID: {
                 final String id = Activities.getActivityId(uri);
                 return builder.table(Tables.ACTIVITIES).where(Activities._ID + "=?", id);
-            }
-            case WEATHERS: {
-                return builder.table(Tables.WEATHERS);
-            }
-            case WEATHERS_ID: {
-                final String id = Weathers.getWeatherId(uri);
-                return builder.table(Tables.WEATHERS).where(Weathers._ID + "=?", id);
             }
             default: {
                 throw new UnsupportedOperationException("Unknown uri for " + match + ": " + uri);

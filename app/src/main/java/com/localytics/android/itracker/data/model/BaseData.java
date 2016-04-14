@@ -22,7 +22,5 @@ public abstract class BaseData implements Comparable<BaseData> {
         return (int) (time - another.time);
     }
 
-    public String[] convertToCsvLine() {
-        return null;
-    }
+    abstract public String[] convertToCsvLine();
 }

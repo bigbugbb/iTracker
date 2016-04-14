@@ -64,13 +64,13 @@ public final class Photo extends BaseData implements Parcelable {
     }
 
     public static CollectionView.Inventory photoInventoryFromCursor(Cursor cursor) {
-        if (cursor != null && cursor.moveToFirst()) {
-            final CollectionView.Inventory inventory = new CollectionView.Inventory();
+        final CollectionView.Inventory inventory = new CollectionView.Inventory();
 
-            DateTime previousDate = null;
-            CollectionView.InventoryGroup group;
-            do {
-                final Photo photo = validPhotoFromCursor(cursor);
+        DateTime previousDate = null;
+        CollectionView.InventoryGroup group;
+        while (cursor.moveToNext()) {
+            final Photo photo = validPhotoFromCursor(cursor);
+            if (photo != null) {
                 final DateTime currentDate = new DateTime(photo.time * DateUtils.MILLIS_PER_SECOND).withTimeAtStartOfDay();
                 if (previousDate == null || !currentDate.equals(previousDate)) {
                     // Add a new group for each date
@@ -85,11 +85,10 @@ public final class Photo extends BaseData implements Parcelable {
                     group.addItemWithTag(photo);
                 }
                 previousDate = currentDate;
-            } while (cursor.moveToNext());
-
-            return inventory;
+            }
         }
-        return null;
+
+        return inventory;
     }
 
     public static boolean containSamePhotos(CollectionView.Inventory oldInv, CollectionView.Inventory newInv) {
@@ -136,6 +135,10 @@ public final class Photo extends BaseData implements Parcelable {
         height = in.readInt();
         latitude = in.readFloat();
         longitude = in.readFloat();
+    }
+
+    public String[] convertToCsvLine() {
+        return null;
     }
 
     public static final Parcelable.Creator<Photo> CREATOR = new Parcelable.Creator<Photo>() {

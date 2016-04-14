@@ -12,7 +12,6 @@ public class Link implements Parcelable {
     public String data_type;
     public long   start_time;
     public long   end_time;
-    public String device_id;
     public long   track_id;
 
     public Link() {
@@ -23,7 +22,6 @@ public class Link implements Parcelable {
         data_type = cursor.getString(cursor.getColumnIndex(TrackerContract.Links.TYPE));
         start_time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Links.START_TIME));
         end_time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Links.END_TIME));
-        device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Links.DEVICE_ID));
         track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Links.TRACK_ID));
     }
 
@@ -38,7 +36,6 @@ public class Link implements Parcelable {
         dest.writeString(data_type);
         dest.writeLong(start_time);
         dest.writeLong(end_time);
-        dest.writeString(device_id);
         dest.writeLong(track_id);
     }
 
@@ -47,7 +44,6 @@ public class Link implements Parcelable {
         data_type = in.readString();
         start_time = in.readLong();
         end_time = in.readLong();
-        device_id = in.readString();
         track_id = in.readLong();
     }
 

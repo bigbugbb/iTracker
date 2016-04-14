@@ -14,7 +14,6 @@ public final class Location extends BaseData implements Parcelable {
     public float  altitude;
     public float  accuracy;
     public float  speed;
-    public String device_id;
 
     public Location() {
     }
@@ -26,7 +25,6 @@ public final class Location extends BaseData implements Parcelable {
         altitude = cursor.getFloat(cursor.getColumnIndex(TrackerContract.Locations.ALTITUDE));
         accuracy = cursor.getFloat(cursor.getColumnIndex(TrackerContract.Locations.ACCURACY));
         speed = cursor.getFloat(cursor.getColumnIndex(TrackerContract.Locations.SPEED));
-        device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Locations.DEVICE_ID));
         track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Locations.TRACK_ID));
     }
 
@@ -71,7 +69,6 @@ public final class Location extends BaseData implements Parcelable {
         dest.writeFloat(altitude);
         dest.writeFloat(accuracy);
         dest.writeFloat(speed);
-        dest.writeString(device_id);
     }
 
     private Location(Parcel in) {
@@ -81,7 +78,6 @@ public final class Location extends BaseData implements Parcelable {
         altitude = in.readFloat();
         accuracy = in.readFloat();
         speed = in.readFloat();
-        device_id = in.readString();
     }
 
     public static final Parcelable.Creator<Location> CREATOR = new Parcelable.Creator<Location>() {

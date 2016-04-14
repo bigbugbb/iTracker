@@ -337,7 +337,6 @@ public class SensorMonitorService extends IntentService
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            final String deviceUUID = DeviceUtils.getDeviceUUID(mContext);
             final long trackId = TrackerContract.Tracks.getTrackIdToday(mContext);
             ContentResolver resolver = mContext.getContentResolver();
 
@@ -355,7 +354,6 @@ public class SensorMonitorService extends IntentService
                     values.put(Locations.ALTITUDE, location.getAltitude());
                     values.put(Locations.ACCURACY, location.getAccuracy());
                     values.put(Locations.SPEED, location.getSpeed());
-                    values.put(Locations.DEVICE_ID, deviceUUID);
                     values.put(Locations.TRACK_ID, trackId);
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                     resolver.insert(Locations.CONTENT_URI, values);
@@ -375,7 +373,6 @@ public class SensorMonitorService extends IntentService
                     values.put(Activities.TYPE, PlayServicesUtils.getActivityString(getApplicationContext(), activity.getType()));
                     values.put(Activities.TYPE_ID, activity.getType());
                     values.put(Activities.CONFIDENCE, activity.getConfidence());
-                    values.put(Activities.DEVICE_ID, deviceUUID);
                     values.put(Activities.TRACK_ID, trackId);
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                     resolver.insert(Activities.CONTENT_URI, values);

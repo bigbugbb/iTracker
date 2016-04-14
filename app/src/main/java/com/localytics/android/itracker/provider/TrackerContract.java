@@ -36,7 +36,6 @@ public class TrackerContract {
 
     public interface BaseDataColumns {
         String TIME = "time";
-        String DEVICE_ID = "device_id";
         String TRACK_ID = "track_id";
     }
 
@@ -50,7 +49,6 @@ public class TrackerContract {
         String TYPE = "data_type";
         String START_TIME = "start_time";
         String END_TIME = "end_time";
-        String DEVICE_ID = "device_id";
         String TRACK_ID = "track_id";
     }
 
@@ -71,12 +69,6 @@ public class TrackerContract {
         String TYPE = "type";
         String TYPE_ID = "type_id";
         String CONFIDENCE = "confidence";
-    }
-
-    interface WeatherColumns extends BaseDataColumns {
-        String CITY = "city";
-        String WEATHER = "weather";
-        String TEMPERATURE = "temperature";
     }
 
     public static final String CONTENT_AUTHORITY = "com.localytics.itracker";
@@ -210,23 +202,6 @@ public class TrackerContract {
 
         /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
         public static String getActivityId(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
-    }
-
-    public static class Weathers implements WeatherColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("weathers").build();
-
-        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.weather";
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.weather";
-
-        /** Build a {@link Uri} that references a given weather. */
-        public static Uri buildWeatherUri(String weatherId) {
-            return CONTENT_URI.buildUpon().appendPath(weatherId).build();
-        }
-
-        /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
-        public static String getWeatherId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
     }

@@ -17,7 +17,6 @@ public final class Activity extends BaseData implements Parcelable {
     public String type;
     public int    type_id;
     public int    confidence;
-    public String device_id;
 
     public Activity() {
     }
@@ -27,7 +26,6 @@ public final class Activity extends BaseData implements Parcelable {
         type = cursor.getString(cursor.getColumnIndex(TrackerContract.Activities.TYPE));
         type_id = cursor.getInt(cursor.getColumnIndex(TrackerContract.Activities.TYPE_ID));
         confidence = cursor.getInt(cursor.getColumnIndex(TrackerContract.Activities.CONFIDENCE));
-        device_id = cursor.getString(cursor.getColumnIndex(TrackerContract.Activities.DEVICE_ID));
         track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Activities.TRACK_ID));
     }
 
@@ -76,7 +74,6 @@ public final class Activity extends BaseData implements Parcelable {
         dest.writeString(type);
         dest.writeInt(type_id);
         dest.writeInt(confidence);
-        dest.writeString(device_id);
     }
 
     private Activity(Parcel in) {
@@ -84,7 +81,6 @@ public final class Activity extends BaseData implements Parcelable {
         type = in.readString();
         type_id = in.readInt();
         confidence = in.readInt();
-        device_id = in.readString();
     }
 
     public static Activity[] activitiesFromCursor(Cursor cursor) {

@@ -11,7 +11,6 @@ import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
-import com.localytics.android.itracker.provider.TrackerContract.Weathers;
 import com.localytics.android.itracker.sync.SyncHelper;
 import com.localytics.android.itracker.sync.TrackerDataHandler;
 import com.localytics.android.itracker.util.AccountUtils;
@@ -79,7 +78,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Links.TYPE + " TEXT NOT NULL,"
                 + Links.START_TIME + " INTEGER NOT NULL,"
                 + Links.END_TIME + " INTEGER NOT NULL,"
-                + Links.DEVICE_ID + " TEXT NOT NULL,"
                 + Links.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
@@ -91,7 +89,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Motions.TIME + " INTEGER NOT NULL,"
                 + Motions.DATA + " INTEGER NOT NULL,"
                 + Motions.SAMPLING + " INTEGER NOT NULL,"
-                + Motions.DEVICE_ID + " TEXT NOT NULL,"
                 + Motions.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
@@ -106,7 +103,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Locations.ALTITUDE + " REAL NOT NULL,"
                 + Locations.ACCURACY + " REAL NOT NULL,"
                 + Locations.SPEED + " REAL NOT NULL,"
-                + Locations.DEVICE_ID + " TEXT NOT NULL,"
                 + Locations.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
@@ -119,20 +115,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Activities.TYPE + " TEXT NOT NULL,"
                 + Activities.TYPE_ID + " INTEGER NOT NULL,"
                 + Activities.CONFIDENCE + " INTEGER NOT NULL,"
-                + Activities.DEVICE_ID + " TEXT NOT NULL,"
                 + Activities.TRACK_ID + " INTEGER NOT NULL,"
-                + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
-
-        db.execSQL("CREATE TABLE " + Tables.WEATHERS + " ("
-                + Weathers._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + Weathers.DIRTY + " INTEGER DEFAULT 1,"
-                + Weathers.SYNC + " TEXT,"
-                + Weathers.UPDATED + " INTEGER NOT NULL,"
-                + Weathers.TIME + " INTEGER NOT NULL,"
-                + Weathers.CITY + " TEXT NOT NULL,"
-                + Weathers.WEATHER + " TEXT NOT NULL,"
-                + Weathers.TEMPERATURE + " INTEGER NOT NULL,"
-                + Weathers.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
         // Create indexes on track_id
@@ -140,14 +123,12 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX link_track_id_index ON " + Tables.LINKS + "(" + Links.TRACK_ID + ");");
         db.execSQL("CREATE INDEX location_track_id_index ON " + Tables.LOCATIONS + "(" + Locations.TRACK_ID + ");");
         db.execSQL("CREATE INDEX activity_track_id_index ON " + Tables.ACTIVITIES + "(" + Activities.TRACK_ID + ");");
-        db.execSQL("CREATE INDEX weather_track_id_index ON " + Tables.WEATHERS + "(" + Weathers.TRACK_ID + ");");
 
         // Create indexes on dirty
         db.execSQL("CREATE INDEX motion_dirty_index ON " + Tables.MOTIONS + "(" + Motions.DIRTY + ");");
         db.execSQL("CREATE INDEX link_dirty_index ON " + Tables.LINKS + "(" + Links.DIRTY + ");");
         db.execSQL("CREATE INDEX location_dirty_index ON " + Tables.LOCATIONS + "(" + Locations.DIRTY + ");");
         db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
-        db.execSQL("CREATE INDEX weather_dirty_index ON " + Tables.WEATHERS + "(" + Weathers.DIRTY + ");");
     }
 
     @Override

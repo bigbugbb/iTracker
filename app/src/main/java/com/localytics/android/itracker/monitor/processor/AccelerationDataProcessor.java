@@ -48,12 +48,10 @@ public class AccelerationDataProcessor extends SensorDataProcessor {
 
     private int mSummaryCount;
     private int mSamplingCount;
-    private String mDeviceId;
 
     public AccelerationDataProcessor(Context context, Handler handler, Sensor sensor, Bundle args) {
         super(context, handler, sensor, args);
         mMotions = new ArrayList<>(Config.MONITORING_DURATION_IN_SECONDS);
-        mDeviceId = DeviceUtils.getDeviceUUID(mContext);
     }
 
     @Override
@@ -112,7 +110,6 @@ public class AccelerationDataProcessor extends SensorDataProcessor {
             motion.time = System.currentTimeMillis();
             motion.data = Math.round(mSummary / mSamplingCount);
             motion.sampling = mSamplingCount;
-            motion.device_id = mDeviceId;
             mMotions.add(motion);
             mSummaryCount++;
             LOGI(TAG, "motion summary: " + motion.data + "\tcount: " + mSummaryCount);
@@ -143,7 +140,6 @@ public class AccelerationDataProcessor extends SensorDataProcessor {
                         cv.put(Motions.TIME, motion.time);
                         cv.put(Motions.DATA, motion.data);
                         cv.put(Motions.SAMPLING, motion.sampling);
-                        cv.put(Motions.DEVICE_ID, motion.device_id);
                         cv.put(Motions.TRACK_ID, trackId);
                         cv.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                         values[i] = cv;
