@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:hint="Password"
+            android:hint="Password (8 characters minimum)"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:padding="8dp"/>
 
