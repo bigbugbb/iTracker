@@ -6,7 +6,6 @@ import android.content.OperationApplicationException;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 
-import com.google.android.gms.maps.model.Tile;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.localytics.android.itracker.data.JSONHandler;
@@ -16,7 +15,6 @@ import com.localytics.android.itracker.provider.TrackerContract;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -170,63 +168,6 @@ public class TrackerDataHandler {
         }
     }
 
-    /**
-     * Synchronise the map overlay files either from the local assets (if available) or from a remote url.
-     *
-     * @param collection Set of tiles containing a local filename and remote url.
-     * @throws IOException
-     */
-    private void processMapOverlayFiles(Collection<Tile> collection, boolean downloadAllowed) throws IOException {
-//        // clear the tile cache on disk if any tiles have been updated
-//        boolean shouldClearCache = false;
-//        // keep track of used files, unused files are removed
-//        ArrayList<String> usedTiles = Lists.newArrayList();
-//        for (Tile tile : collection) {
-//            final String filename = tile.filename;
-//            final String url = tile.url;
-//
-//            usedTiles.add(filename);
-//
-//            if (!MapUtils.hasTile(mContext, filename)) {
-//                shouldClearCache = true;
-//                // copy or download the tile if it is not stored yet
-//                if (MapUtils.hasTileAsset(mContext, filename)) {
-//                    // file already exists as an asset, copy it
-//                    MapUtils.copyTileAsset(mContext, filename);
-//                } else if (downloadAllowed && !TextUtils.isEmpty(url)) {
-//                    try {
-//                        // download the file only if downloads are allowed and url is not empty
-//                        File tileFile = MapUtils.getTileFile(mContext, filename);
-//                        BasicHttpClient httpClient = new BasicHttpClient();
-//                        httpClient.setRequestLogger(mQuietLogger);
-//                        HttpResponse httpResponse = httpClient.get(url, null);
-//                        FileUtils.writeFile(httpResponse.getBody(), tileFile);
-//
-//                        // ensure the file is valid SVG
-//                        InputStream is = new FileInputStream(tileFile);
-//                        SVG svg = new SVGBuilder().readFromInputStream(is).build();
-//                        is.close();
-//                    } catch (IOException ex) {
-//                        LOGE(TAG, "FAILED downloading map overlay tile "+url+
-//                                ": " + ex.getMessage(), ex);
-//                    } catch (SVGParseException ex) {
-//                        LOGE(TAG, "FAILED parsing map overlay tile "+url+
-//                                ": " + ex.getMessage(), ex);
-//                    }
-//                } else {
-//                    LOGD(TAG, "Skipping download of map overlay tile" +
-//                            " (since downloadsAllowed=false)");
-//                }
-//            }
-//        }
-//
-//        if (shouldClearCache) {
-//            MapUtils.clearDiskCache(mContext);
-//        }
-//
-//        MapUtils.removeUnusedTiles(mContext, usedTiles);
-    }
-
     // Returns the timestamp of the data we have in the content provider.
     public String getDataTimestamp() {
         return PreferenceManager.getDefaultSharedPreferences(mContext).getString(
@@ -246,16 +187,4 @@ public class TrackerDataHandler {
         PreferenceManager.getDefaultSharedPreferences(context).edit().remove(
                 SP_KEY_DATA_TIMESTAMP).commit();
     }
-
-    /**
-     * A type of ConsoleRequestLogger that does not log requests and responses.
-     */
-//    private RequestLogger mQuietLogger = new ConsoleRequestLogger(){
-//        @Override
-//        public void logRequest(HttpURLConnection uc, Object content) throws IOException { }
-//
-//        @Override
-//        public void logResponse(HttpResponse res) { }
-//    };
-
 }

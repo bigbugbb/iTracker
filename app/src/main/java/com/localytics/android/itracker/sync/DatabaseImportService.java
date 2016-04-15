@@ -9,13 +9,15 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
+
+import com.localytics.android.itracker.provider.TrackerContract;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 public class DatabaseImportService extends Service {
@@ -36,8 +38,8 @@ public class DatabaseImportService extends Service {
 
     public static final String EXTRA_CONTENT_PROVIDER_OPERATIONS = "extra_content_provider_ops";
 
-    private HandlerThread mHandlerThread;
     private Handler mServiceHandler;
+    private HandlerThread mHandlerThread;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -58,8 +60,10 @@ public class DatabaseImportService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mServiceHandler.sendMessage(mServiceHandler.obtainMessage(MSG_EXEC, intent));
-        /*
-         * The service will restart with the unhandled intents if it's killed by system.
+        /**
+         * This service restarts if it's killed by system while there is still unhandled intent.
+         * onStartCommand is called when the service is explicitly opened or re-created
+         * by the system. The intent is always non null for START_REDELIVER_INTENT.
          */
         return START_REDELIVER_INTENT;
     }
@@ -70,7 +74,7 @@ public class DatabaseImportService extends Service {
         super.onDestroy();
     }
 
-    class ServiceHandler extends Handler {
+    private class ServiceHandler extends Handler {
 
         public ServiceHandler(Looper looper) {
             super(looper);
@@ -81,7 +85,7 @@ public class DatabaseImportService extends Service {
             if (msg.what == MSG_EXEC) {
                 execCommand((Intent) msg.obj);
             } else {
-                Log.e(TAG, "Unknown command: " + msg.what);
+                LOGE(TAG, "Unknown command: " + msg.what);
             }
         }
     }
@@ -92,15 +96,20 @@ public class DatabaseImportService extends Service {
      * @param intent received intent
      */
     void execCommand(Intent intent) {
-        final String action = intent.getAction();
-
         try {
-            if (action.equals(INTENT_ACTION_IMPORT_LINKS)) {
-                ArrayList<ContentProviderOperation> ops = intent.getParcelableArrayListExtra(EXTRA_CONTENT_PROVIDER_OPERATIONS);
-//                getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-            } else if (action.equals(INTENT_ACTION_IMPORT_ACTIVITIES)) {
-            } else if (action.equals(INTENT_ACTION_IMPORT_LOCATIONS)) {
-            } else if (action.equals(INTENT_ACTION_IMPORT_MOTIONS)) {
+            switch (intent.getAction()) {
+                case INTENT_ACTION_IMPORT_LINKS:
+                    ArrayList<ContentProviderOperation> ops = intent.getParcelableArrayListExtra(EXTRA_CONTENT_PROVIDER_OPERATIONS);
+                    if (ops != null) {
+                        getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                    }
+                    break;
+                case INTENT_ACTION_IMPORT_ACTIVITIES:
+                    break;
+                case INTENT_ACTION_IMPORT_LOCATIONS:
+                    break;
+                case INTENT_ACTION_IMPORT_MOTIONS:
+                    break;
             }
         } catch (Exception e) {
             LOGD(TAG, "Import data error: " + e.getMessage());

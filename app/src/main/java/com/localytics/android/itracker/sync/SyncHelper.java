@@ -5,13 +5,14 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
@@ -30,12 +31,12 @@ import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
+import com.localytics.android.itracker.provider.TrackerContract.LinkState;
 import com.localytics.android.itracker.provider.TrackerContract.Links;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DataFileUtils;
-import com.localytics.android.itracker.util.DeviceUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.opencsv.CSVWriter;
@@ -47,8 +48,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -73,14 +76,17 @@ public class SyncHelper {
     private String mAuthToken;
     private String mAccountName;
 
-    private final ArrayList<ContentProviderOperation> mOps = new ArrayList<>();
+    private AtomicBoolean mDataChanged;
 
-    private final static String ACTIVITY_TYPE_STR = "activity_";
+    private CountDownLatch mTrackDataUploadLatch;
+
+    private final ArrayList<ContentProviderOperation> mOps = new ArrayList<>();
 
     public SyncHelper(Context context) {
         mContext = context;
         mTrackerDataHandler = new TrackerDataHandler(mContext);
         mRemoteDataFetcher = new RemoteTrackerDataFetcher(mContext);
+        mTrackDataUploadLatch = new CountDownLatch(3);
     }
 
     public static void requestManualSync(Account chosenAccount) {
@@ -126,7 +132,6 @@ public class SyncHelper {
      * @return Whether or not the synchronization made any changes to the data.
      */
     public boolean performSync(SyncResult syncResult, Account account, Bundle extras) {
-        boolean dataChanged = false;
 
         // Get auth token and use it for each data request
         mAuthToken = AccountUtils.getAuthToken(mContext);
@@ -161,14 +166,15 @@ public class SyncHelper {
         LogUtils.LOGI(TAG, "Performing sync for account: " + account);
         PrefUtils.markSyncAttemptedNow(mContext);
         long opStart;
-        long remoteSyncDuration, choresDuration;
+        long remoteSyncDuration;
 
         opStart = System.currentTimeMillis();
 
         // remote sync consists of these operations, which we try one by one (and tolerate individual failures on each)
-        final int OP_USER_DATA_SYNC  = 0;
-        final int OP_TRACK_DATA_SYNC = 1;
-        int[] opsToPerform = new int[] { OP_TRACK_DATA_SYNC };
+        final int OP_USER_DATA_SYNC     = 0;
+        final int OP_TRACK_DATA_SYNC    = 1;
+        final int OP_USER_FEEDBACK_SYNC = 2;
+        int[] opsToPerform = new int[] { OP_USER_DATA_SYNC, OP_TRACK_DATA_SYNC, OP_USER_FEEDBACK_SYNC };
 
         for (int op : opsToPerform) {
             try {
@@ -176,11 +182,11 @@ public class SyncHelper {
                     case OP_USER_DATA_SYNC:
                         break;
                     case OP_TRACK_DATA_SYNC:
-                        dataChanged |= doTrackerDataSync();
+                        doTrackerDataSync();
                         break;
-//                    case OP_USER_FEEDBACK_SYNC:
-//                        doUserFeedbackSync();
-//                        break;
+                    case OP_USER_FEEDBACK_SYNC:
+                        doUserFeedbackSync();
+                        break;
                 }
             } catch (AuthException ex) {
                 syncResult.stats.numAuthExceptions++;
@@ -205,7 +211,7 @@ public class SyncHelper {
             syncResult.stats.numUpdates += operations;
         }
 
-        if (dataChanged) {
+        if (mDataChanged.get()) {
             long totalDuration = remoteSyncDuration;
             LOGD(TAG, "SYNC STATS:\n" +
                     " *  Account synced: " + (account == null ? "null" : account.name) + "\n" +
@@ -218,23 +224,20 @@ public class SyncHelper {
                     (mRemoteDataFetcher.getTotalBytesDownloaded() / 1024) + "kB");
         }
 
-        LogUtils.LOGI(TAG, "End of sync (" + (dataChanged ? "data changed" : "no data change") + ")");
+        LogUtils.LOGI(TAG, "End of sync (" + (mDataChanged.get() ? "data changed" : "no data change") + ")");
 
         updateSyncInterval(mContext, account);
 
-        return dataChanged;
+        return mDataChanged.get();
     }
 
     private void doUserFeedbackSync() {
-        LOGD(TAG, "Syncing feedback");
-        new FeedbackSyncHelper(mContext).sync();
+        LOGD(TAG, "Syncing user feedback");
+//        new FeedbackSyncHelper(mContext).sync();
     }
 
     private boolean doUserDataSync() throws IOException {
-        if (!isOnline()) {
-            LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
-            return false;
-        }
+        LOGD(TAG, "Syncing user data");
         return true;
     }
 
@@ -245,29 +248,46 @@ public class SyncHelper {
      * @return Whether or not data was changed.
      * @throws IOException if there is a problem downloading or importing the data.
      */
-    private boolean doTrackerDataSync() throws IOException {
+    private void doTrackerDataSync() throws IOException, InterruptedException {
         if (!isOnline()) {
             LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
-            return false;
+            return;
         }
 
         if (Config.WIFI_ONLY_SYNC_ENABLED && !isUsingWifi()) {
             LOGD(TAG, "Not attempting remote sync because wifi-only sync is enabled but the device is not connected to WIFI");
-            return false;
+            return;
         }
 
-        LOGD(TAG, "Starting track data sync.");
+        /*********************************************************************/
 
-        syncData(Activities.CONTENT_URI, mDataSyncingListener);
-        syncData(Locations.CONTENT_URI, mDataSyncingListener);
-        syncData(Motions.CONTENT_URI, mDataSyncingListener);
+        LOGD(TAG, "Start uploading track data.");
 
-        // TODO: upload the payload with the track data and the track url list (dirty) to the app server
+        Uri[] uris = new Uri[]{ Activities.CONTENT_URI, Locations.CONTENT_URI, Motions.CONTENT_URI };
+        for (Uri uri : uris) {
+            uploadData(uri);
+        }
 
-        return true;
+        if (mTrackDataUploadLatch.await(Config.TRACK_DATA_UPLOAD_TIMEOUT, TimeUnit.MILLISECONDS)) {
+            try {
+                mContext.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, mOps);
+            } catch (RemoteException | OperationApplicationException e) {
+                e.printStackTrace();
+            }
+        }
+
+        LOGD(TAG, "Complete uploading track data.");
+
+        /*********************************************************************/
+
+        LOGD(TAG, "Start downloading track data.");
+
+
+
+        LOGD(TAG, "Complete downloading track data.");
     }
 
-    private void syncData(@NonNull Uri uri, OnDataSyncingListener listener) {
+    private void uploadData(@NonNull Uri uri) {
         Cursor cursor = null;
         try {
             cursor = mContext.getContentResolver().query(
@@ -276,8 +296,22 @@ public class SyncHelper {
                     TrackerContract.SELECTION_BY_DIRTY,
                     new String[]{ Integer.toString(1) },
                     TrackerContract.ORDER_BY_TIME_ASC);
-            if (cursor != null && listener != null) {
-                listener.onDataSyncing(uri, cursor);
+            if (cursor != null) {
+                long nextTime, prevTime = 0, trackId = -1;
+                final List<BaseData> data = new ArrayList<>(cursor.getCount());
+
+                while (cursor.moveToNext()) {
+                    final BaseData item = dataItemFromCursor(uri, cursor);
+                    nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
+                    if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
+                        final File file = makeUploadDataFile(getLocalFilename(uri, prevTime), data);
+                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
+                        data.clear();
+                    }
+                    data.add(item);
+                    prevTime = nextTime;
+                    trackId = item.track_id;
+                }
             }
         } catch (Exception e) {
             LOGE(TAG, "Error: " + e.getMessage());
@@ -287,27 +321,6 @@ public class SyncHelper {
             }
         }
     }
-
-    private OnDataSyncingListener mDataSyncingListener = new OnDataSyncingListener() {
-        @Override
-        public void onDataSyncing(final Uri uri, Cursor cursor) throws IOException {
-            long nextTime, prevTime = 0, trackId = -1;
-            final List<BaseData> data = new ArrayList<>(cursor.getCount());
-
-            while (cursor.moveToNext()) {
-                final BaseData item = dataItemFromCursor(uri, cursor);
-                nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
-                if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
-                    final File file = makeUploadDataFile(getLocalFilename(uri, prevTime), data);
-                    uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
-                    data.clear();
-                }
-                data.add(item);
-                prevTime = nextTime;
-                trackId = item.track_id;
-            }
-        }
-    };
 
     private BaseData dataItemFromCursor(@NonNull Uri uri, @NonNull Cursor cursor) {
         if (uri == Activities.CONTENT_URI) {
@@ -326,7 +339,6 @@ public class SyncHelper {
                                                         final long beginTime,
                                                         final long endTime,
                                                         final long trackId) {
-
         if (!file.exists() || file.length() == 0) {
             LOGE(TAG, "Couldn't handle the original file: " + file);
             return null;
@@ -334,7 +346,6 @@ public class SyncHelper {
 
         final String bucket = Config.S3_BUCKET_NAME;
         final String key = getDataFileKey(uri, beginTime);
-        final String url = mS3Client.getResourceUrl(bucket, key);
         final String[] selectionArgs = new String[]{Long.toString(beginTime), Long.toString(endTime)};
 
         // zip the original file
@@ -361,9 +372,9 @@ public class SyncHelper {
 
                     // Update links table with the s3 url for the uploaded file
                     ContentValues values = new ContentValues();
-                    values.put(Links.LINK, url);
+                    values.put(Links.LINK, mS3Client.getResourceUrl(bucket, key));
                     values.put(Links.TYPE, getDataType(uri));
-                    values.put(Links.STATE, TrackerContract.LinkState.UPLOADED.state());
+                    values.put(Links.STATE, LinkState.UPLOADED.state());
                     values.put(Links.START_TIME, beginTime);
                     values.put(Links.END_TIME, endTime);
                     values.put(Links.TRACK_ID, trackId);
@@ -372,11 +383,8 @@ public class SyncHelper {
                             .withValues(values)
                             .build());
 
-                    // Trigger the import operations
-                    Intent intent = new Intent(mContext, DatabaseImportService.class);
-                    intent.setAction(DatabaseImportService.INTENT_ACTION_IMPORT_LINKS);
-                    intent.putParcelableArrayListExtra(DatabaseImportService.EXTRA_CONTENT_PROVIDER_OPERATIONS, mOps);
-                    mContext.startService(intent);
+                    // Decrement the latch so the syncing thread could be released
+                    mTrackDataUploadLatch.countDown();
                 }
             }
 
@@ -388,8 +396,11 @@ public class SyncHelper {
             @Override
             public void onError(int id, Exception ex) {
                 FileUtils.deleteQuietly(file);
+                FileUtils.deleteQuietly(gzFile);
+                mTrackDataUploadLatch.countDown();
             }
         });
+
         return observer;
     }
 
@@ -432,8 +443,10 @@ public class SyncHelper {
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {
         final ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType("text/csv");
+        metadata.setContentEncoding("gzip");
         metadata.setContentLength(fileToUpload.length());
         metadata.addUserMetadata("x-user-account", AccountUtils.getActiveAccountName(mContext));
+        metadata.addUserMetadata("x-upload_time", DateTime.now().toString());
         return mTransferUtility.upload(bucket, key, fileToUpload, metadata);
     }
 
@@ -505,9 +518,5 @@ public class SyncHelper {
         } else {
             LOGD(TAG, "No need to update sync interval.");
         }
-    }
-
-    private interface OnDataSyncingListener {
-        void onDataSyncing(Uri uri, Cursor cursor) throws IOException;
     }
 }

@@ -14,7 +14,6 @@ import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
-import com.localytics.android.itracker.util.DeviceUtils;
 
 import org.joda.time.DateTime;
 

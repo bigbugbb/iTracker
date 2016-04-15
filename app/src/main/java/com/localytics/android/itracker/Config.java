@@ -33,7 +33,8 @@ public class Config {
     // Minimum interval between two consecutive syncs. This is a safety mechanism to throttle
     // syncs in case conference data gets updated too often or something else goes wrong that
     // causes repeated syncs.
-    public static final long MIN_INTERVAL_BETWEEN_SYNCS = 10 * DateUtils.MINUTE_IN_MILLIS;
+    public static final long MIN_INTERVAL_BETWEEN_SYNCS = 20 * DateUtils.MINUTE_IN_MILLIS;
+    public static final long TRACK_DATA_UPLOAD_TIMEOUT = 10 * DateUtils.MINUTE_IN_MILLIS;
 
     public static final long MONITORING_INTERVAL_IN_MILLS = 1000 * 60;
     public static final int MONITORING_DURATION_IN_SECONDS = 10;
