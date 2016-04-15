@@ -78,8 +78,11 @@ public class MediaFragment extends TrackerFragment implements
 
     private RecyclerView mMediaView;
     private MediaAdapter mMediaAdapter;
+    private LinearLayoutManager mLayoutManager;
 
     private ProgressBar mProgressView;
+
+    private volatile boolean mLoading;
 
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
@@ -145,10 +148,27 @@ public class MediaFragment extends TrackerFragment implements
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mLayoutManager = new LinearLayoutManager(getActivity());
+
         mMediaView = (RecyclerView) view.findViewById(R.id.media_view);
-        mMediaView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mMediaView.setLayoutManager(mLayoutManager);
         mMediaView.setItemAnimator(new DefaultItemAnimator());
         mMediaView.setAdapter(mMediaAdapter);
+        mMediaView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                int visibleItemCount = mLayoutManager.getChildCount();
+                int totalItemCount = mLayoutManager.getItemCount();
+                int firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+
+                if (visibleItemCount + firstVisibleItem >= totalItemCount) {
+                    if (!mLoading) {
+                        mLoading = true;
+                        reloadYouTubeMedia();
+                    }
+                }
+            }
+        });
 
         mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
         mProgressView.setVisibility(mMediaAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
@@ -236,6 +256,7 @@ public class MediaFragment extends TrackerFragment implements
         final String accountName = mCredential.getSelectedAccountName();
 
         if (TextUtils.isEmpty(accountName)) {
+            mLoading = false;
             return;
         }
 
@@ -298,6 +319,8 @@ public class MediaFragment extends TrackerFragment implements
                     LOGE(TAG, e.getMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    mLoading = false;
                 }
 
                 return null;
