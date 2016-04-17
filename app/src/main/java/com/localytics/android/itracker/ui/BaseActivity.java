@@ -29,7 +29,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.gcm.RegistrationIntentService;
-import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -92,7 +91,7 @@ public class BaseActivity extends AppCompatActivity implements
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         if (!requestPermissions()) {
-            setupBackgroundMonitor();
+            LOGD(TAG, "Got location permission.");
         }
     }
 
@@ -141,18 +140,7 @@ public class BaseActivity extends AppCompatActivity implements
             if (!granted) {
                 Toast.makeText(this, R.string.require_all_basic_permissions, Toast.LENGTH_SHORT).show();
                 finish();
-            } else {
-                // Yeah! We've got all the permissions, let's start background monitoring.
-                setupBackgroundMonitor();
             }
-        }
-    }
-
-    private void setupBackgroundMonitor() {
-        if (!PrefUtils.isAlarmSetupDone(getApplicationContext())) {
-            Intent intent = new Intent(TrackerBroadcastReceiver.ACTION_BOOTSTRAP_MONITOR_ALARM);
-            sendBroadcast(intent);
-            PrefUtils.markAlarmSetupDone(getApplicationContext());
         }
     }
 

@@ -463,9 +463,9 @@ public class SyncHelper {
         return new StringBuilder()
                 .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
                 .append('/')
-                .append(type)
+                .append(mAccountName)
                 .append('/')
-                .append(mAccountName).toString();
+                .append(type).toString();
     }
 
     // Returns whether we are connected to the internet.
