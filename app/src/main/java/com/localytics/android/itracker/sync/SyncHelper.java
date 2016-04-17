@@ -460,11 +460,12 @@ public class SyncHelper {
         } else if (uri == Motions.CONTENT_URI) {
             type = "motion";
         }
-        return new StringBuilder().append(mAccountName)
-                .append('/')
+        return new StringBuilder()
                 .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
                 .append('/')
-                .append(type).toString();
+                .append(type)
+                .append('/')
+                .append(mAccountName).toString();
     }
 
     // Returns whether we are connected to the internet.
