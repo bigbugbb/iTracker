@@ -16,7 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.Links;
+import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
@@ -48,8 +48,8 @@ public class TrackerProvider extends ContentProvider {
     private static final int TRACKS = 100;
     private static final int TRACKS_ID = 101;
 
-    private static final int LINKS = 200;
-    private static final int LINKS_ID = 201;
+    private static final int BACKUPS = 200;
+    private static final int BACKUPS_ID = 201;
 
     private static final int MOTIONS = 300;
     private static final int MOTIONS_ID = 301;
@@ -74,8 +74,8 @@ public class TrackerProvider extends ContentProvider {
         matcher.addURI(authority, "tracks", TRACKS);
         matcher.addURI(authority, "tracks/*", TRACKS_ID);
 
-        matcher.addURI(authority, "links", LINKS);
-        matcher.addURI(authority, "links/*", LINKS_ID);
+        matcher.addURI(authority, "backups", BACKUPS);
+        matcher.addURI(authority, "backups/*", BACKUPS_ID);
 
         matcher.addURI(authority, "motions", MOTIONS);
         matcher.addURI(authority, "motions/*", MOTIONS_ID);
@@ -197,10 +197,10 @@ public class TrackerProvider extends ContentProvider {
                 return Tracks.CONTENT_TYPE;
             case TRACKS_ID:
                 return Tracks.CONTENT_ITEM_TYPE;
-            case LINKS:
-                return Links.CONTENT_TYPE;
-            case LINKS_ID:
-                return Links.CONTENT_ITEM_TYPE;
+            case BACKUPS:
+                return Backups.CONTENT_TYPE;
+            case BACKUPS_ID:
+                return Backups.CONTENT_ITEM_TYPE;
             case MOTIONS:
                 return Motions.CONTENT_TYPE;
             case MOTIONS_ID:
@@ -268,8 +268,8 @@ public class TrackerProvider extends ContentProvider {
                 table = Tables.TRACKS;
                 break;
             }
-            case LINKS: {
-                table = Tables.LINKS;
+            case BACKUPS: {
+                table = Tables.BACKUPS;
                 break;
             }
             case MOTIONS: {
@@ -323,10 +323,10 @@ public class TrackerProvider extends ContentProvider {
                 notifyChange(uri);
                 return Tracks.buildTrackUri("" + newId);
             }
-            case LINKS: {
-                long newId = db.insertOrThrow(Tables.LINKS, null, values);
+            case BACKUPS: {
+                long newId = db.insertOrThrow(Tables.BACKUPS, null, values);
                 notifyChange(uri);
-                return Links.buildLinkUri("" + newId);
+                return Backups.buildBackupUri("" + newId);
             }
             case MOTIONS: {
                 long newId = db.insertOrThrow(Tables.MOTIONS, null, values);
@@ -395,12 +395,12 @@ public class TrackerProvider extends ContentProvider {
                 final String id = Tracks.getTrackId(uri);
                 return builder.table(Tables.TRACKS).where(Tracks._ID + "=?", id);
             }
-            case LINKS: {
-                return builder.table(Tables.LINKS);
+            case BACKUPS: {
+                return builder.table(Tables.BACKUPS);
             }
-            case LINKS_ID: {
-                final String id = Links.getLinkId(uri);
-                return builder.table(Tables.LINKS).where(Links._ID + "=?", id);
+            case BACKUPS_ID: {
+                final String id = Backups.getBackupId(uri);
+                return builder.table(Tables.BACKUPS).where(Backups._ID + "=?", id);
             }
             case MOTIONS: {
                 return builder.table(Tables.MOTIONS);
@@ -444,12 +444,12 @@ public class TrackerProvider extends ContentProvider {
                 final String trackId = TrackerContract.Tracks.getTrackId(uri);
                 return builder.table(Tables.TRACKS).where(Tracks._ID + "=?", trackId);
             }
-            case LINKS: {
-                return builder.table(Tables.LINKS);
+            case BACKUPS: {
+                return builder.table(Tables.BACKUPS);
             }
-            case LINKS_ID: {
-                final String linkId = TrackerContract.Links.getLinkId(uri);
-                return builder.table(Tables.LINKS).where(Links._ID + "=?", linkId);
+            case BACKUPS_ID: {
+                final String backupId = Backups.getBackupId(uri);
+                return builder.table(Tables.BACKUPS).where(Backups._ID + "=?", backupId);
             }
             case MOTIONS: {
                 return builder.table(Tables.MOTIONS);
