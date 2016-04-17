@@ -6,6 +6,7 @@ import android.support.multidex.MultiDex;
 import com.localytics.android.itracker.util.LogUtils;
 
 public class Application extends android.app.Application {
+
     private final static String TAG = LogUtils.makeLogTag(Application.class);
 
     @Override
@@ -15,7 +16,6 @@ public class Application extends android.app.Application {
         if (BuildConfig.DEBUG) {
             Config.enableStrictMode();
         }
-//        registerActivityLifecycleCallbacks(new LocalyticsActivityLifecycleCallbacks(this));
     }
 
     @Override

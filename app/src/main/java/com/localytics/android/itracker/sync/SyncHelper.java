@@ -86,6 +86,7 @@ public class SyncHelper {
         mContext = context;
         mTrackerDataHandler = new TrackerDataHandler(mContext);
         mRemoteDataFetcher = new RemoteTrackerDataFetcher(mContext);
+        mDataChanged = new AtomicBoolean(false);
         mTrackDataUploadLatch = new CountDownLatch(3);
     }
 
