@@ -2,10 +2,9 @@ package com.localytics.android.itracker.gcm;
 
 import android.content.Intent;
 
-import com.google.android.gms.iid.InstanceIDListenerService;
 import com.localytics.android.itracker.util.PrefUtils;
 
-public class TrackerInstanceIDListenerService extends InstanceIDListenerService {
+public class InstanceIDListenerService extends com.google.android.gms.iid.InstanceIDListenerService {
 
     /**
      * Called if InstanceID token is updated. This may occur if the security of

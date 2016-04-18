@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.Links;
+import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
@@ -37,7 +37,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
     interface Tables {
         String TRACKS = "tracks";
-        String LINKS = "links";
+        String BACKUPS = "backups";
         String MOTIONS = "motions";
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
@@ -69,17 +69,17 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Tracks.DATE + " INTEGER UNIQUE NOT NULL,"
                 + Tracks.VERSION + " INTEGER NOT NULL DEFAULT 0);");
 
-        db.execSQL("CREATE TABLE " + Tables.LINKS + " ("
-                + Links._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + Links.DIRTY + " INTEGER DEFAULT 1,"
-                + Links.SYNC + " TEXT,"
-                + Links.UPDATED + " INTEGER NOT NULL,"
-                + Links.LINK + " INTEGER UNIQUE NOT NULL,"
-                + Links.TYPE + " TEXT NOT NULL,"
-                + Links.STATE + " TEXT NOT NULL,"
-                + Links.START_TIME + " INTEGER NOT NULL,"
-                + Links.END_TIME + " INTEGER NOT NULL,"
-                + Links.TRACK_ID + " INTEGER NOT NULL,"
+        db.execSQL("CREATE TABLE " + Tables.BACKUPS + " ("
+                + Backups._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Backups.DIRTY + " INTEGER DEFAULT 1,"
+                + TrackerContract.Backups.SYNC + " TEXT,"
+                + Backups.UPDATED + " INTEGER NOT NULL,"
+                + Backups.S3_KEY + " INTEGER UNIQUE NOT NULL,"
+                + TrackerContract.Backups.TYPE + " TEXT NOT NULL,"
+                + Backups.STATE + " TEXT NOT NULL,"
+                + TrackerContract.Backups.START_TIME + " INTEGER NOT NULL,"
+                + Backups.END_TIME + " INTEGER NOT NULL,"
+                + Backups.TRACK_ID + " INTEGER NOT NULL,"
                 + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
 
         db.execSQL("CREATE TABLE " + Tables.MOTIONS + " ("
@@ -121,13 +121,13 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
-        db.execSQL("CREATE INDEX link_track_id_index ON " + Tables.LINKS + "(" + Links.TRACK_ID + ");");
+        db.execSQL("CREATE INDEX link_track_id_index ON " + Tables.BACKUPS + "(" + Backups.TRACK_ID + ");");
         db.execSQL("CREATE INDEX location_track_id_index ON " + Tables.LOCATIONS + "(" + Locations.TRACK_ID + ");");
         db.execSQL("CREATE INDEX activity_track_id_index ON " + Tables.ACTIVITIES + "(" + Activities.TRACK_ID + ");");
 
         // Create indexes on dirty
         db.execSQL("CREATE INDEX motion_dirty_index ON " + Tables.MOTIONS + "(" + Motions.DIRTY + ");");
-        db.execSQL("CREATE INDEX link_dirty_index ON " + Tables.LINKS + "(" + Links.DIRTY + ");");
+        db.execSQL("CREATE INDEX link_dirty_index ON " + Tables.BACKUPS + "(" + Backups.DIRTY + ");");
         db.execSQL("CREATE INDEX location_dirty_index ON " + Tables.LOCATIONS + "(" + Locations.DIRTY + ");");
         db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
     }

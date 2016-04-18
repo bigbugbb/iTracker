@@ -31,8 +31,8 @@ import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.LinkState;
-import com.localytics.android.itracker.provider.TrackerContract.Links;
+import com.localytics.android.itracker.provider.TrackerContract.BackupState;
+import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.util.AccountUtils;
@@ -86,6 +86,7 @@ public class SyncHelper {
         mContext = context;
         mTrackerDataHandler = new TrackerDataHandler(mContext);
         mRemoteDataFetcher = new RemoteTrackerDataFetcher(mContext);
+        mDataChanged = new AtomicBoolean(false);
         mTrackDataUploadLatch = new CountDownLatch(3);
     }
 
@@ -372,14 +373,14 @@ public class SyncHelper {
 
                     // Update links table with the s3 url for the uploaded file
                     ContentValues values = new ContentValues();
-                    values.put(Links.LINK, mS3Client.getResourceUrl(bucket, key));
-                    values.put(Links.TYPE, getDataType(uri));
-                    values.put(Links.STATE, LinkState.UPLOADED.state());
-                    values.put(Links.START_TIME, beginTime);
-                    values.put(Links.END_TIME, endTime);
-                    values.put(Links.TRACK_ID, trackId);
+                    values.put(TrackerContract.Backups.S3_KEY, key);
+                    values.put(Backups.TYPE, getDataType(uri));
+                    values.put(TrackerContract.Backups.STATE, BackupState.UPLOADED.state());
+                    values.put(Backups.START_TIME, beginTime);
+                    values.put(TrackerContract.Backups.END_TIME, endTime);
+                    values.put(TrackerContract.Backups.TRACK_ID, trackId);
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
-                    mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Links.CONTENT_URI))
+                    mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(TrackerContract.Backups.CONTENT_URI))
                             .withValues(values)
                             .build());
 
@@ -459,9 +460,10 @@ public class SyncHelper {
         } else if (uri == Motions.CONTENT_URI) {
             type = "motion";
         }
-        return new StringBuilder().append(mAccountName)
-                .append('/')
+        return new StringBuilder()
                 .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
+                .append('/')
+                .append(mAccountName)
                 .append('/')
                 .append(type).toString();
     }

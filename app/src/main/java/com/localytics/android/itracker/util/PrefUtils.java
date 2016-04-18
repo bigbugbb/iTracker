@@ -58,45 +58,6 @@ public class PrefUtils {
         return sp.getBoolean(PREF_FIRST_USAGE, true);
     }
 
-    public static void markSetupDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_SETUP_DONE, true).apply();
-    }
-
-    public static boolean isSetupDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-
-//        // Check what year we're configured for
-//        int conferenceYear = sp.getInt(PREF_CONFERENCE_YEAR, 0);
-//        if (conferenceYear != Config.CONFERENCE_YEAR) {
-//            // Application is configured for a different conference year. Reset
-//            // preferences and re-run setup.
-//            sp.edit().clear().putInt(PREF_CONFERENCE_YEAR, Config.CONFERENCE_YEAR).commit();
-//        }
-
-        return sp.getBoolean(PREF_SETUP_DONE, false);
-    }
-
-    public static void markAlarmSetupDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_ALARM_SETUP_DONE, true).apply();
-    }
-
-    public static boolean isAlarmSetupDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean(PREF_ALARM_SETUP_DONE, false);
-    }
-
-    public static void markDataBootstrapDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_DATA_BOOTSTRAP_DONE, true).apply();
-    }
-
-    public static boolean isDataBootstrapDone(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean(PREF_DATA_BOOTSTRAP_DONE, false);
-    }
-
     public static long getLastSyncAttemptedTime(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getLong(PREF_LAST_SYNC_ATTEMPTED, 0L);

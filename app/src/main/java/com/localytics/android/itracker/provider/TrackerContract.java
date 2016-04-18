@@ -44,8 +44,8 @@ public class TrackerContract {
         String VERSION = "version";
     }
 
-    interface LinkColumns {
-        String LINK = "link";
+    interface BackupColumns {
+        String S3_KEY = "s3_key";
         String TYPE = "data_type";
         String STATE = "state";
         String START_TIME = "start_time";
@@ -131,15 +131,15 @@ public class TrackerContract {
         }
     }
 
-    public enum LinkState {
+    public enum BackupState {
         STOPPED     ("stopped"),
         UPLOADED    ("uploaded"),
-        DOWNLOADED  ("downloaded"),
-        DOWNLOADING ("downloading");
+        DOWNLOADED  ("restored"),
+        DOWNLOADING ("restoring");
 
         private final String mState;
 
-        LinkState(String state) {
+        BackupState(String state) {
             mState = state;
         }
 
@@ -148,21 +148,21 @@ public class TrackerContract {
         }
     }
 
-    public static class Links implements LinkColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("links").build();
+    public static class Backups implements BackupColumns, SyncColumns, BaseColumns {
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("backups").build();
 
-        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.link";
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.link";
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.backup";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.backup";
 
         public static final String SELECTION_BY_TRACK_ID = String.format("%s = ?", TRACK_ID);
 
         /** Build a {@link Uri} that references a given motion. */
-        public static Uri buildLinkUri(String linkId) {
-            return CONTENT_URI.buildUpon().appendPath(linkId).build();
+        public static Uri buildBackupUri(String backupId) {
+            return CONTENT_URI.buildUpon().appendPath(backupId).build();
         }
 
         /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
-        public static String getLinkId(Uri uri) {
+        public static String getBackupId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
     }
