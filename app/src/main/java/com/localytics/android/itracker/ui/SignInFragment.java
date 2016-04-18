@@ -76,7 +76,9 @@ public class SignInFragment extends Fragment {
                 mNewAccount.setEnabled(false);
                 mEmail.setEnabled(false);
                 mPassword.setEnabled(false);
-                mListener.onAccountStartSignIn();
+                if (mListener != null) {
+                    mListener.onAccountStartSignIn();
+                }
 
                 signIn();
             }
@@ -85,7 +87,9 @@ public class SignInFragment extends Fragment {
         mNewAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onAccountWillCreateNew();
+                if (mListener != null) {
+                    mListener.onAccountWillCreateNew();
+                }
             }
         });
     }
@@ -141,14 +145,18 @@ public class SignInFragment extends Fragment {
             @Override
             protected void onPostExecute(Intent intent) {
                 if (intent.hasExtra(KEY_ERROR_MESSAGE)) {
-                    mListener.onAccountSignInError(intent.getStringExtra(KEY_ERROR_MESSAGE));
+                    if (mListener != null) {
+                        mListener.onAccountSignInError(intent.getStringExtra(KEY_ERROR_MESSAGE));
+                    }
                     mEmail.setEnabled(true);
                     mPassword.setEnabled(true);
                     mSignIn.setEnabled(true);
                     mSignIn.setText(R.string.sign_in);
                     mNewAccount.setEnabled(true);
                 } else {
-                    mListener.onAccountSignInSuccess(intent);
+                    if (mListener != null) {
+                        mListener.onAccountSignInSuccess(intent);
+                    }
                 }
             }
         }.execute();

@@ -79,7 +79,9 @@ public class SignUpFragment extends Fragment {
                 mSignUp.setEnabled(false);
                 mSignUp.setText(R.string.creating_new_account);
                 mAccountExists.setEnabled(false);
-                mListener.onAccountStartSignUp();
+                if (mListener != null) {
+                    mListener.onAccountStartSignUp();
+                }
 
                 signUp();
             }
@@ -88,7 +90,9 @@ public class SignUpFragment extends Fragment {
         mAccountExists.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onAccountAreadyExists();
+                if (mListener != null) {
+                    mListener.onAccountAreadyExists();
+                }
             }
         });
     }
@@ -146,7 +150,9 @@ public class SignUpFragment extends Fragment {
             @Override
             protected void onPostExecute(Intent intent) {
                 if (intent.hasExtra(KEY_ERROR_MESSAGE)) {
-                    mListener.onAccountSignUpError(intent.getStringExtra(KEY_ERROR_MESSAGE));
+                    if (mListener != null) {
+                        mListener.onAccountSignUpError(intent.getStringExtra(KEY_ERROR_MESSAGE));
+                    }
                     mEmail.setEnabled(true);
                     mPassword.setEnabled(true);
                     mPasswordConfirmation.setEnabled(true);
@@ -154,7 +160,9 @@ public class SignUpFragment extends Fragment {
                     mSignUp.setText(R.string.sign_up);
                     mAccountExists.setEnabled(true);
                 } else {
-                    mListener.onAccountSignUpSuccess(intent);
+                    if (mListener != null) {
+                        mListener.onAccountSignUpSuccess(intent);
+                    }
                 }
             }
         }.execute();
