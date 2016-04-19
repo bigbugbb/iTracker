@@ -46,11 +46,10 @@ public class TrackerContract {
 
     interface BackupColumns {
         String S3_KEY = "s3_key";
-        String TYPE = "data_type";
+        String CATEGORY = "category";
         String STATE = "state";
-        String START_TIME = "start_time";
-        String END_TIME = "end_time";
-        String TRACK_ID = "track_id";
+        String DATE = "date";
+        String HOUR = "hour";
     }
 
     interface MotionColumns extends BaseDataColumns {
@@ -153,8 +152,6 @@ public class TrackerContract {
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.backup";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.backup";
-
-        public static final String SELECTION_BY_TRACK_ID = String.format("%s = ?", TRACK_ID);
 
         /** Build a {@link Uri} that references a given motion. */
         public static Uri buildBackupUri(String backupId) {

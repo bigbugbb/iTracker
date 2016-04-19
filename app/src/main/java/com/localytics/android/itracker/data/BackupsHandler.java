@@ -6,6 +6,7 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.localytics.android.itracker.data.model.Backup;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
@@ -16,19 +17,19 @@ import java.util.HashMap;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
-public class MotionsHandler extends JSONHandler {
-    private static final String TAG = makeLogTag(MotionsHandler.class);
+public class BackupsHandler extends JSONHandler {
+    private static final String TAG = makeLogTag(BackupsHandler.class);
 
-    private HashMap<String, Motion> mMotions = new HashMap<String, Motion>();
+    private HashMap<String, Backup> mBackups = new HashMap<>();
 
-    public MotionsHandler(Context context) {
+    public BackupsHandler(Context context) {
         super(context);
     }
 
     @Override
     public void process(JsonElement element) {
-        for (Motion motion : new Gson().fromJson(element, Motion[].class)) {
-//            mMotions.put(motion.id, motion);
+        for (Backup backup : new Gson().fromJson(element, Backup[].class)) {
+            mBackups.put(backup.s3_key, backup);
         }
     }
 
@@ -45,9 +46,5 @@ public class MotionsHandler extends JSONHandler {
 //            builder.withValue(Motions.MOTION_NOTE, motion.note);
 //            list.add(builder.build());
 //        }
-    }
-
-    public HashMap<String, Motion> getMotionMap() {
-        return mMotions;
     }
 }

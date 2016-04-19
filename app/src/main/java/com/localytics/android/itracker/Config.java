@@ -22,6 +22,7 @@ public class Config {
     public static final String MANIFEST_URL = URL_BASE + "/api";
     public static final String USERS_URL = URL_BASE + "/api/users";
     public static final String SESSIONS_URL = URL_BASE + "/api/sessions";
+    public static final String BACKUPS_URL = URL_BASE + "/api/backups";
 
     public static final String MANIFEST_FORMAT = "itracker-api-json-v1";
 

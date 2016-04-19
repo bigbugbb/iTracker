@@ -72,15 +72,13 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + Tables.BACKUPS + " ("
                 + Backups._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + Backups.DIRTY + " INTEGER DEFAULT 1,"
-                + TrackerContract.Backups.SYNC + " TEXT,"
+                + Backups.SYNC + " TEXT,"
                 + Backups.UPDATED + " INTEGER NOT NULL,"
-                + Backups.S3_KEY + " INTEGER UNIQUE NOT NULL,"
-                + TrackerContract.Backups.TYPE + " TEXT NOT NULL,"
+                + Backups.S3_KEY + " TEXT UNIQUE NOT NULL,"
+                + Backups.CATEGORY + " TEXT NOT NULL,"
                 + Backups.STATE + " TEXT NOT NULL,"
-                + TrackerContract.Backups.START_TIME + " INTEGER NOT NULL,"
-                + Backups.END_TIME + " INTEGER NOT NULL,"
-                + Backups.TRACK_ID + " INTEGER NOT NULL,"
-                + FOREIGN_KEY.TRACK_ID + References.TRACK_ID + " ON DELETE CASCADE);");
+                + Backups.DATE + " TEXT NOT NULL,"
+                + Backups.HOUR + " INTEGER NOT NULL);");
 
         db.execSQL("CREATE TABLE " + Tables.MOTIONS + " ("
                 + Motions._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -121,7 +119,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
-        db.execSQL("CREATE INDEX link_track_id_index ON " + Tables.BACKUPS + "(" + Backups.TRACK_ID + ");");
         db.execSQL("CREATE INDEX location_track_id_index ON " + Tables.LOCATIONS + "(" + Locations.TRACK_ID + ");");
         db.execSQL("CREATE INDEX activity_track_id_index ON " + Tables.ACTIVITIES + "(" + Activities.TRACK_ID + ");");
 
@@ -130,6 +127,10 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX link_dirty_index ON " + Tables.BACKUPS + "(" + Backups.DIRTY + ");");
         db.execSQL("CREATE INDEX location_dirty_index ON " + Tables.LOCATIONS + "(" + Locations.DIRTY + ");");
         db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
+
+        // Create index on s3_key and date for backups
+        db.execSQL("CREATE INDEX s3_key_index ON " + Tables.BACKUPS + "(" + Backups.S3_KEY +");");
+        db.execSQL("CREATE INDEX date_index ON " + Tables.BACKUPS + "(" + Backups.DATE +");");
     }
 
     @Override

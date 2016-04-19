@@ -9,7 +9,7 @@ import android.preference.PreferenceManager;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.localytics.android.itracker.data.JSONHandler;
-import com.localytics.android.itracker.data.MotionsHandler;
+import com.localytics.android.itracker.data.BackupsHandler;
 import com.localytics.android.itracker.provider.TrackerContract;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class TrackerDataHandler {
     Context mContext = null;
 
     // Handlers for each entity type:
-    MotionsHandler mMotionsHandler = null;
+    BackupsHandler mBackupsHandler = null;
 
     // Convenience map that maps the key name to its corresponding handler (e.g.
     // "blocks" to mBlocksHandler (to avoid very tedious if-elses)
@@ -79,7 +79,7 @@ public class TrackerDataHandler {
         LOGD(TAG, "Applying data from " + dataBodies.length + " files, timestamp " + dataTimestamp);
 
         // create handlers for each data type
-        mHandlerForKey.put(DATA_KEY_BLOGS, mMotionsHandler = new MotionsHandler(mContext));
+        mHandlerForKey.put(DATA_KEY_BLOGS, mBackupsHandler = new BackupsHandler(mContext));
 
         // process the jsons. This will call each of the handlers when appropriate to deal
         // with the objects we see in the data.

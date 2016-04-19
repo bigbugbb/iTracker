@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.data;
 
 import android.content.ContentProviderOperation;
+import android.content.ContentValues;
 import android.content.Context;
 
 import com.google.gson.JsonElement;

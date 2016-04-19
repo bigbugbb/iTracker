@@ -24,6 +24,10 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.RequestFuture;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.BaseData;
@@ -39,18 +43,25 @@ import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DataFileUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.util.RequestUtils;
 import com.opencsv.CSVWriter;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -73,6 +84,8 @@ public class SyncHelper {
     private AmazonS3Client mS3Client;
     private TransferUtility mTransferUtility;
 
+    private RequestQueue mRequestQueue;
+
     private String mAuthToken;
     private String mAccountName;
 
@@ -88,6 +101,8 @@ public class SyncHelper {
         mRemoteDataFetcher = new RemoteTrackerDataFetcher(mContext);
         mDataChanged = new AtomicBoolean(false);
         mTrackDataUploadLatch = new CountDownLatch(3);
+        mRequestQueue = RequestUtils.getRequestQueue(mContext);
+
     }
 
     public static void requestManualSync(Account chosenAccount) {
@@ -154,15 +169,15 @@ public class SyncHelper {
         long timeSinceAttempt = now - lastAttemptTime;
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 
-        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
-//            Random r = new Random();
-//            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
-//                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
-//            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
-//                    + "ms ago. Requesting delay of " + toWait + "ms.");
-//            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
-            return false;
-        }
+//        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS*/) {
+////            Random r = new Random();
+////            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
+////                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
+////            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
+////                    + "ms ago. Requesting delay of " + toWait + "ms.");
+////            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
+//            return false;
+//        }
 
         LogUtils.LOGI(TAG, "Performing sync for account: " + account);
         PrefUtils.markSyncAttemptedNow(mContext);
@@ -181,12 +196,13 @@ public class SyncHelper {
             try {
                 switch (op) {
                     case OP_USER_DATA_SYNC:
+                        doUserDataSync(extras);
                         break;
                     case OP_TRACK_DATA_SYNC:
-                        doTrackerDataSync();
+                        doTrackerDataSync(extras);
                         break;
                     case OP_USER_FEEDBACK_SYNC:
-                        doUserFeedbackSync();
+                        doUserFeedbackSync(extras);
                         break;
                 }
             } catch (AuthException ex) {
@@ -232,12 +248,12 @@ public class SyncHelper {
         return mDataChanged.get();
     }
 
-    private void doUserFeedbackSync() {
+    private void doUserFeedbackSync(Bundle extras) {
         LOGD(TAG, "Syncing user feedback");
 //        new FeedbackSyncHelper(mContext).sync();
     }
 
-    private boolean doUserDataSync() throws IOException {
+    private boolean doUserDataSync(Bundle extras) throws IOException {
         LOGD(TAG, "Syncing user data");
         return true;
     }
@@ -249,7 +265,7 @@ public class SyncHelper {
      * @return Whether or not data was changed.
      * @throws IOException if there is a problem downloading or importing the data.
      */
-    private void doTrackerDataSync() throws IOException, InterruptedException {
+    private void doTrackerDataSync(Bundle extras) throws IOException, InterruptedException {
         if (!isOnline()) {
             LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return;
@@ -283,12 +299,46 @@ public class SyncHelper {
 
         LOGD(TAG, "Start downloading track data.");
 
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Config.BACKUPS_URL, null, future, future) {
 
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", AccountUtils.getAuthToken(mContext));
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                DateTime today = DateTime.now();
+                DateTime twoWeeksAgo = today.minus(13);
+                Map<String, String> params = new HashMap<>();
+                params.put("start_date", twoWeeksAgo.toString("yyyy-MM-dd"));
+                params.put("end_date", today.toString("yyyy-MM-dd"));
+                return params;
+            }
+        };
+        mRequestQueue.add(request);
+
+        try {
+            JSONObject response = future.get(60, TimeUnit.SECONDS);
+            LOGD(TAG, "Backup information:\n" + response);
+
+            if (response != null) {
+                // TODO: parse the url
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            LOGE(TAG, "Can't get backup information: " + e.getMessage());
+        } catch (TimeoutException e) {
+            LOGE(TAG, "Timeout during retrieving backup information: " + e.getMessage());
+        }
 
         LOGD(TAG, "Complete downloading track data.");
     }
 
     private void uploadData(@NonNull Uri uri) {
+        boolean gotFileToUpload = false;
         Cursor cursor = null;
         try {
             cursor = mContext.getContentResolver().query(
@@ -306,7 +356,8 @@ public class SyncHelper {
                     nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
                     if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
                         final File file = makeUploadDataFile(getLocalFilename(uri, prevTime), data);
-                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime, trackId);
+                        gotFileToUpload = true;
+                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime);
                         data.clear();
                     }
                     data.add(item);
@@ -317,6 +368,9 @@ public class SyncHelper {
         } catch (Exception e) {
             LOGE(TAG, "Error: " + e.getMessage());
         } finally {
+            if (!gotFileToUpload) {
+                mTrackDataUploadLatch.countDown();
+            }
             if (cursor != null) {
                 cursor.close();
             }
@@ -338,8 +392,7 @@ public class SyncHelper {
     private TransferObserver uploadDataFileForTimeRange(@NonNull final Uri uri,
                                                         @NonNull final File file,
                                                         final long beginTime,
-                                                        final long endTime,
-                                                        final long trackId) {
+                                                        final long endTime) {
         if (!file.exists() || file.length() == 0) {
             LOGE(TAG, "Couldn't handle the original file: " + file);
             return null;
@@ -348,6 +401,8 @@ public class SyncHelper {
         final String bucket = Config.S3_BUCKET_NAME;
         final String key = getDataFileKey(uri, beginTime);
         final String[] selectionArgs = new String[]{Long.toString(beginTime), Long.toString(endTime)};
+
+        final DateTime time = new DateTime(beginTime);
 
         // zip the original file
         DataFileUtils.zip(file.getAbsolutePath(), file.getAbsolutePath() + ".gz");
@@ -373,14 +428,13 @@ public class SyncHelper {
 
                     // Update links table with the s3 url for the uploaded file
                     ContentValues values = new ContentValues();
-                    values.put(TrackerContract.Backups.S3_KEY, key);
-                    values.put(Backups.TYPE, getDataType(uri));
-                    values.put(TrackerContract.Backups.STATE, BackupState.UPLOADED.state());
-                    values.put(Backups.START_TIME, beginTime);
-                    values.put(TrackerContract.Backups.END_TIME, endTime);
-                    values.put(TrackerContract.Backups.TRACK_ID, trackId);
+                    values.put(Backups.S3_KEY, key);
+                    values.put(Backups.CATEGORY, getDataCategory(uri));
+                    values.put(Backups.STATE, BackupState.UPLOADED.state());
+                    values.put(Backups.DATE, time.toString("yyyy-MM-dd"));
+                    values.put(Backups.HOUR, time.getHourOfDay());
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
-                    mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(TrackerContract.Backups.CONTENT_URI))
+                    mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Backups.CONTENT_URI))
                             .withValues(values)
                             .build());
 
@@ -426,7 +480,7 @@ public class SyncHelper {
         return file;
     }
 
-    private String getDataType(@NonNull Uri uri) {
+    private String getDataCategory(@NonNull Uri uri) {
         if (uri == Activities.CONTENT_URI) {
             return "activity";
         } else if (uri == Locations.CONTENT_URI) {
@@ -438,7 +492,7 @@ public class SyncHelper {
     }
 
     private String getLocalFilename(@NonNull Uri uri, long time) {
-        return String.format("%s_%d.csv", getDataType(uri), time);
+        return String.format("%s_%d.csv", getDataCategory(uri), time);
     }
 
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {

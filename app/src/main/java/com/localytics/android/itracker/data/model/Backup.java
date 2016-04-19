@@ -9,20 +9,20 @@ import com.localytics.android.itracker.provider.TrackerContract;
 
 public class Backup implements Parcelable {
     public String s3_key;
-    public String data_type;
-    public long   start_time;
-    public long   end_time;
-    public long   track_id;
+    public String category;
+    public String state;
+    public String date;
+    public int    hour;
 
     public Backup() {
     }
 
     public Backup(Cursor cursor) {
         s3_key = cursor.getString(cursor.getColumnIndex(TrackerContract.Backups.S3_KEY));
-        data_type = cursor.getString(cursor.getColumnIndex(TrackerContract.Backups.TYPE));
-        start_time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Backups.START_TIME));
-        end_time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Backups.END_TIME));
-        track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Backups.TRACK_ID));
+        category = cursor.getString(cursor.getColumnIndex(TrackerContract.Backups.CATEGORY));
+        state = cursor.getString(cursor.getColumnIndex(TrackerContract.Backups.STATE));
+        date = cursor.getString(cursor.getColumnIndex(TrackerContract.Backups.DATE));
+        hour = cursor.getInt(cursor.getColumnIndex(TrackerContract.Backups.HOUR));
     }
 
     @Override
@@ -33,18 +33,18 @@ public class Backup implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(s3_key);
-        dest.writeString(data_type);
-        dest.writeLong(start_time);
-        dest.writeLong(end_time);
-        dest.writeLong(track_id);
+        dest.writeString(category);
+        dest.writeString(state);
+        dest.writeString(date);
+        dest.writeInt(hour);
     }
 
     private Backup(Parcel in) {
         s3_key = in.readString();
-        data_type = in.readString();
-        start_time = in.readLong();
-        end_time = in.readLong();
-        track_id = in.readLong();
+        category = in.readString();
+        state = in.readString();
+        date = in.readString();
+        hour = in.readInt();
     }
 
     public static final Parcelable.Creator<Backup> CREATOR = new Parcelable.Creator<Backup>() {
