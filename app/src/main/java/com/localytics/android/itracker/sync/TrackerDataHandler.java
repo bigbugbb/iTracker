@@ -37,16 +37,10 @@ public class TrackerDataHandler {
     // really old or nonexistent)
     private static final String DEFAULT_TIMESTAMP = "Sat, 1 Jan 2015 00:00:00 GMT";
 
-    private static final String DATA_KEY_BLOGS = "blogs";
-    private static final String DATA_KEY_TAGS = "tags";
-    private static final String DATA_KEY_BLOGS_TAGS = "blogs_tags";
-    private static final String DATA_KEY_UPCOMING_EVENTS = "upcoming_events";
+    private static final String DATA_KEY_BACKUPS = "backups";
 
     private static final String[] DATA_KEYS_IN_ORDER = {
-        DATA_KEY_BLOGS,
-        DATA_KEY_TAGS,
-        DATA_KEY_BLOGS_TAGS,
-        DATA_KEY_UPCOMING_EVENTS
+        DATA_KEY_BACKUPS,
     };
 
     Context mContext = null;
@@ -66,7 +60,7 @@ public class TrackerDataHandler {
     }
 
     /**
-     * Parses the company data in the given objects and imports the data into the
+     * Parses the app data in the given objects and imports the data into the
      * content provider.
      *
      * @param dataBodies The collection of JSON objects to parse and import.
@@ -74,12 +68,12 @@ public class TrackerDataHandler {
      * @param downloadsAllowed Whether or not we are supposed to download data from the internet if needed.
      * @throws IOException If there is a problem parsing the data.
      */
-    public void applyCompanyData(String[] dataBodies, String dataTimestamp, boolean downloadsAllowed)
+    public void applyAppData(String[] dataBodies, String dataTimestamp, boolean downloadsAllowed)
             throws IOException {
         LOGD(TAG, "Applying data from " + dataBodies.length + " files, timestamp " + dataTimestamp);
 
         // create handlers for each data type
-        mHandlerForKey.put(DATA_KEY_BLOGS, mBackupsHandler = new BackupsHandler(mContext));
+        mHandlerForKey.put(DATA_KEY_BACKUPS, mBackupsHandler = new BackupsHandler(mContext));
 
         // process the jsons. This will call each of the handlers when appropriate to deal
         // with the objects we see in the data.
@@ -90,16 +84,13 @@ public class TrackerDataHandler {
         }
 
         // produce the necessary content provider operations
-        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        ArrayList<ContentProviderOperation> batch = new ArrayList<>();
         for (String key : DATA_KEYS_IN_ORDER) {
             LOGD(TAG, "Building content provider operations for: " + key);
             mHandlerForKey.get(key).makeContentProviderOperations(batch);
             LOGD(TAG, "Content provider operations so far: " + batch.size());
         }
         LOGD(TAG, "Total content provider operations: " + batch.size());
-
-        // download or process local map tile overlay files (SVG files)
-        LOGD(TAG, "Processing map overlay files");
 
         // finally, push the changes into the Content Provider
         LOGD(TAG, "Applying " + batch.size() + " content provider operations.");

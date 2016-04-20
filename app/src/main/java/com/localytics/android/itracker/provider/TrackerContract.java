@@ -131,7 +131,7 @@ public class TrackerContract {
     }
 
     public enum BackupState {
-        STOPPED     ("stopped"),
+        IDLE        ("idle"),
         UPLOADED    ("uploaded"),
         DOWNLOADED  ("restored"),
         DOWNLOADING ("restoring");

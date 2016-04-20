@@ -27,6 +27,7 @@ import com.localytics.android.itracker.util.SelectionBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGV;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
@@ -59,9 +60,6 @@ public class TrackerProvider extends ContentProvider {
 
     private static final int ACTIVITIES = 500;
     private static final int ACTIVITIES_ID = 501;
-
-    private static final int WEATHERS = 600;
-    private static final int WEATHERS_ID = 601;
 
     /**
      * Build and return a {@link UriMatcher} that catches all {@link Uri}
@@ -284,10 +282,6 @@ public class TrackerProvider extends ContentProvider {
                 table = Tables.ACTIVITIES;
                 break;
             }
-            case WEATHERS: {
-                table = Tables.WEATHERS;
-                break;
-            }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
             }
@@ -296,14 +290,16 @@ public class TrackerProvider extends ContentProvider {
         db.beginTransaction();
         try {
             for (ContentValues cv : values) {
-                long newID = db.insertOrThrow(table, null, cv);
+                long newID = db.insertWithOnConflict(table, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
                 if (newID <= 0) {
-                    throw new SQLException("Failed to insert row into " + uri);
+                    LOGD(TAG, "Failed to insert row into " + uri);
                 }
             }
             db.setTransactionSuccessful();
             notifyChange(uri);
             numInserted = values.length;
+        } catch (SQLException e) {
+            e.printStackTrace();
         } finally {
             db.endTransaction();
         }
@@ -459,9 +455,6 @@ public class TrackerProvider extends ContentProvider {
             }
             case ACTIVITIES: {
                 return builder.table(Tables.ACTIVITIES);
-            }
-            case WEATHERS: {
-                return builder.table(Tables.WEATHERS);
             }
             default: {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

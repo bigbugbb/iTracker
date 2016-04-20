@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -28,6 +29,9 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.StringRequest;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.BaseData;
@@ -54,6 +58,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -299,8 +304,8 @@ public class SyncHelper {
 
         LOGD(TAG, "Start downloading track data.");
 
-        RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Config.BACKUPS_URL, null, future, future) {
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest request = new StringRequest(Config.BACKUPS_URL, future, future) {
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -322,11 +327,14 @@ public class SyncHelper {
         mRequestQueue.add(request);
 
         try {
-            JSONObject response = future.get(60, TimeUnit.SECONDS);
+            String response = future.get(30, TimeUnit.SECONDS);
             LOGD(TAG, "Backup information:\n" + response);
 
-            if (response != null) {
-                // TODO: parse the url
+            if (!TextUtils.isEmpty(response)) {
+                mTrackerDataHandler.applyAppData(
+                        new String[]{response},
+                        DateFormatUtils.SMTP_DATETIME_FORMAT.format(DateTime.now().getMillis()),
+                        true);
             }
         } catch (InterruptedException | ExecutionException e) {
             LOGE(TAG, "Can't get backup information: " + e.getMessage());
