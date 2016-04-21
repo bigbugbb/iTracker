@@ -5,6 +5,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.database.Cursor;
@@ -27,19 +28,17 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.android.volley.AuthFailureError;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
+import com.localytics.android.itracker.data.model.Backup;
 import com.localytics.android.itracker.data.model.BaseData;
 import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.BackupState;
+import com.localytics.android.itracker.provider.TrackerContract.SyncState;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
@@ -53,12 +52,10 @@ import com.opencsv.CSVWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.joda.time.DateTime;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,7 +104,6 @@ public class SyncHelper {
         mDataChanged = new AtomicBoolean(false);
         mTrackDataUploadLatch = new CountDownLatch(3);
         mRequestQueue = RequestUtils.getRequestQueue(mContext);
-
     }
 
     public static void requestManualSync(Account chosenAccount) {
@@ -174,7 +170,7 @@ public class SyncHelper {
         long timeSinceAttempt = now - lastAttemptTime;
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 
-//        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS*/) {
+//        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
 ////            Random r = new Random();
 ////            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
 ////                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
@@ -282,9 +278,7 @@ public class SyncHelper {
         }
 
         /*********************************************************************/
-
         LOGD(TAG, "Start uploading track data.");
-
         Uri[] uris = new Uri[]{ Activities.CONTENT_URI, Locations.CONTENT_URI, Motions.CONTENT_URI };
         for (Uri uri : uris) {
             uploadData(uri);
@@ -295,15 +289,15 @@ public class SyncHelper {
                 mContext.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, mOps);
             } catch (RemoteException | OperationApplicationException e) {
                 e.printStackTrace();
+            } finally {
+                mOps.clear();
             }
         }
-
         LOGD(TAG, "Complete uploading track data.");
-
         /*********************************************************************/
 
-        LOGD(TAG, "Start downloading track data.");
-
+        /*********************************************************************/
+        LOGD(TAG, "Start requesting and handling response from backups api.");
         RequestFuture<String> future = RequestFuture.newFuture();
         StringRequest request = new StringRequest(Config.BACKUPS_URL, future, future) {
 
@@ -341,8 +335,106 @@ public class SyncHelper {
         } catch (TimeoutException e) {
             LOGE(TAG, "Timeout during retrieving backup information: " + e.getMessage());
         }
+        LOGD(TAG, "Complete requesting and handling response from backups api.");
+        /*********************************************************************/
 
-        LOGD(TAG, "Complete downloading track data.");
+        /*********************************************************************/
+        LOGD(TAG, "Start restoring track data.");
+        restoreData();
+        LOGD(TAG, "Complete restoring track data.");
+        /*********************************************************************/
+    }
+
+    private void restoreData() {
+        Cursor cursor = null;
+        try {
+            cursor = mContext.getContentResolver().query(
+                    Backups.CONTENT_URI,
+                    null,
+                    TrackerContract.SELECTION_BY_SYNC,
+                    new String[] {SyncState.PENDING.state()},
+                    Backups.DATE + " DESC");
+            if (cursor != null) {
+                List<Backup> pendingBackups = new ArrayList<>(cursor.getCount());
+                while (cursor.moveToNext()) {
+                    pendingBackups.add(new Backup(cursor));
+                }
+                restorePendingBackups(pendingBackups);
+            }
+        } catch (Exception e) {
+            LOGE(TAG, "Error: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    private void restorePendingBackups(List<Backup> pendingBackups) {
+        final Uri uri = TrackerContract.addCallerIsSyncAdapterParameter(Backups.CONTENT_URI);
+
+        // Update backups sync state from pending to syncing
+        mOps.clear();
+        for (Backup pendingBackup : pendingBackups) {
+            mOps.add(ContentProviderOperation.newUpdate(uri)
+                    .withValue(TrackerContract.SyncColumns.SYNC, SyncState.SYNCING.state())
+                    .withSelection(Backups.SELECTION_BY_S3_KEY, new String[]{pendingBackup.s3_key})
+                    .build());
+        }
+
+        try {
+            mContext.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, mOps);
+        } catch (RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        } finally {
+            mOps.clear();
+        }
+
+        // Trigger the file downloads
+        for (Backup pendingBackup : pendingBackups) {
+            final String bucket = Config.S3_BUCKET_NAME;
+            final String key = pendingBackup.s3_key;
+            final String category = pendingBackup.category;
+            final String filename = getLocalFilename(pendingBackup.category, pendingBackup.timestamp());
+            final File fileToRestore = new File(mContext.getCacheDir(), filename);
+
+            final TransferObserver observer = mTransferUtility.download(bucket, key, fileToRestore);
+            observer.setTransferListener(new TransferListener() { // Triggered in main thread
+                @Override
+                public void onStateChanged(int id, TransferState state) {
+                    if (state == TransferState.COMPLETED) {
+                        // Update backups sync state from syncing to synced
+                        ContentValues values = new ContentValues();
+                        values.put(Backups.SYNC, SyncState.SYNCED.state());
+                        if (mContext.getContentResolver().update(uri, values, Backups.SELECTION_BY_S3_KEY, new String[]{key}) == 0) {
+                            LOGE(TAG, "Failed to update backups sync state from syncing to synced: " + key);
+                        } else {
+                            // Start the data import service to import downloaded data
+                            Intent intent = new Intent(mContext, DatabaseImportService.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString(DatabaseImportService.EXTRA_IMPORT_FILE_PATH, fileToRestore.getAbsolutePath());
+                            bundle.putString(DatabaseImportService.EXTRA_IMPORT_DATA_CATEGORY, category);
+                            intent.putExtras(bundle);
+                            intent.setAction(DatabaseImportService.INTENT_ACTION_IMPORT_DATA);
+                        }
+                    }
+                }
+
+                @Override
+                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                }
+
+                @Override
+                public void onError(int id, Exception ex) {
+                    // Update backups sync state from syncing to pending
+                    ContentValues values = new ContentValues();
+                    values.put(Backups.SYNC, SyncState.PENDING.state());
+                    if (mContext.getContentResolver().update(uri, values, Backups.SELECTION_BY_S3_KEY, new String[]{key}) == 0) {
+                        LOGE(TAG, "Failed to update backups sync state from syncing to pending: " + key);
+                    }
+                }
+            });
+        }
     }
 
     private void uploadData(@NonNull Uri uri) {
@@ -398,11 +490,11 @@ public class SyncHelper {
     }
 
     private TransferObserver uploadDataFileForTimeRange(@NonNull final Uri uri,
-                                                        @NonNull final File file,
+                                                        @NonNull final File srcFile,
                                                         final long beginTime,
                                                         final long endTime) {
-        if (!file.exists() || file.length() == 0) {
-            LOGE(TAG, "Couldn't handle the original file: " + file);
+        if (!srcFile.exists() || srcFile.length() == 0) {
+            LOGE(TAG, "Couldn't handle the original file: " + srcFile);
             return null;
         }
 
@@ -412,21 +504,23 @@ public class SyncHelper {
 
         final DateTime time = new DateTime(beginTime);
 
-        // zip the original file
-        DataFileUtils.zip(file.getAbsolutePath(), file.getAbsolutePath() + ".gz");
-        final File gzFile = new File(file.getAbsolutePath() + ".gz");
-        if (!gzFile.exists() || gzFile.length() == 0) {
-            LOGE(TAG, "Couldn't compress file: " + file);
+        // zip the source file
+        String srcFilePath = srcFile.getAbsolutePath();
+        String zipFilePath = srcFilePath + ".zip";
+        DataFileUtils.zip(srcFilePath, zipFilePath);
+        final File zipFile = new File(zipFilePath);
+        if (!zipFile.exists() || zipFile.length() == 0) {
+            LOGE(TAG, "Couldn't compress source file: " + srcFile);
             return null;
         }
 
-        TransferObserver observer = uploadFileToS3(bucket, key, gzFile);
+        final TransferObserver observer = uploadFileToS3(bucket, key, zipFile);
         observer.setTransferListener(new TransferListener() { // Triggered in main thread
             @Override
             public void onStateChanged(int id, TransferState state) {
                 if (state == TransferState.COMPLETED) {
-                    FileUtils.deleteQuietly(file);
-                    FileUtils.deleteQuietly(gzFile);
+                    FileUtils.deleteQuietly(srcFile);
+                    FileUtils.deleteQuietly(zipFile);
 
                     // Clear dirty column for data in this hour if the file has been uploaded successfully
                     mOps.add(ContentProviderOperation.newUpdate(TrackerContract.addCallerIsSyncAdapterParameter(uri))
@@ -437,10 +531,10 @@ public class SyncHelper {
                     // Update links table with the s3 url for the uploaded file
                     ContentValues values = new ContentValues();
                     values.put(Backups.S3_KEY, key);
-                    values.put(Backups.CATEGORY, getDataCategory(uri));
-                    values.put(Backups.STATE, BackupState.UPLOADED.state());
+                    values.put(Backups.CATEGORY, TrackerContract.categoryFromUri(uri));
                     values.put(Backups.DATE, time.toString("yyyy-MM-dd"));
                     values.put(Backups.HOUR, time.getHourOfDay());
+                    values.put(Backups.SYNC, SyncState.SYNCED.state());
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                     mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Backups.CONTENT_URI))
                             .withValues(values)
@@ -458,8 +552,8 @@ public class SyncHelper {
 
             @Override
             public void onError(int id, Exception ex) {
-                FileUtils.deleteQuietly(file);
-                FileUtils.deleteQuietly(gzFile);
+                FileUtils.deleteQuietly(srcFile);
+                FileUtils.deleteQuietly(zipFile);
                 mTrackDataUploadLatch.countDown();
             }
         });
@@ -488,46 +582,38 @@ public class SyncHelper {
         return file;
     }
 
-    private String getDataCategory(@NonNull Uri uri) {
-        if (uri == Activities.CONTENT_URI) {
-            return "activity";
-        } else if (uri == Locations.CONTENT_URI) {
-            return "location";
-        } else if (uri == Motions.CONTENT_URI) {
-            return "motion";
-        }
-        return "unknown";
+    private String getLocalFilename(@NonNull Uri uri, long time) {
+        return getLocalFilename(TrackerContract.categoryFromUri(uri), time);
     }
 
-    private String getLocalFilename(@NonNull Uri uri, long time) {
-        return String.format("%s_%d.csv", getDataCategory(uri), time);
+    private String getLocalFilename(@NonNull String category, long time) {
+        return String.format("%s_%d.csv", category, time);
     }
 
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {
         final ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType("text/csv");
-        metadata.setContentEncoding("gzip");
-        metadata.setContentLength(fileToUpload.length());
-        metadata.addUserMetadata("x-user-account", AccountUtils.getActiveAccountName(mContext));
-        metadata.addUserMetadata("x-upload_time", DateTime.now().toString());
+        metadata.setContentEncoding("zip");
         return mTransferUtility.upload(bucket, key, fileToUpload, metadata);
     }
 
     private String getDataFileKey(@NonNull Uri uri, long time) {
-        String type = "unknown";
+        String category = "unknown";
         if (uri == Activities.CONTENT_URI) {
-            type = "activity";
+            category = TrackerContract.DATA_CATEGORY_ACTIVITY;
         } else if (uri == Locations.CONTENT_URI) {
-            type = "location";
+            category = TrackerContract.DATA_CATEGORY_LOCATION;
         } else if (uri == Motions.CONTENT_URI) {
-            type = "motion";
+            category = TrackerContract.DATA_CATEGORY_MOTION;
         }
         return new StringBuilder()
                 .append(new DateTime(time).toString(Config.S3_KEY_PREFIX_PATTERN))
                 .append('/')
                 .append(mAccountName)
                 .append('/')
-                .append(type).toString();
+                .append(category)
+                .append(".csv.zip")
+                .toString();
     }
 
     // Returns whether we are connected to the internet.

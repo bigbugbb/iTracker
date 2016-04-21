@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import org.joda.time.DateTime;
@@ -47,7 +48,6 @@ public class TrackerContract {
     interface BackupColumns {
         String S3_KEY = "s3_key";
         String CATEGORY = "category";
-        String STATE = "state";
         String DATE = "date";
         String HOUR = "hour";
     }
@@ -77,16 +77,40 @@ public class TrackerContract {
         String MOTIONS = "motions";
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
+        String UNKNOWN = "unknown";
     }
 
     public static final String CONTENT_AUTHORITY = "com.localytics.itracker";
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
+    public static final Uri UNKNOWN_CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.UNKNOWN).build();
+
     public static final String[] TOP_LEVEL_PATHS = new String[] {
             Paths.TRACKS
     };
 
+    public enum SyncState {
+        PENDING ("pending"),    // data needs to be synced
+        SYNCED  ("synced"),     // data has been synced
+        SYNCING ("syncing");    // data is syncing
+
+        private final String mState;
+
+        SyncState(String state) {
+            mState = state;
+        }
+
+        public String state() {
+            return mState;
+        }
+    }
+
+    public static final String DATA_CATEGORY_MOTION   = "motion";
+    public static final String DATA_CATEGORY_LOCATION = "location";
+    public static final String DATA_CATEGORY_ACTIVITY = "activity";
+
+    public static final String SELECTION_BY_SYNC = String.format("%s = ?", SyncColumns.SYNC);
     public static final String SELECTION_BY_DIRTY = String.format("%s = ?", SyncColumns.DIRTY);
     public static final String SELECTION_BY_INTERVAL = String.format("%s >= ? AND %s < ?", BaseDataColumns.TIME, BaseDataColumns.TIME);
     public static final String ORDER_BY_TIME_ASC = BaseDataColumns.TIME + " ASC";
@@ -142,30 +166,13 @@ public class TrackerContract {
         }
     }
 
-    public enum BackupState {
-        IDLE        ("idle"),
-        UPLOADED    ("uploaded"),
-        DOWNLOADED  ("restored"),
-        DOWNLOADING ("restoring");
-
-        private final String mState;
-
-        BackupState(String state) {
-            mState = state;
-        }
-
-        public String state() {
-            return mState;
-        }
-    }
-
     public static class Backups implements BackupColumns, SyncColumns, BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.BACKUPS).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.backup";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.backup";
 
-        public static final String SELECTION_BY_STATE = String.format("%s = ?", STATE);
+        public static final String SELECTION_BY_S3_KEY = String.format("%s = ?", S3_KEY);
 
         /** Build a {@link Uri} that references a given motion. */
         public static Uri buildBackupUri(String backupId) {
@@ -233,6 +240,17 @@ public class TrackerContract {
         public static String getActivityId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
+    }
+
+    public static String categoryFromUri(@NonNull Uri uri) {
+        if (uri == Activities.CONTENT_URI) {
+            return DATA_CATEGORY_ACTIVITY;
+        } else if (uri == Locations.CONTENT_URI) {
+            return DATA_CATEGORY_LOCATION;
+        } else if (uri == Motions.CONTENT_URI) {
+            return DATA_CATEGORY_MOTION;
+        }
+        return "unknown";
     }
 
     public static Uri addCallerIsSyncAdapterParameter(Uri uri) {

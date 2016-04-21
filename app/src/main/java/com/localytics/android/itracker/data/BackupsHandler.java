@@ -35,7 +35,6 @@ public class BackupsHandler extends JSONHandler {
     @Override
     public void process(JsonElement element) {
         for (Backup backup : new Gson().fromJson(element, Backup[].class)) {
-            backup.state = TrackerContract.BackupState.IDLE.state();
             mBackups.add(backup);
         }
     }
@@ -50,7 +49,7 @@ public class BackupsHandler extends JSONHandler {
         Cursor cursor = null;
         try {
             cursor = mContext.getContentResolver().query(uri, null, null, null, null);
-            if (cursor != null && cursor.getCount() > 0) {
+            if (cursor != null) {
                 while (cursor.moveToNext()) {
                     localBackups.add(new Backup(cursor));
                 }
@@ -73,10 +72,11 @@ public class BackupsHandler extends JSONHandler {
             list.add(ContentProviderOperation.newInsert(uri)
                     .withValue(Backups.S3_KEY, backup.s3_key)
                     .withValue(Backups.CATEGORY, backup.category)
-                    .withValue(Backups.STATE, backup.state)
                     .withValue(Backups.DATE, backup.date)
                     .withValue(Backups.HOUR, backup.hour)
                     .withValue(Backups.UPDATED, now)
+                    .withValue(Backups.DIRTY, null)
+                    .withValue(Backups.SYNC, TrackerContract.SyncState.PENDING.state())
                     .build());
 
             dates.add(backup.date);

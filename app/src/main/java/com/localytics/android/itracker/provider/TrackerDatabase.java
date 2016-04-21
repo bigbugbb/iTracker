@@ -41,7 +41,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         String MOTIONS = "motions";
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
-        String WEATHERS = "weathers";
     }
 
     interface FOREIGN_KEY {
@@ -64,7 +63,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + Tables.TRACKS + " ("
                 + Tracks._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + Tracks.DIRTY + " INTEGER DEFAULT 1,"
-                + Tracks.SYNC + " TEXT,"
                 + Tracks.UPDATED + " INTEGER NOT NULL,"
                 + Tracks.DATE + " INTEGER UNIQUE NOT NULL,"
                 + Tracks.VERSION + " INTEGER NOT NULL DEFAULT 0);");
@@ -76,14 +74,12 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Backups.UPDATED + " INTEGER NOT NULL,"
                 + Backups.S3_KEY + " TEXT UNIQUE NOT NULL,"
                 + Backups.CATEGORY + " TEXT NOT NULL,"
-                + Backups.STATE + " TEXT NOT NULL,"
                 + Backups.DATE + " TEXT NOT NULL,"
                 + Backups.HOUR + " INTEGER NOT NULL);");
 
         db.execSQL("CREATE TABLE " + Tables.MOTIONS + " ("
                 + Motions._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + Motions.DIRTY + " INTEGER DEFAULT 1,"
-                + Motions.SYNC + " TEXT,"
                 + Motions.UPDATED + " INTEGER NOT NULL,"
                 + Motions.TIME + " INTEGER NOT NULL,"
                 + Motions.DATA + " INTEGER NOT NULL,"
@@ -94,7 +90,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + Tables.LOCATIONS + " ("
                 + Locations._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + Locations.DIRTY + " INTEGER DEFAULT 1,"
-                + Locations.SYNC + " TEXT,"
                 + Locations.UPDATED + " INTEGER NOT NULL,"
                 + Locations.TIME + " INTEGER NOT NULL,"
                 + Locations.LATITUDE + " REAL NOT NULL,"
@@ -108,7 +103,6 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + Tables.ACTIVITIES + " ("
                 + Activities._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + Activities.DIRTY + " INTEGER DEFAULT 1,"
-                + Activities.SYNC + " TEXT,"
                 + Activities.UPDATED + " INTEGER NOT NULL,"
                 + Activities.TIME + " INTEGER NOT NULL,"
                 + Activities.TYPE + " TEXT NOT NULL,"
@@ -129,8 +123,9 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX activity_dirty_index ON " + Tables.ACTIVITIES + "(" + Activities.DIRTY + ");");
 
         // Create index on s3_key and date for backups
-        db.execSQL("CREATE INDEX s3_key_index ON " + Tables.BACKUPS + "(" + Backups.S3_KEY +");");
-        db.execSQL("CREATE INDEX date_index ON " + Tables.BACKUPS + "(" + Backups.DATE +");");
+        db.execSQL("CREATE INDEX s3_key_index ON " + Tables.BACKUPS + "(" + Backups.S3_KEY + ");");
+        db.execSQL("CREATE INDEX sync_index ON " + Tables.BACKUPS + "(" + Backups.SYNC + ");");
+        db.execSQL("CREATE INDEX date_index ON " + Tables.BACKUPS + "(" + Backups.DATE + ");");
     }
 
     @Override

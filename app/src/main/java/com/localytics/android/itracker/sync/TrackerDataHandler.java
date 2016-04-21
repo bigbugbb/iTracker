@@ -10,8 +10,8 @@ import android.preference.PreferenceManager;
 
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
-import com.localytics.android.itracker.data.JSONHandler;
 import com.localytics.android.itracker.data.BackupsHandler;
+import com.localytics.android.itracker.data.JSONHandler;
 import com.localytics.android.itracker.provider.TrackerContract;
 
 import java.io.IOException;
