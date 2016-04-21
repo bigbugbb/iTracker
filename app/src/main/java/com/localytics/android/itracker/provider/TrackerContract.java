@@ -71,16 +71,28 @@ public class TrackerContract {
         String CONFIDENCE = "confidence";
     }
 
+    interface Paths {
+        String TRACKS = "tracks";
+        String BACKUPS = "backups";
+        String MOTIONS = "motions";
+        String LOCATIONS = "locations";
+        String ACTIVITIES = "activities";
+    }
+
     public static final String CONTENT_AUTHORITY = "com.localytics.itracker";
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+
+    public static final String[] TOP_LEVEL_PATHS = new String[] {
+            Paths.TRACKS
+    };
 
     public static final String SELECTION_BY_DIRTY = String.format("%s = ?", SyncColumns.DIRTY);
     public static final String SELECTION_BY_INTERVAL = String.format("%s >= ? AND %s < ?", BaseDataColumns.TIME, BaseDataColumns.TIME);
     public static final String ORDER_BY_TIME_ASC = BaseDataColumns.TIME + " ASC";
 
     public static class Tracks implements TrackColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("tracks").build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.TRACKS).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.track";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.track";
@@ -108,7 +120,7 @@ public class TrackerContract {
             try {
                 ContentResolver resolver = context.getContentResolver();
                 long startOfToday = DateTime.now().withTimeAtStartOfDay().getMillis();
-                cursor = resolver.query(Tracks.CONTENT_URI, null, Tracks.DATE + "=?", new String[]{"" + startOfToday}, null);
+                cursor = resolver.query(Tracks.CONTENT_URI, null, Tracks.DATE + " = ?", new String[]{"" + startOfToday}, null);
                 if (cursor != null && cursor.moveToFirst()) {
                     trackId = cursor.getLong(0);
                 } else {
@@ -148,10 +160,12 @@ public class TrackerContract {
     }
 
     public static class Backups implements BackupColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("backups").build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.BACKUPS).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.backup";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.backup";
+
+        public static final String SELECTION_BY_STATE = String.format("%s = ?", STATE);
 
         /** Build a {@link Uri} that references a given motion. */
         public static Uri buildBackupUri(String backupId) {
@@ -165,7 +179,7 @@ public class TrackerContract {
     }
 
     public static class Motions implements MotionColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("motions").build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.MOTIONS).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.motion";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.motion";
@@ -184,7 +198,7 @@ public class TrackerContract {
     }
 
     public static class Locations implements LocationColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("locations").build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.LOCATIONS).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.location";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.location";
@@ -203,7 +217,7 @@ public class TrackerContract {
     }
 
     public static class Activities implements ActivityColumns, SyncColumns, BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath("activities").build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.ACTIVITIES).build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.activity";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.activity";

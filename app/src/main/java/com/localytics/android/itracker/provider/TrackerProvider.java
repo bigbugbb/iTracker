@@ -315,12 +315,12 @@ public class TrackerProvider extends ContentProvider {
 
         switch (match) {
             case TRACKS: {
-                long newId = db.insertOrThrow(Tables.TRACKS, null, values);
+                long newId = db.insertWithOnConflict(Tables.TRACKS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 notifyChange(uri);
                 return Tracks.buildTrackUri("" + newId);
             }
             case BACKUPS: {
-                long newId = db.insertOrThrow(Tables.BACKUPS, null, values);
+                long newId = db.insertWithOnConflict(Tables.BACKUPS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 notifyChange(uri);
                 return Backups.buildBackupUri("" + newId);
             }

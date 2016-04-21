@@ -47,6 +47,23 @@ public class Backup implements Parcelable {
         hour = in.readInt();
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Backup)) {
+            return false;
+        }
+        if (s3_key.equals(((Backup) object).s3_key)) {
+            return true;
+        }
+        return super.equals(object);
+    }
+
+    // equals will not be called if two objects have different hashCodes
+    @Override
+    public int hashCode() {
+        return s3_key.hashCode();
+    }
+
     public static final Parcelable.Creator<Backup> CREATOR = new Parcelable.Creator<Backup>() {
 
         public Backup createFromParcel(Parcel source) {

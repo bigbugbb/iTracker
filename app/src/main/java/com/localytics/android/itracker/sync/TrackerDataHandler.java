@@ -1,8 +1,10 @@
 package com.localytics.android.itracker.sync;
 
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.net.Uri;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 
@@ -110,12 +112,12 @@ public class TrackerDataHandler {
         }
 
         // notify all top-level paths
-//        LOGD(TAG, "Notifying changes on all top-level paths on Content Resolver.");
-//        ContentResolver resolver = mContext.getContentResolver();
-//        for (String path : TrackerContract.TOP_LEVEL_PATHS) {
-//            Uri uri = TrackerContract.BASE_CONTENT_URI.buildUpon().appendPath(path).build();
-//            resolver.notifyChange(uri, null);
-//        }
+        LOGD(TAG, "Notifying changes on all top-level paths on Content Resolver.");
+        ContentResolver resolver = mContext.getContentResolver();
+        for (String path : TrackerContract.TOP_LEVEL_PATHS) {
+            Uri uri = TrackerContract.BASE_CONTENT_URI.buildUpon().appendPath(path).build();
+            resolver.notifyChange(uri, null);
+        }
 
         // update our data timestamp
         setDataTimestamp(dataTimestamp);
