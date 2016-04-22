@@ -137,19 +137,19 @@ public class TrackerContract {
             return uri.getPathSegments().get(1);
         }
 
-        public static long getTrackIdToday(Context context) {
+        public static long getTrackIdOfDateTime(Context context, DateTime datetime) {
             long trackId = -1;
 
             Cursor cursor = null;
             try {
                 ContentResolver resolver = context.getContentResolver();
-                long startOfToday = DateTime.now().withTimeAtStartOfDay().getMillis();
-                cursor = resolver.query(Tracks.CONTENT_URI, null, Tracks.DATE + " = ?", new String[]{"" + startOfToday}, null);
+                long startOfDay = datetime.withTimeAtStartOfDay().getMillis();
+                cursor = resolver.query(Tracks.CONTENT_URI, null, Tracks.DATE + " = ?", new String[]{"" + startOfDay}, null);
                 if (cursor != null && cursor.moveToFirst()) {
                     trackId = cursor.getLong(0);
                 } else {
                     final ContentValues values = new ContentValues();
-                    values.put(Tracks.DATE, startOfToday);
+                    values.put(Tracks.DATE, startOfDay);
                     values.put(SyncColumns.UPDATED, DateTime.now().getMillis());
                     Uri uri = resolver.insert(Tracks.CONTENT_URI, values);
                     if (uri != null) {

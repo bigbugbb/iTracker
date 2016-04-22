@@ -130,7 +130,7 @@ public class AccelerationDataProcessor extends SensorDataProcessor {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                long trackId = Tracks.getTrackIdToday(mContext);
+                long trackId = Tracks.getTrackIdOfDateTime(mContext, DateTime.now());
                 if (trackId != -1) {
                     ContentValues[] values = new ContentValues[mMotions.size()];
                     for (int i = 0; i < mMotions.size(); ++i) {

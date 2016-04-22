@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -40,20 +41,38 @@ public class DataFileUtils {
     private static final int INVALID_DATA = -1;
     private static final int SUMMARY_COUNT = 24 * 60 * Config.MONITORING_DURATION_IN_SECONDS;
 
-    public static void zip(String sourceFile, String zipFile) {
+    public static void zip(String srcFile, String zipFile) {
+        byte[] buffer = new byte[16 * 1024];
         try {
+            FileInputStream in = new FileInputStream(srcFile);
             GZIPOutputStream out = new GZIPOutputStream(new FileOutputStream(zipFile));
-            FileInputStream in = new FileInputStream(sourceFile);
 
             int len;
-            byte[] buffer = new byte[4096];
             while ((len = in.read(buffer)) > 0) {
                 out.write(buffer, 0, len);
             }
+            out.finish();
 
             in.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-            out.finish();
+    public static void unzip(String zipFile, String dstFile) {
+        byte[] buffer = new byte[8 * 1024];
+        try {
+            GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFile));
+            FileOutputStream out = new FileOutputStream(dstFile);
+
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+            out.flush();
+
+            in.close();
             out.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -38,10 +38,10 @@ import com.localytics.android.itracker.data.model.Location;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
-import com.localytics.android.itracker.provider.TrackerContract.SyncState;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
+import com.localytics.android.itracker.provider.TrackerContract.SyncState;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DataFileUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -91,11 +91,15 @@ public class SyncHelper {
     private String mAuthToken;
     private String mAccountName;
 
+    private File mCacheDataDir;
+
     private AtomicBoolean mDataChanged;
 
     private CountDownLatch mTrackDataUploadLatch;
 
     private final ArrayList<ContentProviderOperation> mOps = new ArrayList<>();
+
+    private DataImportReceiver mDataImportReceiver = new DataImportReceiver();
 
     public SyncHelper(Context context) {
         mContext = context;
@@ -153,6 +157,21 @@ public class SyncHelper {
         // Get auth token and use it for each data request
         mAuthToken = AccountUtils.getAuthToken(mContext);
         mAccountName = AccountUtils.getActiveAccountName(mContext);
+
+        if (TextUtils.isEmpty(mAuthToken) || TextUtils.isEmpty(mAccountName)) {
+            LOGE(TAG, "Auth token and account name can not be empty!");
+            return false;
+        } else {
+            // Make sure data cache dir is created for the data files generated to upload or
+            // downloaded from s3. Each account has its own directory so the data can be isolated.
+            mCacheDataDir = new File(mContext.getCacheDir(), mAccountName);
+            try {
+                FileUtils.forceMkdir(mCacheDataDir);
+            } catch (IOException e) {
+                LOGE(TAG, "Failed to make cache dir: " + e.getMessage());
+                return false;
+            }
+        }
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -266,7 +285,7 @@ public class SyncHelper {
      * @return Whether or not data was changed.
      * @throws IOException if there is a problem downloading or importing the data.
      */
-    private void doTrackerDataSync(Bundle extras) throws IOException, InterruptedException {
+    private void doTrackerDataSync(final Bundle extras) throws IOException, InterruptedException {
         if (!isOnline()) {
             LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return;
@@ -283,7 +302,6 @@ public class SyncHelper {
         for (Uri uri : uris) {
             uploadData(uri);
         }
-
         if (mTrackDataUploadLatch.await(Config.TRACK_DATA_UPLOAD_TIMEOUT, TimeUnit.MILLISECONDS)) {
             try {
                 mContext.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, mOps);
@@ -310,6 +328,7 @@ public class SyncHelper {
 
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
+                // TODO: setup the params based on the input extras
                 DateTime today = DateTime.now();
                 DateTime twoWeeksAgo = today.minus(13);
                 Map<String, String> params = new HashMap<>();
@@ -359,7 +378,9 @@ public class SyncHelper {
                 while (cursor.moveToNext()) {
                     pendingBackups.add(new Backup(cursor));
                 }
-                restorePendingBackups(pendingBackups);
+                if (pendingBackups.size() > 0) {
+                    restorePendingBackups(pendingBackups);
+                }
             }
         } catch (Exception e) {
             LOGE(TAG, "Error: " + e.getMessage());
@@ -391,14 +412,14 @@ public class SyncHelper {
         }
 
         // Trigger the file downloads
-        for (Backup pendingBackup : pendingBackups) {
+        for (final Backup pendingBackup : pendingBackups) {
             final String bucket = Config.S3_BUCKET_NAME;
             final String key = pendingBackup.s3_key;
             final String category = pendingBackup.category;
-            final String filename = getLocalFilename(pendingBackup.category, pendingBackup.timestamp());
-            final File fileToRestore = new File(mContext.getCacheDir(), filename);
+            final String filename = getDestFilename(pendingBackup.category, pendingBackup.timestamp());
 
-            final TransferObserver observer = mTransferUtility.download(bucket, key, fileToRestore);
+            final File fileToDownload = new File(mCacheDataDir, filename);
+            final TransferObserver observer = mTransferUtility.download(bucket, key, fileToDownload);
             observer.setTransferListener(new TransferListener() { // Triggered in main thread
                 @Override
                 public void onStateChanged(int id, TransferState state) {
@@ -409,13 +430,13 @@ public class SyncHelper {
                         if (mContext.getContentResolver().update(uri, values, Backups.SELECTION_BY_S3_KEY, new String[]{key}) == 0) {
                             LOGE(TAG, "Failed to update backups sync state from syncing to synced: " + key);
                         } else {
-                            // Start the data import service to import downloaded data
-                            Intent intent = new Intent(mContext, DatabaseImportService.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putString(DatabaseImportService.EXTRA_IMPORT_FILE_PATH, fileToRestore.getAbsolutePath());
-                            bundle.putString(DatabaseImportService.EXTRA_IMPORT_DATA_CATEGORY, category);
-                            intent.putExtras(bundle);
-                            intent.setAction(DatabaseImportService.INTENT_ACTION_IMPORT_DATA);
+                            // Start the data import service to import data from the downloaded file.
+                            Intent intent = new Intent(DataImportReceiver.ACTION_IMPORT_DATA);
+                            Bundle extras = new Bundle();
+                            extras.putString(DataImportService.EXTRA_IMPORT_FILE_PATH, fileToDownload.getAbsolutePath());
+                            extras.putParcelable(DataImportService.EXTRA_IMPORT_BACKUP_INFO, pendingBackup);
+                            intent.putExtras(extras);
+                            mContext.sendBroadcast(intent);
                         }
                     }
                 }
@@ -455,9 +476,11 @@ public class SyncHelper {
                     final BaseData item = dataItemFromCursor(uri, cursor);
                     nextTime = item.time - item.time % DateUtils.HOUR_IN_MILLIS;
                     if (trackId != -1 && prevTime != 0 && nextTime - prevTime >= DateUtils.HOUR_IN_MILLIS) {
-                        final File file = makeUploadDataFile(getLocalFilename(uri, prevTime), data);
-                        gotFileToUpload = true;
-                        uploadDataFileForTimeRange(uri, file, prevTime, nextTime);
+                        final File file = makeUploadDataFile(getSourceFilename(uri, prevTime), data);
+                        if (file != null) {
+                            gotFileToUpload = true;
+                            uploadDataFileForTimeRange(uri, file, prevTime, nextTime);
+                        }
                         data.clear();
                     }
                     data.add(item);
@@ -494,7 +517,7 @@ public class SyncHelper {
                                                         final long beginTime,
                                                         final long endTime) {
         if (!srcFile.exists() || srcFile.length() == 0) {
-            LOGE(TAG, "Couldn't handle the original file: " + srcFile);
+            LOGE(TAG, "Couldn't handle the source file: " + srcFile);
             return null;
         }
 
@@ -563,7 +586,7 @@ public class SyncHelper {
 
     private File makeUploadDataFile(@NonNull String filename,
                                     @NonNull List<? extends BaseData> data) throws IOException {
-        File file = new File(mContext.getCacheDir(), filename);
+        File file = new File(mCacheDataDir, filename);
         CSVWriter writer = null;
         try {
             writer = new CSVWriter(new FileWriter(file, false));
@@ -582,12 +605,16 @@ public class SyncHelper {
         return file;
     }
 
-    private String getLocalFilename(@NonNull Uri uri, long time) {
-        return getLocalFilename(TrackerContract.categoryFromUri(uri), time);
+    private String getSourceFilename(@NonNull Uri uri, long time) {
+        return getSourceFilename(TrackerContract.categoryFromUri(uri), time);
     }
 
-    private String getLocalFilename(@NonNull String category, long time) {
+    private String getSourceFilename(@NonNull String category, long time) {
         return String.format("%s_%d.csv", category, time);
+    }
+
+    private String getDestFilename(@NonNull String category, long time) {
+        return String.format("%s_%d.csv.zip", category, time);
     }
 
     private TransferObserver uploadFileToS3(String bucket, String key, File fileToUpload) {

@@ -336,7 +336,7 @@ public class SensorMonitorService extends IntentService
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            final long trackId = TrackerContract.Tracks.getTrackIdToday(mContext);
+            final long trackId = TrackerContract.Tracks.getTrackIdOfDateTime(mContext, DateTime.now());
             ContentResolver resolver = mContext.getContentResolver();
 
             // Insert, insert...

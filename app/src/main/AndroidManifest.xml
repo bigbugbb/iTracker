@@ -157,7 +157,7 @@
                 android:resource="@xml/sync_adapter"/>
         </service>
         <service
-            android:name=".sync.DatabaseImportService"
+            android:name=".sync.DataImportService"
             android:enabled="true"
             android:exported="false">
         </service>
@@ -230,6 +230,12 @@
                 <action android:name="android.intent.action.PACKAGE_REMOVED"/>
 
                 <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".sync.DataImportReceiver">
+            <intent-filter>
+                <action android:name="com.localytics.android.itracker.intent.action.IMPORT_DATA"/>
             </intent-filter>
         </receiver>
 
