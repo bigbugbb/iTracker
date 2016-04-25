@@ -11,6 +11,7 @@
 
     <color name="transparent">#00000000</color>
     <color name="translucent_white">#D0FFFFFF</color>
+    <color name="translucent_black">#66000000</color>
 
     <color name="motions_background">#ECECEC</color>
     <color name="motions_graph_background">#FCFCFC</color>

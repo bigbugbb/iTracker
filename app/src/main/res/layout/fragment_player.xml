@@ -1,14 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".ui.PlayerFragment">
+             android:background="@android:color/black"
+             android:fitsSystemWindows="true"
+             android:animateLayoutChanges="true">
 
-    <ImageButton
-        android:id="@+id/play_pause"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_gravity="center"
-        android:src="@drawable/play_streaming"/>
+    <view class="com.localytics.android.itracker.ui.PlayerFragment$Content"
+          android:id="@+id/media_content"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_gravity="center"/>
+
+    <com.localytics.android.itracker.ui.widget.MediaController
+        android:id="@+id/media_controller"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"/>
 
 </FrameLayout>

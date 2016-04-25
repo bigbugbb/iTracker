@@ -9,6 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -521,6 +524,13 @@ public class MediaFragment extends TrackerFragment implements
         return keyword;
     }
 
+    private void startMediaPlayback(Uri uri, Video video) {
+        Intent intent = new Intent(getActivity(), PlayerActivity.class);
+        intent.setData(uri);
+        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, video.getSnippet().getTitle());
+        startActivity(intent);
+    }
+
     private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
         private Context mContext;
@@ -584,6 +594,28 @@ public class MediaFragment extends TrackerFragment implements
                         .into(thumbnail);
 
                 itemView.setOnClickListener(new View.OnClickListener() {
+
+                    @Nullable
+                    public Uri getWorstAvaiableQualityVideoUri(YouTubeExtractor.Result result) {
+                        Uri uri = result.getSd240VideoUri();
+                        if (uri != null) {
+                            return uri;
+                        } else {
+                            uri = result.getSd360VideoUri();
+                            if (uri != null) {
+                                return uri;
+                            } else {
+                                uri = result.getHd720VideoUri();
+                                if (uri != null) {
+                                    return uri;
+                                } else {
+                                    uri = result.getHd1080VideoUri();
+                                    return uri != null ? uri : null;
+                                }
+                            }
+                        }
+                    }
+
                     @Override
                     public void onClick(View v) {
                         // TODO: play the media in another activity or the floating view
@@ -591,8 +623,28 @@ public class MediaFragment extends TrackerFragment implements
                         extractor.extract(new YouTubeExtractor.Callback() {
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
-                                LOGD(TAG, result.getHd720VideoUri().toString());
-                                return;
+                                ConnectivityManager manager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                                NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+                                if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+                                    final int type = networkInfo.getType();
+                                    if (type == ConnectivityManager.TYPE_WIFI) {
+                                        Uri uri = result.getBestAvaiableQualityVideoUri();
+                                        if (uri != null) {
+                                            startMediaPlayback(uri, video);
+                                        } else {
+                                            Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
+                                        }
+                                    } else {
+                                        Uri uri = getWorstAvaiableQualityVideoUri(result);
+                                        if (uri != null) {
+                                            startMediaPlayback(uri, video);
+                                        } else {
+                                            Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(getActivity(), R.string.network_disconnected, Toast.LENGTH_SHORT);
+                                }
                             }
 
                             @Override

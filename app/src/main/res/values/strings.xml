@@ -157,6 +157,10 @@
 
     <string name="back_pressed_prompt">Press again to quit</string>
 
+    <!-- Media player -->
+    <string name="network_disconnected">Can\'t find any network connection.</string>
+    <string name="media_uri_not_found">Can\'t find the uri for this media.</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_footprint">Footprint</string>

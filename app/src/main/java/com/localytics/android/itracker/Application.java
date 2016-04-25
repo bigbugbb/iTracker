@@ -19,7 +19,7 @@ public class Application extends android.app.Application {
         bootstrapBackgroundMonitor();
 
         if (BuildConfig.DEBUG) {
-            Config.enableStrictMode();
+//            Config.enableStrictMode();
         }
     }
 
