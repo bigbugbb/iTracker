@@ -16,13 +16,13 @@
         android:layout_centerHorizontal="true"/>
 
     <ProgressBar
-        style="@style/Widget.AppCompat.ProgressBar"
         android:id="@+id/progress_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="24dp"
-        android:indeterminate="true"
+        android:indeterminate="false"
+        android:indeterminateDrawable="@drawable/app_loading_progress"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"/>
 

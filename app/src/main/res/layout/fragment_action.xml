@@ -22,6 +22,8 @@
         android:id="@+id/activities_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:foreground="@drawable/timelinesview_bottom_shadow"
+        android:foregroundGravity="bottom"
         android:background="@color/timelines_background"
         android:elevation="2dp"/>
 

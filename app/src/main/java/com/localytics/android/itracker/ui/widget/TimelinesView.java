@@ -30,6 +30,7 @@ public class TimelinesView extends RelativeLayout {
     private View     mOverScrollView;
     private TextView mEmptyView;
     private ListView mListView;
+    private View     mShadowOverlay;
 
     private int mOverScrollSize;
     private Drawable mOverScrollBackground;
@@ -88,10 +89,18 @@ public class TimelinesView extends RelativeLayout {
         mListView.setDivider(null);
         mListView.setEmptyView(mEmptyView);
 
+        mShadowOverlay = new View(getContext());
+        mShadowOverlay.setId(generateViewId());
+
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, mOverScrollSize);
         params.addRule(ALIGN_PARENT_TOP);
         mOverScrollView.setLayoutParams(params);
         mOverScrollView.setBackground(mOverScrollBackground);
+
+        params = new LayoutParams(LayoutParams.MATCH_PARENT, dpToPx(getContext(), 16));
+        params.addRule(ALIGN_PARENT_BOTTOM);
+        mShadowOverlay.setLayoutParams(params);
+        mShadowOverlay.setBackground(getResources().getDrawable(R.drawable.timelinesview_bottom_shadow));
 
         params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         params.addRule(BELOW, mOverScrollView.getId());
@@ -102,6 +111,7 @@ public class TimelinesView extends RelativeLayout {
         addView(mOverScrollView);
         addView(mListView);
         addView(mEmptyView);
+        addView(mShadowOverlay);
     }
 
     public static class TimelineItemAdapter extends ArrayAdapter<TimelineItem.Timeline> {
