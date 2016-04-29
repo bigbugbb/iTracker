@@ -194,20 +194,6 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         super.onPostCreate(savedInstanceState);
 
         int position = mViewPager.getCurrentItem();
-        ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
-
-        // Update the data in the current fragment.
-        // Fragment attaches the activity after the activity is created, it means
-        // when we call initLoader or restartLoader in fragment's onCreate, the fragment
-        // already has the valid begin date and end date.
-        for (int i = 0; i < adapter.getCount(); ++i) {
-            Fragment fragment = adapter.getItem(i);
-            if (fragment instanceof TrackerFragment) {
-                TrackerFragment trackerFragment = (TrackerFragment) fragment;
-                trackerFragment.trackTimeRange(mBeginDate.getMillis(), mEndDate.getMillis());
-            }
-        }
-
         mTabLayout.getTabAt(position).select(); // Switch to the current fragment
     }
 
@@ -331,6 +317,18 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
             return;
         }
         super.onBackPressed();
+    }
+
+    public DateTime getBeginDate() {
+        return mBeginDate;
+    }
+
+    public DateTime getEndDate() {
+        return mEndDate;
+    }
+
+    public int getSelectedTab() {
+        return mViewPager.getCurrentItem();
     }
 
     /**

@@ -104,7 +104,7 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mHandler = new Handler();
+        mPosition = 1;
     }
 
     @Override
@@ -187,17 +187,13 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        if (mSelected) {
-            reloadPhotosWithRequiredPermission();
-        }
+        reloadPhotosWithRequiredPermission();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mSelected) {
-            mPhotosObserver.cancelPendingCallback();
-        }
+        mPhotosObserver.cancelPendingCallback();
     }
 
     @Override
@@ -326,11 +322,6 @@ public class PhotoFragment extends TrackerFragment implements
                 reloadPhotosWithRequiredPermission();
             }
         }, null, Activity.RESULT_OK, null, null);
-    }
-
-    @Override
-    public void trackTimeRange(long beginTime, long endTime) {
-        super.trackTimeRange(beginTime, endTime);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.localytics.android.itracker.ui;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -32,6 +33,8 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
 
     protected boolean mSelected;
 
+    protected int mPosition;
+
     protected Handler mHandler;
 
     public TrackerFragment() {
@@ -42,6 +45,13 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        updateSelected();
+        updateTimeRange();
     }
 
     @Override
@@ -56,11 +66,6 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
 
     public void onFragmentUnselected() {
         mSelected = false;
-    }
-
-    public void trackTimeRange(long beginTime, long endTime) {
-        mBeginTime = beginTime;
-        mEndTime = endTime;
     }
 
     public static void reloadTracks(LoaderManager loaderManager, long beginTime, long endTime, LoaderCallbacks callbacks) {
@@ -99,6 +104,23 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
         args.putLong(BEGIN_DATE, beginTime);
         args.putLong(END_DATE, endTime);
         loaderManager.restartLoader(PhotosQuery.TOKEN_NORMAL, args, callbacks);
+    }
+
+    protected void updateSelected() {
+        Activity activity = getActivity();
+        if (activity instanceof TrackerActivity) {
+            TrackerActivity trackerActivity = (TrackerActivity) activity;
+            mSelected = trackerActivity.getSelectedTab() == mPosition;
+        }
+    }
+
+    protected void updateTimeRange() {
+        Activity activity = getActivity();
+        if (activity instanceof TrackerActivity) {
+            TrackerActivity trackerActivity = (TrackerActivity) activity;
+            mBeginTime = trackerActivity.getBeginDate().getMillis();
+            mEndTime = trackerActivity.getEndDate().getMillis();
+        }
     }
 
     @Override

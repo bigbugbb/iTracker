@@ -110,6 +110,7 @@ public class ActionFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPosition = 0;
     }
 
     @Override
@@ -186,11 +187,6 @@ public class ActionFragment extends TrackerFragment implements
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-    @Override
-    public void trackTimeRange(long beginTime, long endTime) {
-        super.trackTimeRange(beginTime, endTime);
     }
 
     @Override

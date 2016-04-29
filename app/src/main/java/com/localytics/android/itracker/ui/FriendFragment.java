@@ -24,6 +24,7 @@ public class FriendFragment extends TrackerFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPosition = 3;
     }
 
     @Override

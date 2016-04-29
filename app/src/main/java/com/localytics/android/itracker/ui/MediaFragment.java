@@ -71,7 +71,6 @@ import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 public class MediaFragment extends TrackerFragment implements
-        OnTimeRangeChangedListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = makeLogTag(MediaFragment.class);
@@ -123,6 +122,8 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mPosition = 2;
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addConnectionCallbacks(this)
@@ -185,17 +186,13 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        if (mSelected) {
-            mGoogleApiClient.connect();
-        }
+        mGoogleApiClient.connect();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mSelected) {
-            mGoogleApiClient.disconnect();
-        }
+        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -494,21 +491,6 @@ public class MediaFragment extends TrackerFragment implements
 //        }.execute();
 //
 //        Toast.makeText(getActivity(), R.string.video_submitted_to_youtube, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void trackTimeRange(long beginTime, long endTime) {
-        super.trackTimeRange(beginTime, endTime);
-    }
-
-    @Override
-    public void onBeginTimeChanged(long begin) {
-        mBeginTime = begin;
-    }
-
-    @Override
-    public void onEndTimeChanged(long end) {
-        mEndTime = end;
     }
 
     public String generateKeywordFromPlaylistId(String playlistId) {
