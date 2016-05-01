@@ -30,8 +30,7 @@ public class Backup implements Parcelable {
     }
 
     public long timestamp() {
-        DateTime datetime = sFormatter.parseDateTime(date);
-        datetime.plusHours(hour);
+        DateTime datetime = sFormatter.parseDateTime(date).plusHours(hour);
         return datetime.getMillis();
     }
 

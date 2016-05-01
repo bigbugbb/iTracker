@@ -418,7 +418,11 @@ public class SyncHelper {
             final String category = pendingBackup.category;
             final String filename = getDestFilename(pendingBackup.category, pendingBackup.timestamp());
 
+            // Make sure the file to download doesn't exist otherwise s3 transfer will try to download
+            // from the last range but it's invalid for our use case and a 416 http error will occur.
             final File fileToDownload = new File(mCacheDataDir, filename);
+            LOGD(TAG, String.format("Download " + fileToDownload + " for %s-%02d %s", pendingBackup.date, pendingBackup.hour, pendingBackup.category));
+
             final TransferObserver observer = mTransferUtility.download(bucket, key, fileToDownload);
             observer.setTransferListener(new TransferListener() { // Triggered in main thread
                 @Override
@@ -547,7 +551,7 @@ public class SyncHelper {
 
                     // Clear dirty column for data in this hour if the file has been uploaded successfully
                     mOps.add(ContentProviderOperation.newUpdate(TrackerContract.addCallerIsSyncAdapterParameter(uri))
-                            .withValue(TrackerContract.SyncColumns.DIRTY, null)
+                            .withValue(TrackerContract.SyncColumns.DIRTY, 0)
                             .withSelection(TrackerContract.SELECTION_BY_INTERVAL, selectionArgs)
                             .build());
 

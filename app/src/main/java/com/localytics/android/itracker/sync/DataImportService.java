@@ -172,6 +172,7 @@ public class DataImportService extends Service {
                 cv.put(TrackerContract.Activities.TYPE_ID, Integer.parseInt(line[2]));
                 cv.put(TrackerContract.Activities.CONFIDENCE, Integer.parseInt(line[3]));
                 cv.put(TrackerContract.Activities.TRACK_ID, trackId);
+                cv.put(TrackerContract.SyncColumns.DIRTY, 0);
                 cv.put(TrackerContract.SyncColumns.UPDATED, now);
                 values[i] = cv;
             }
@@ -220,6 +221,7 @@ public class DataImportService extends Service {
                 cv.put(TrackerContract.Locations.ACCURACY, Float.parseFloat(line[4]));
                 cv.put(TrackerContract.Locations.SPEED, Float.parseFloat(line[5]));
                 cv.put(TrackerContract.Locations.TRACK_ID, trackId);
+                cv.put(TrackerContract.SyncColumns.DIRTY, 0);
                 cv.put(TrackerContract.SyncColumns.UPDATED, now);
                 values[i] = cv;
             }
@@ -265,6 +267,7 @@ public class DataImportService extends Service {
                 cv.put(TrackerContract.Motions.DATA, Integer.parseInt(line[1]));
                 cv.put(TrackerContract.Motions.SAMPLING, Integer.parseInt(line[2]));
                 cv.put(TrackerContract.Motions.TRACK_ID, trackId);
+                cv.put(TrackerContract.SyncColumns.DIRTY, 0);
                 cv.put(TrackerContract.SyncColumns.UPDATED, now);
                 values[i] = cv;
             }

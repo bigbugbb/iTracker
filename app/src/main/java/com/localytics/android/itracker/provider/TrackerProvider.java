@@ -152,10 +152,16 @@ public class TrackerProvider extends ContentProvider {
                     " selection=" + selection + " args=" + Arrays.toString(selectionArgs) + ")");
         }
 
+        SelectionBuilder builder = null;
         switch (match) {
+            case BACKUPS: {
+                builder = buildExpandedSelection(uri, match);
+            }
             default: {
                 // Most cases are handled with simple SelectionBuilder
-                final SelectionBuilder builder = buildExpandedSelection(uri, match);
+                if (builder == null) {
+                    builder = buildSimpleSelection(uri);
+                }
 
                 boolean distinct = !TextUtils.isEmpty(uri.getQueryParameter(TrackerContract.QUERY_PARAMETER_DISTINCT));
 
@@ -433,28 +439,9 @@ public class TrackerProvider extends ContentProvider {
     private SelectionBuilder buildExpandedSelection(Uri uri, int match) {
         final SelectionBuilder builder = new SelectionBuilder();
         switch (match) {
-            case TRACKS: {
-                return builder.table(Tables.TRACKS);
-            }
-            case TRACKS_ID: {
-                final String trackId = TrackerContract.Tracks.getTrackId(uri);
-                return builder.table(Tables.TRACKS).where(Tracks._ID + "=?", trackId);
-            }
             case BACKUPS: {
-                return builder.table(Tables.BACKUPS);
-            }
-            case BACKUPS_ID: {
-                final String backupId = Backups.getBackupId(uri);
-                return builder.table(Tables.BACKUPS).where(Backups._ID + "=?", backupId);
-            }
-            case MOTIONS: {
-                return builder.table(Tables.MOTIONS);
-            }
-            case LOCATIONS: {
-                return builder.table(Tables.LOCATIONS);
-            }
-            case ACTIVITIES: {
-                return builder.table(Tables.ACTIVITIES);
+                return builder.table(Tables.BACKUPS)
+                        .groupBy(Backups.DATE + "," + Backups.HOUR + ", " + Backups.CATEGORY);
             }
             default: {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
