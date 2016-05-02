@@ -13,7 +13,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Motion;
@@ -38,6 +40,7 @@ public class ActionFragment extends TrackerFragment implements
     private RecyclerView  mTracksView;
     private TimelinesView mTimelinesView;
     private MotionsView   mMotionsView;
+    private ProgressBar   mLoadingView;
 
     private TrackItemAdapter mTrackItemAdapter;
 
@@ -120,6 +123,7 @@ public class ActionFragment extends TrackerFragment implements
         mTracksView    = (RecyclerView) layout.findViewById(R.id.tracks_view);
         mTimelinesView = (TimelinesView) layout.findViewById(R.id.activities_view);
         mMotionsView   = (MotionsView) layout.findViewById(R.id.motions_view);
+        mLoadingView   = (ProgressBar) layout.findViewById(R.id.motions_loading_progress);
 
         layout.setOnFootprintFabClickedListener(new ActionFrameLayout.OnFootprintFabClickedListener() {
             @Override
@@ -191,6 +195,7 @@ public class ActionFragment extends TrackerFragment implements
 
     @Override
     public void onTrackItemSelected(View view, int position) {
+        showLoadingProgress();
         mSelectedTrack = mTrackItemAdapter.getItem(position);
         reloadMotions(getLoaderManager(), mSelectedTrack, ActionFragment.this);
         reloadActivities(getLoaderManager(), mSelectedTrack, ActionFragment.this);
@@ -208,7 +213,13 @@ public class ActionFragment extends TrackerFragment implements
                 break;
             }
             case MotionsQuery.TOKEN_NORMAL: {
-                mMotionsView.updateMotions(Motion.motionsFromCursor(data));
+                Motion[] motions = Motion.motionsFromCursor(data);
+                mMotionsView.updateMotions(motions, new MotionsView.OnMotionsUpdatedListener() {
+                    @Override
+                    public void onMotionsUpdated() {
+                        hideLoadingProgress();
+                    }
+                });
                 break;
             }
             case ActivitiesQuery.TOKEN_NORMAL: {
@@ -246,5 +257,19 @@ public class ActionFragment extends TrackerFragment implements
     public void onEndTimeChanged(long end) {
         mEndTime = end;
         reloadTracks(getLoaderManager(), mBeginTime, mEndTime, ActionFragment.this);
+    }
+
+    private void showLoadingProgress() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mLoadingView.setVisibility(View.VISIBLE);
+            }
+        }, 50);
+    }
+
+    private void hideLoadingProgress() {
+        mHandler.removeCallbacksAndMessages(null);
+        mLoadingView.setVisibility(View.INVISIBLE);
     }
 }

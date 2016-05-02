@@ -152,11 +152,8 @@ public class TrackerProvider extends ContentProvider {
                     " selection=" + selection + " args=" + Arrays.toString(selectionArgs) + ")");
         }
 
-        SelectionBuilder builder = null;
+        SelectionBuilder builder = buildExpandedSelection(uri, match);
         switch (match) {
-            case BACKUPS: {
-                builder = buildExpandedSelection(uri, match);
-            }
             default: {
                 // Most cases are handled with simple SelectionBuilder
                 if (builder == null) {
@@ -443,9 +440,7 @@ public class TrackerProvider extends ContentProvider {
                 return builder.table(Tables.BACKUPS)
                         .groupBy(Backups.DATE + "," + Backups.HOUR + ", " + Backups.CATEGORY);
             }
-            default: {
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
-            }
         }
+        return null;
     }
 }

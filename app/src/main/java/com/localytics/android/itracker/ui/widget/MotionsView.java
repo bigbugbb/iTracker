@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.EdgeEffectCompat;
@@ -86,6 +87,10 @@ public class MotionsView extends View {
 
     private OnViewportChangedListener mListener;
 
+    public interface OnMotionsUpdatedListener {
+        void onMotionsUpdated();
+    }
+
     public MotionsView(Context context) {
         this(context, null);
     }
@@ -157,11 +162,26 @@ public class MotionsView extends View {
         mTextHeight = rect.height();
     }
 
-    public void updateMotions(final Motion[] motions) {
-        Motion.populateData(motions, mData, mBaseLineHeight);
-        if (ViewCompat.isAttachedToWindow(this)) {
-            invalidate();
-        }
+    public void updateMotions(final Motion[] motions, final OnMotionsUpdatedListener listener) {
+        new AsyncTask<Motion, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Motion... motions) {
+                Motion.populateData(motions, mData, mBaseLineHeight);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if (ViewCompat.isAttachedToWindow(MotionsView.this)) {
+                    invalidate();
+                    if (listener != null) {
+                        listener.onMotionsUpdated();
+                    }
+                }
+            }
+
+        }.execute(motions);
     }
 
     public void moveViewport(DateTime startTime, DateTime stopTime) {

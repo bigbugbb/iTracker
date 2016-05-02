@@ -6,6 +6,7 @@ import android.accounts.AccountManagerFuture;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -34,28 +35,21 @@ public class SplashActivity extends AppCompatActivity {
         PrefUtils.init(getApplicationContext());
 
         if (!AccountUtils.hasToken(this)) {
-            AccountUtils.startAuthenticationFlow(
-                    this, // This must be the activity context to start the authenticate activity.
-                    AccountUtils.ACCOUNT_TYPE,
-                    AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
-                    new SimpleAccountManagerCallback(this)
-            );
+            new Handler(getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    AccountUtils.startAuthenticationFlow(
+                            SplashActivity.this, // This must be the activity context to start the authenticate activity.
+                            AccountUtils.ACCOUNT_TYPE,
+                            AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
+                            new SimpleAccountManagerCallback(SplashActivity.this)
+                    );
+                }
+            }, 2000);
         } else {
             Intent intent = new Intent(this, TrackerActivity.class);
             startActivity(intent);
             finish();
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        try {
-            if (!AccountUtils.hasToken(this)) {
-                Thread.sleep(1000); // yeah, I know, this is stupid...
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

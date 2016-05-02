@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
@@ -46,6 +47,7 @@ public class ActionFrameLayout extends FrameLayout {
     private FrameLayout   mSTContainer;
     private TextView      mShowTimelines;
     private TextView      mDatePopupView;
+    private ProgressBar   mLoadingProgress;
 
     private FloatingActionButton mTimelinesFab;
     private FloatingActionButton mFootprintFab;
@@ -130,6 +132,7 @@ public class ActionFrameLayout extends FrameLayout {
         mDatePopupView = (TextView) findViewById(R.id.date_popup_view);
         mTimelinesFab  = (FloatingActionButton) findViewById(R.id.fab_timeline);
         mFootprintFab  = (FloatingActionButton) findViewById(R.id.fab_footprint);
+        mLoadingProgress = (ProgressBar) findViewById(R.id.motions_loading_progress);
 
         TrackItemAdapter adapter = (TrackItemAdapter) mTracksView.getAdapter();
         adapter.addOnItemSelectedListener(mOnTrackItemSelectedListener);
@@ -366,6 +369,13 @@ public class ActionFrameLayout extends FrameLayout {
                 0,
                 parentWidth,
                 mMotionsView.getMeasuredHeight());
+
+        // Layout motions view loading progress
+        mLoadingProgress.layout(
+                (parentWidth - mLoadingProgress.getWidth()) / 2,
+                (mMotionsView.getMeasuredHeight() - mLoadingProgress.getHeight()) / 2,
+                (parentWidth + mLoadingProgress.getWidth()) / 2,
+                (mMotionsView.getMeasuredHeight() + mLoadingProgress.getHeight()) / 2);
 
         // Layout timeline fab
         int fabHeightOffset = Math.round((mSTContainer.getHeight() - mTimelinesFab.getHeight()) * 0.5f);

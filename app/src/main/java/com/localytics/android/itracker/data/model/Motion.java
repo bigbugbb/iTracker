@@ -13,18 +13,18 @@ import java.util.Arrays;
 
 public final class Motion extends BaseData implements Parcelable {
 
-    public int    data;
-    public int    sampling;
-    public String device_id;
+    public int data;
+    public int sampling;
 
     public Motion() {
     }
 
     public Motion(Cursor cursor) {
-        time = cursor.getLong(cursor.getColumnIndex(TrackerContract.Motions.TIME));
-        data = cursor.getInt(cursor.getColumnIndex(TrackerContract.Motions.DATA));
-        sampling = cursor.getInt(cursor.getColumnIndex(TrackerContract.Motions.SAMPLING));
-        track_id = cursor.getLong(cursor.getColumnIndex(TrackerContract.Motions.TRACK_ID));
+        // Optimize by using the index number directly
+        time = cursor.getLong(3);
+        data = cursor.getInt(4);
+        sampling = cursor.getInt(5);
+        track_id = cursor.getLong(6);
     }
 
     // The cursor window should be larger than the whole block of data.
@@ -83,14 +83,12 @@ public final class Motion extends BaseData implements Parcelable {
         dest.writeLong(time);
         dest.writeInt(data);
         dest.writeInt(sampling);
-        dest.writeString(device_id);
     }
 
     private Motion(Parcel in) {
         time = in.readLong();
         data = in.readInt();
         sampling = in.readInt();
-        device_id = in.readString();
     }
 
     public static final Creator<Motion> CREATOR = new Creator<Motion>() {

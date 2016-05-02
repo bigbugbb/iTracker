@@ -9,6 +9,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.provider.MediaStore;
 
 import com.localytics.android.itracker.data.model.Track;
@@ -36,6 +37,7 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
     protected int mPosition;
 
     protected Handler mHandler;
+    protected HandlerThread mBackgroundThread;
 
     public TrackerFragment() {
         // Required empty public constructor
