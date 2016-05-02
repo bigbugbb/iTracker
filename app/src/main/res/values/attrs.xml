@@ -74,4 +74,13 @@
         <attr name="metaButtonBarButtonStyle" format="reference"/>
     </declare-styleable>
 
+    <attr name="scaleType" format="enum">
+        <enum name="scaleToFit" value="0" />
+        <enum name="crop" value="1" />
+    </attr>
+
+    <declare-styleable name="TrackerVideoView">
+        <attr name="scaleType" />
+    </declare-styleable>
+
 </resources>

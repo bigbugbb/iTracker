@@ -21,6 +21,7 @@
     <color name="tracks_background">#ECECEC</color>
     <color name="photos_background">#ECECEC</color>
     <color name="selected_photo_background">#10000000</color>
+    <color name="media_player_background">#aa000000</color>
 
     <color name="data_syncing_begin">#45000000</color>
     <color name="data_syncing_end">#10000000</color>

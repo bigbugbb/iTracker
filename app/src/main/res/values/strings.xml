@@ -160,6 +160,8 @@
     <!-- Media player -->
     <string name="network_disconnected">Can\'t find any network connection.</string>
     <string name="media_uri_not_found">Can\'t find the uri for this media.</string>
+    <string name="play_error_message">Impossible to play the video.</string>
+    <string name="play_progressive_error_message">Impossible to play the progressive video.</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
