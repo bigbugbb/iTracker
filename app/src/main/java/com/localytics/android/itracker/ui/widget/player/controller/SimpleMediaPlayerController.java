@@ -36,7 +36,7 @@ import java.util.Locale;
  * It's actually a view currently, as is the android MediaController.
  * (which is a bit odd and should be subject to change.)
  */
-public final class SimpleTrackerPlayerController extends FrameLayout implements PlayerController, VideoStateListener, PlayerTouchRoot.OnTouchReceiver {
+public final class SimpleMediaPlayerController extends FrameLayout implements PlayerController, VideoStateListener, PlayerTouchRoot.OnTouchReceiver {
 
     public static final String TAG = "PlayerController";
     public static final int DEFAULT_VIDEO_START = 0;
@@ -67,15 +67,15 @@ public final class SimpleTrackerPlayerController extends FrameLayout implements 
     private ProgressBar mLoadingView;
     private int mLastPlayedSeconds = -1;
 
-    public SimpleTrackerPlayerController(final Context context) {
+    public SimpleMediaPlayerController(final Context context) {
         this(context, null);
     }
 
-    public SimpleTrackerPlayerController(final Context context, final AttributeSet attrs) {
+    public SimpleMediaPlayerController(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public SimpleTrackerPlayerController(final Context context, final AttributeSet attrs, final int defStyle) {
+    public SimpleMediaPlayerController(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
     }
 
@@ -347,13 +347,13 @@ public final class SimpleTrackerPlayerController extends FrameLayout implements 
     @Override
     public void onInitializeAccessibilityEvent(final AccessibilityEvent event) {
         super.onInitializeAccessibilityEvent(event);
-        event.setClassName(SimpleTrackerPlayerController.class.getName());
+        event.setClassName(SimpleMediaPlayerController.class.getName());
     }
 
     @Override
     public void onInitializeAccessibilityNodeInfo(final AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        info.setClassName(SimpleTrackerPlayerController.class.getName());
+        info.setClassName(SimpleMediaPlayerController.class.getName());
     }
 
     @Override

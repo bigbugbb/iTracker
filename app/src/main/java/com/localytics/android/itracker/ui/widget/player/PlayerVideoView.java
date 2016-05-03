@@ -65,7 +65,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     private static final int MILLIS_IN_SEC = 1000;
 
     // collaborators / delegates / composites .. discuss
-    private final VideoSizeCalculator mVideoSizeCalculator;
+    private VideoSizeCalculator mVideoSizeCalculator;
     // mCurrentState is a VideoView object's current state.
     // mTargetState is the state that a method caller intends to reach.
     // For instance, regardless the VideoView object's current state,
@@ -103,12 +103,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
 
     public PlayerVideoView(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
-        applyCustomAttributes(context, attrs);
-        mVideoSizeCalculator = new VideoSizeCalculator();
-        initVideoView();
-    }
 
-    private void applyCustomAttributes(Context context, AttributeSet attrs) {
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.TrackerVideoView);
         if (typedArray == null) {
             return;
@@ -116,15 +111,15 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         int[] attrsValues = {R.attr.scaleType};
         TypedArray scaleTypedArray = context.obtainStyledAttributes(attrs, attrsValues);
         if (scaleTypedArray != null) {
-            try {
-                int scaleTypeId = typedArray.getInt(0, 0);
-                mScaleType = ScaleType.values()[scaleTypeId];
-            } finally {
-                typedArray.recycle();
-            }
+            int scaleTypeId = typedArray.getInt(0, 0);
+            mScaleType = ScaleType.values()[scaleTypeId];
         } else {
             mScaleType = ScaleType.SCALE_TO_FIT;
         }
+        typedArray.recycle();
+
+        mVideoSizeCalculator = new VideoSizeCalculator();
+        initVideoView();
     }
 
     @Override
@@ -159,7 +154,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         requestFocus();
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
-        setOnInfoListener(onInfoToPlayStateListener);
+        setOnInfoListener(mOnInfoToPlayStateListener);
     }
 
     private void disableFileDescriptor() {
@@ -229,10 +224,14 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     }
 
     private void openVideo() {
-        if (notReadyForPlaybackJustYetWillTryAgainLater()) {
+        if (mSurfaceTexture == null) {
             return;
         }
-        tellTheMusicPlaybackServiceToPause();
+
+        // these constants need to be published somewhere in the framework.
+        Intent i = new Intent("com.android.music.musicservicecommand");
+        i.putExtra("command", "pause");
+        getContext().sendBroadcast(i);
 
         // we shouldn't clear the target state, because somebody might have called start() previously
         release(false);
@@ -263,8 +262,8 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
             // we don't set the target state here either, but preserve the target state that was there before.
             mCurrentState = STATE_PREPARING;
             attachMediaController();
-        } catch (final IOException | IllegalArgumentException ex) {
-            notifyUnableToOpenContent(ex);
+        } catch (final IOException | IllegalArgumentException e) {
+            notifyUnableToOpenContent(e);
         }
     }
 
@@ -280,19 +279,8 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         }
     }
 
-    private boolean notReadyForPlaybackJustYetWillTryAgainLater() {
-        return mSurfaceTexture == null;
-    }
-
-    private void tellTheMusicPlaybackServiceToPause() {
-        // these constants need to be published somewhere in the framework.
-        Intent i = new Intent("com.android.music.musicservicecommand");
-        i.putExtra("command", "pause");
-        getContext().sendBroadcast(i);
-    }
-
-    private void notifyUnableToOpenContent(final Exception ex) {
-        Log.w("Unable to open content:" + mUri, ex);
+    private void notifyUnableToOpenContent(final Exception e) {
+        Log.w("Unable to open content:" + mUri, e);
         mCurrentState = STATE_ERROR;
         mTargetState = STATE_ERROR;
         mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -317,7 +305,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         @Override
         public void onVideoSizeChanged(final MediaPlayer mp, final int width, final int height) {
             mVideoSizeCalculator.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-            if (mVideoSizeCalculator.hasASizeYet()) {
+            if (mVideoSizeCalculator.hasValidSize()) {
                 requestLayout();
             }
         }
@@ -341,7 +329,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
             mVideoSizeCalculator.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
 
             int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
-            if (seekToPosition != 0) {
+            if (seekToPosition > 0) {
                 seekTo(seekToPosition);
             }
 
@@ -460,9 +448,9 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
                         android.R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(final DialogInterface dialog, final int whichButton) {
-                                    /* If we get here, there is no onError listener, so
-                                     * at least inform them that the video is over.
-                                     */
+                                /* If we get here, there is no onError listener, so
+                                 * at least inform them that the video is over.
+                                 */
                                 if (completionListener != null) {
                                     completionListener.onCompletion(mediaPlayer);
                                 }
@@ -477,19 +465,19 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         int messageId = R.string.play_error_message;
 
         if (frameworkError == MediaPlayer.MEDIA_ERROR_IO) {
-            Log.e(TAG, "TextureVideoView error. File or network related operation errors.");
+            Log.e(TAG, "PlayerVideoView error. File or network related operation errors.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_MALFORMED) {
-            Log.e(TAG, "TextureVideoView error. Bitstream is not conforming to the related coding standard or file spec.");
+            Log.e(TAG, "PlayerVideoView error. Bitstream is not conforming to the related coding standard or file spec.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
-            Log.e(TAG, "TextureVideoView error. Media server died. In this case, the application must release the MediaPlayer object and instantiate a new one.");
+            Log.e(TAG, "PlayerVideoView error. Media server died. In this case, the application must release the MediaPlayer object and instantiate a new one.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_TIMED_OUT) {
-            Log.e(TAG, "TextureVideoView error. Some operation takes too long to complete, usually more than 3-5 seconds.");
+            Log.e(TAG, "PlayerVideoView error. Some operation takes too long to complete, usually more than 3-5 seconds.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_UNKNOWN) {
-            Log.e(TAG, "TextureVideoView error. Unspecified media player error.");
+            Log.e(TAG, "PlayerVideoView error. Unspecified media player error.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_UNSUPPORTED) {
-            Log.e(TAG, "TextureVideoView error. Bitstream is conforming to the related coding standard or file spec, but the media framework does not support the feature.");
+            Log.e(TAG, "PlayerVideoView error. Bitstream is conforming to the related coding standard or file spec, but the media framework does not support the feature.");
         } else if (frameworkError == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
-            Log.e(TAG, "TextureVideoView error. The video is streamed and its container is not valid for progressive playback i.e the video's index (e.g moov atom) is not at the start of the file.");
+            Log.e(TAG, "PlayerVideoView error. The video is streamed and its container is not valid for progressive playback i.e the video's index (e.g moov atom) is not at the start of the file.");
             messageId = R.string.play_progressive_error_message;
         }
         return messageId;
@@ -554,7 +542,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         @Override
         public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
             boolean isValidState = (mTargetState == STATE_PLAYING);
-            boolean hasValidSize = mVideoSizeCalculator.currentSizeIs(width, height);
+            boolean hasValidSize = mVideoSizeCalculator.isEqualToCurrentSize(width, height);
             if (mMediaPlayer != null && isValidState && hasValidSize) {
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
@@ -758,11 +746,11 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         return mAudioSession;
     }
 
-    private final OnInfoListener onInfoToPlayStateListener = new OnInfoListener() {
+    private final OnInfoListener mOnInfoToPlayStateListener = new OnInfoListener() {
 
         @Override
         public boolean onInfo(final MediaPlayer mp, final int what, final int extra) {
-            if (noPlayStateListener()) {
+            if (!hasPlayStateListener()) {
                 return false;
             }
 
@@ -781,16 +769,12 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         }
     };
 
-    private boolean noPlayStateListener() {
-        return !hasPlayStateListener();
-    }
-
     private boolean hasPlayStateListener() {
         return mPlayStateListener != null;
     }
 
-    public void setOnPlayStateListener(final VideoStateListener onPlayStateListener) {
-        this.mPlayStateListener = onPlayStateListener;
+    public void setOnPlayStateListener(final VideoStateListener playStateListener) {
+        this.mPlayStateListener = playStateListener;
     }
 
 }

@@ -1,21 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:background="@null"
-             android:fitsSystemWindows="true"
-             android:animateLayoutChanges="true">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <view class="com.localytics.android.itracker.ui.PlayerFragment$Content"
-          android:id="@+id/media_content"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:layout_gravity="center"/>
+    <com.localytics.android.itracker.ui.widget.player.PlayerVideoView
+        android:id="@+id/player_video_texture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        android:fitsSystemWindows="true" />
 
-    <com.localytics.android.itracker.ui.widget.MediaController
-        android:id="@+id/media_controller"
+    <com.localytics.android.itracker.ui.widget.player.controller.MediaPlayerController
+        android:id="@+id/player_video_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"/>
+        android:layout_alignParentBottom="true" />
 
-</FrameLayout>
+    <com.localytics.android.itracker.ui.widget.player.PlayerLoadingView
+        android:id="@+id/player_video_loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</RelativeLayout>

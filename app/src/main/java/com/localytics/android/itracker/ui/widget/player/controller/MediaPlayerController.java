@@ -35,7 +35,7 @@ import java.util.Locale;
  * It's actually a view currently, as is the android MediaController.
  * (which is a bit odd and should be subject to change.)
  */
-public final class TrackerPlayerController extends RelativeLayout implements PlayerController, PlayerGestureEventListener, VolumeSeekBar.Listener, BrightnessSeekBar.Listener {
+public final class MediaPlayerController extends RelativeLayout implements PlayerController, PlayerGestureEventListener, VolumeSeekBar.Listener, BrightnessSeekBar.Listener {
 
     /**
      * Called to notify that the control have been made visible or hidden.
@@ -60,7 +60,7 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
     private static final int FADE_OUT = 1;
     private static final int SHOW_PROGRESS = 2;
     private PlayerControllerVisibilityListener mVisibilityListener;
-    private TrackerPlayer mTrackerPlayer;
+    private TrackerPlayer mMediaPlayer;
     private boolean mShowing;
     private boolean mDragging;
     private final Handler mHandler = new Handler() {
@@ -69,7 +69,7 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
             int pos;
             switch (msg.what) {
                 case FADE_OUT:
-                    if (mTrackerPlayer.isPlaying()) {
+                    if (mMediaPlayer.isPlaying()) {
                         hide();
                     } else {
                         // re-schedule to check again
@@ -80,7 +80,7 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
                     break;
                 case SHOW_PROGRESS:
                     pos = setProgress();
-                    if (!mDragging && mShowing && mTrackerPlayer.isPlaying()) {
+                    if (!mDragging && mShowing && mMediaPlayer.isPlaying()) {
                         final Message message = obtainMessage(SHOW_PROGRESS);
                         sendMessageDelayed(message, 1000 - (pos % 1000));
                     }
@@ -131,9 +131,9 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
                 return;
             }
 
-            long duration = mTrackerPlayer.getDuration();
+            long duration = mMediaPlayer.getDuration();
             long newposition = (duration * progress) / 1000L;
-            mTrackerPlayer.seekTo((int) newposition);
+            mMediaPlayer.seekTo((int) newposition);
             if (mCurrentTime != null) {
                 mCurrentTime.setText(stringForTime((int) newposition));
             }
@@ -156,15 +156,15 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
     private ImageButton mPrevButton;
     private int mLastPlayedSeconds = -1;
 
-    public TrackerPlayerController(final Context context) {
+    public MediaPlayerController(final Context context) {
         this(context, null);
     }
 
-    public TrackerPlayerController(final Context context, final AttributeSet attrs) {
+    public MediaPlayerController(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public TrackerPlayerController(final Context context, final AttributeSet attrs, final int defStyle) {
+    public MediaPlayerController(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
     }
 
@@ -177,7 +177,7 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
 
     @Override
     public void setMediaPlayer(final TrackerPlayer trackerPlayer) {
-        mTrackerPlayer = trackerPlayer;
+        mMediaPlayer = trackerPlayer;
         updatePausePlay();
     }
 
@@ -311,18 +311,18 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
     }
 
     private int setProgress() {
-        if (mTrackerPlayer == null || mDragging) {
+        if (mMediaPlayer == null || mDragging) {
             return 0;
         }
-        int position = mTrackerPlayer.getCurrentPosition();
-        int duration = mTrackerPlayer.getDuration();
+        int position = mMediaPlayer.getCurrentPosition();
+        int duration = mMediaPlayer.getDuration();
         if (mProgress != null) {
             if (duration > 0) {
                 // use long to avoid overflow
                 long pos = 1000L * position / duration;
                 mProgress.setProgress((int) pos);
             }
-            int percent = mTrackerPlayer.getBufferPercentage();
+            int percent = mMediaPlayer.getBufferPercentage();
             mProgress.setSecondaryProgress(percent * 10);
         }
 
@@ -362,16 +362,16 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-            if (uniqueDown && !mTrackerPlayer.isPlaying()) {
-                mTrackerPlayer.start();
+            if (uniqueDown && !mMediaPlayer.isPlaying()) {
+                mMediaPlayer.start();
                 updatePausePlay();
                 show(DEFAULT_TIMEOUT);
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
                 || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
-            if (uniqueDown && mTrackerPlayer.isPlaying()) {
-                mTrackerPlayer.pause();
+            if (uniqueDown && mMediaPlayer.isPlaying()) {
+                mMediaPlayer.pause();
                 updatePausePlay();
                 show(DEFAULT_TIMEOUT);
             }
@@ -398,7 +398,7 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
             return;
         }
 
-        if (mTrackerPlayer.isPlaying()) {
+        if (mMediaPlayer.isPlaying()) {
             mPauseButton.setImageResource(android.R.drawable.ic_media_pause);
         } else {
             mPauseButton.setImageResource(android.R.drawable.ic_media_play);
@@ -406,10 +406,10 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
     }
 
     private void doPauseResume() {
-        if (mTrackerPlayer.isPlaying()) {
-            mTrackerPlayer.pause();
+        if (mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
         } else {
-            mTrackerPlayer.start();
+            mMediaPlayer.start();
         }
         updatePausePlay();
     }
@@ -440,13 +440,13 @@ public final class TrackerPlayerController extends RelativeLayout implements Pla
     @Override
     public void onInitializeAccessibilityEvent(final AccessibilityEvent event) {
         super.onInitializeAccessibilityEvent(event);
-        event.setClassName(TrackerPlayerController.class.getName());
+        event.setClassName(MediaPlayerController.class.getName());
     }
 
     @Override
     public void onInitializeAccessibilityNodeInfo(final AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        info.setClassName(TrackerPlayerController.class.getName());
+        info.setClassName(MediaPlayerController.class.getName());
     }
 
     @Override
