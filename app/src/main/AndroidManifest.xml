@@ -100,7 +100,7 @@
             android:name=".ui.PhotoDetailActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:parentActivityName=".ui.TrackerActivity"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@style/TranslucentSystemBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.TrackerActivity"/>

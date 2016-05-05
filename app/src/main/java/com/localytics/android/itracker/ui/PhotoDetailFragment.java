@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.ui;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,7 +21,7 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
  * Use the {@link PhotoDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PhotoDetailFragment extends Fragment {
+public class PhotoDetailFragment extends Fragment implements View.OnClickListener {
     private final static String TAG = makeLogTag(PhotoDetailFragment.class);
 
     private static final String ARG_CURRENT_PHOTO = "arg_current_photo";
@@ -28,6 +29,8 @@ public class PhotoDetailFragment extends Fragment {
     private Photo mPhoto;
 
     private ImageView mImageView;
+
+    private OnContentClickListener mListener;
 
     public PhotoDetailFragment() {
         // Required empty public constructor
@@ -49,6 +52,14 @@ public class PhotoDetailFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof OnContentClickListener) {
+            mListener = (OnContentClickListener) activity;
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -61,9 +72,17 @@ public class PhotoDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_photo_detail, container, false);
+        root.setOnClickListener(this);
         mImageView = (ImageView) root.findViewById(R.id.photo_image);
-        mImageView.setClickable(true);
+        mImageView.setOnClickListener(this);
         return root;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (mListener != null) {
+            mListener.onContentViewClicked(v);
+        }
     }
 
     /**

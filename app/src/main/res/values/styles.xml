@@ -27,6 +27,7 @@
 
     <style name="TranslucentSystemBar" parent="AppTheme">
         <item name="android:actionBarStyle">@style/TranslucentActionBar</item>
+        <item name="android:windowBackground">@android:color/background_dark</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
