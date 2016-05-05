@@ -61,11 +61,7 @@ public class PlayerActivity extends Activity implements PlayerControllerVisibili
 //    }
 
     @Override
-    public void onControlsVisibilityChange(boolean value) {
-        setSystemUiVisibility(value);
-    }
-
-    private void setSystemUiVisibility(final boolean visible) {
+    public void onControlsVisibilityChange(boolean visible) {
         int newVis = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;

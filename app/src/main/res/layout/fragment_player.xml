@@ -1,12 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_dark">
 
     <com.localytics.android.itracker.ui.widget.player.PlayerVideoView
         android:id="@+id/player_video_texture"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerInParent="true"
         android:keepScreenOn="true"
         android:fitsSystemWindows="true" />
 
@@ -19,6 +21,8 @@
     <com.localytics.android.itracker.ui.widget.player.PlayerLoadingView
         android:id="@+id/player_video_loading"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:indeterminateDrawable="@drawable/app_loading_progress" />
 
 </RelativeLayout>
