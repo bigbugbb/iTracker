@@ -1,10 +1,9 @@
 package com.localytics.android.itracker.ui.widget;
 
+import android.content.Context;
 import android.support.v4.media.TransportController;
 import android.support.v4.media.TransportMediator;
 import android.support.v4.media.TransportStateListener;
-
-import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="TranslucentSystemBar" parent="AppTheme">
-        <item name="android:actionBarStyle">@style/TranslucentActionBar</item>
+    <style name="TranslucentSystemBar" parent="AppTheme.NoActionBar">
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowBackground">@android:color/background_dark</item>

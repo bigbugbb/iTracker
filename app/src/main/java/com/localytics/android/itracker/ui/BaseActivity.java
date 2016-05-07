@@ -11,6 +11,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
@@ -85,6 +87,12 @@ public class BaseActivity extends AppCompatActivity implements
         }
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        // On some phones it doesn't work if only set this through xml
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }
     }
 
     @Override
@@ -155,8 +163,10 @@ public class BaseActivity extends AppCompatActivity implements
 
         final ActionBar ab = getSupportActionBar();
         if (ab != null) {
-            ab.setDisplayShowHomeEnabled(true);
-            ab.setDisplayUseLogoEnabled(true);
+//            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+            ab.setDisplayHomeAsUpEnabled(true);
+//            ab.setDisplayShowHomeEnabled(true);
+//            ab.setDisplayUseLogoEnabled(true);
         }
 
 //        ab.setDisplayShowCustomEnabled(true);

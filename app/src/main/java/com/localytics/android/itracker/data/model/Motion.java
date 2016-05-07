@@ -5,7 +5,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.provider.TrackerContract;
 
 import org.joda.time.DateTime;
 

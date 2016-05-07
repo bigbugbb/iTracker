@@ -1,15 +1,5 @@
 package com.localytics.android.itracker.ui.widget.player.controller;
 
-import android.view.View;
-import android.widget.FrameLayout;
-
-import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.ui.widget.player.PlayerTouchRoot;
-import com.localytics.android.itracker.ui.widget.player.TrackerPlayer;
-import com.localytics.android.itracker.ui.widget.player.VideoStateListener;
-
-import java.util.Formatter;
-
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -18,13 +8,21 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.ui.widget.player.PlayerTouchRoot;
+import com.localytics.android.itracker.ui.widget.player.TrackerPlayer;
+import com.localytics.android.itracker.ui.widget.player.VideoStateListener;
+
+import java.util.Formatter;
 import java.util.Locale;
 
 /**

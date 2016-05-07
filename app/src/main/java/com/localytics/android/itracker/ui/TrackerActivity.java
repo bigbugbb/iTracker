@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
@@ -12,12 +13,14 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
-import android.support.v7.app.ActionBar;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 import android.view.Gravity;
@@ -47,12 +50,17 @@ import java.util.List;
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 
 
-public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSelectedListener {
+public class TrackerActivity extends BaseActivity implements
+        NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener {
 
     private static final String TAG = LogUtils.makeLogTag(TrackerActivity.class);
 
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
+
+    private NavigationView mNavView;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     private Menu mMenu;
     private View mTimeRange;
@@ -98,8 +106,31 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
 
-        ActionBar ab = getSupportActionBar();
-        ab.setLogo(R.drawable.logo_with_right_margin);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+                mToolbar,              /* Toolbar object */
+                R.string.drawer_open,  /* "open drawer" description */
+                R.string.drawer_close  /* "close drawer" description */
+        ) {
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        // Set the drawer toggle as the DrawerListener
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+
+        // Setup navigation view
+        mNavView = (NavigationView) findViewById(R.id.nav_view);
+        mNavView.setNavigationItemSelectedListener(this);
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
         populateViewPager();
@@ -193,6 +224,9 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+
         int position = mViewPager.getCurrentItem();
         mTabLayout.getTabAt(position).select(); // Switch to the current fragment
     }
@@ -246,11 +280,11 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.action_search: {
                 item.setVisible(false);
-                mToolbar.addView(mTimeRange, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                mToolbar.addView(mTimeRange, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT));
                 mMenu.findItem(R.id.action_clear).setVisible(true);
                 return true;
             }
@@ -265,6 +299,18 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        mDrawerLayout.closeDrawers();
+        return true;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -301,7 +347,10 @@ public class TrackerActivity extends BaseActivity implements TabLayout.OnTabSele
      */
     @Override
     public void onBackPressed() {
-        if (!mReadyToFinish) {
+        if (mDrawerLayout.isDrawerVisible(mNavView)) {
+            mDrawerLayout.closeDrawers();
+            return;
+        } else if (!mReadyToFinish) {
             mReadyToFinish = true;
             mHandler.postDelayed(new Runnable() {
                 @Override

@@ -12,12 +12,11 @@ import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.widget.player.PlayerLoadingView;
 import com.localytics.android.itracker.ui.widget.player.PlayerVideoView;
 import com.localytics.android.itracker.ui.widget.player.VideoStateListener;
+import com.localytics.android.itracker.ui.widget.player.controller.MediaPlayerController;
 import com.localytics.android.itracker.ui.widget.player.controller.PlayerController;
 import com.localytics.android.itracker.ui.widget.player.controller.PlayerControllerVisibilityListener;
 import com.localytics.android.itracker.ui.widget.player.controller.SimpleMediaPlayerController;
-import com.localytics.android.itracker.ui.widget.player.controller.MediaPlayerController;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 

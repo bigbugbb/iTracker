@@ -1,19 +1,15 @@
 package com.localytics.android.itracker.ui;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.view.KeyEvent;
 import android.view.View;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.widget.player.controller.PlayerControllerVisibilityListener;
 
-public class PlayerActivity extends Activity implements PlayerControllerVisibilityListener {
+public class PlayerActivity extends BaseActivity implements PlayerControllerVisibilityListener {
 
     public static final String MEDIA_PLAYER_TITLE = "media_player_title";
 
@@ -21,6 +17,8 @@ public class PlayerActivity extends Activity implements PlayerControllerVisibili
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         String title = getIntent().getStringExtra(MEDIA_PLAYER_TITLE);
 

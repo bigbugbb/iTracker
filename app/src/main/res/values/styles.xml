@@ -21,12 +21,12 @@
         <item name="android:windowDrawsSystemBarBackgrounds" tools:ignore="NewApi">false</item>
     </style>
 
-    <style name="TranslucentActionBar" parent="AppTheme">
-        <item name="android:background">@android:color/transparent</item>
-    </style>
+    <!--<style name="TranslucentActionBar" parent="AppTheme">-->
+        <!--<item name="android:background">@android:color/transparent</item>-->
+    <!--</style>-->
 
-    <style name="TranslucentSystemBar" parent="AppTheme">
-        <item name="android:actionBarStyle">@style/TranslucentActionBar</item>
+    <style name="TranslucentSystemBar" parent="AppTheme.NoActionBar">
+        <!--<item name="android:actionBarStyle">@style/TranslucentActionBar</item>-->
         <item name="android:windowBackground">@android:color/background_dark</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
@@ -47,16 +47,11 @@
         <item name="android:ellipsize">end</item>
     </style>
 
-    <style name="FullscreenTheme" parent="AppTheme">
-        <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
+    <style name="FullscreenTheme" parent="AppTheme.NoActionBar">
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
         <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
         <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
-    </style>
-
-    <style name="FullscreenActionBarStyle" parent="Widget.AppCompat.ActionBar">
-        <item name="android:background">@color/black_overlay</item>
     </style>
 
     <style name="SplashTitle">

@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">iTracker</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
 
     <string name="provider_name">iTracker</string>
     <string name="authenticator_label">iTracker</string>
