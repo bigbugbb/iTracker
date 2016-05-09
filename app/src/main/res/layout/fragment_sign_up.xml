@@ -29,6 +29,24 @@
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:errorEnabled="true">
+
+        <EditText
+            android:id="@+id/edit_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:inputType="textAutoComplete"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:textCursorDrawable="@null"
+            android:padding="8dp"/>
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
         android:id="@+id/input_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

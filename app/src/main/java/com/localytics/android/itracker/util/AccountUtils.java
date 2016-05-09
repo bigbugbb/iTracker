@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.User;
 
@@ -253,7 +254,7 @@ public class AccountUtils {
         return null;
     }
 
-    public static User signUpUser(String email, String password, String passwordConfirmation) throws Exception {
+    public static User signUpUser(String email, String username, String password, String passwordConfirmation) throws Exception {
         LOGD(TAG, "user sign up");
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -263,7 +264,7 @@ public class AccountUtils {
         httpPost.addHeader(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
         httpPost.addHeader(new BasicHeader("Accept", "application/vnd.itracker.v1"));
 
-        String jsonUser = "{\"user\":{\"email\":\"" + email + "\",\"password\":\"" + password + "\",\"password_confirmation\":\"" + passwordConfirmation + "\"}}";
+        String jsonUser = "{\"user\":{\"email\":\"" + email + "\",\"username\":\"" + username + "\",\"password\":\"" + password + "\",\"password_confirmation\":\"" + passwordConfirmation + "\"}}";
         HttpEntity entity = new StringEntity(jsonUser);
         httpPost.setEntity(entity);
 

@@ -37,6 +37,7 @@ public class SignUpFragment extends Fragment {
     private Button   mSignUp;
     private TextView mAccountExists;
     private EditText mEmail;
+    private EditText mUsername;
     private EditText mPassword;
     private EditText mPasswordConfirmation;
 
@@ -66,6 +67,7 @@ public class SignUpFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mEmail = (EditText) view.findViewById(R.id.edit_email);
+        mUsername = (EditText) view.findViewById(R.id.edit_username);
         mPassword = (EditText) view.findViewById(R.id.edit_password);
         mPasswordConfirmation = (EditText) view.findViewById(R.id.password_confirmation);
 
@@ -74,6 +76,7 @@ public class SignUpFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 mEmail.setEnabled(false);
+                mUsername.setEnabled(false);
                 mPassword.setEnabled(false);
                 mPasswordConfirmation.setEnabled(false);
                 mSignUp.setEnabled(false);
@@ -116,6 +119,7 @@ public class SignUpFragment extends Fragment {
     private void signUp() {
         // Validation!
         final String email = mEmail.getText().toString().trim();
+        final String username = mUsername.getText().toString().trim();
         final String password = mPassword.getText().toString().trim();
         final String passwordConfirmation = mPasswordConfirmation.getText().toString().trim();
         final String accountType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_ACCOUNT_TYPE);
@@ -128,7 +132,7 @@ public class SignUpFragment extends Fragment {
 
                 Bundle data = new Bundle();
                 try {
-                    User user = AccountUtils.signUpUser(email, password, passwordConfirmation);
+                    User user = AccountUtils.signUpUser(email, username, password, passwordConfirmation);
 
                     data.putString(AccountManager.KEY_ACCOUNT_NAME, email);
                     data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
