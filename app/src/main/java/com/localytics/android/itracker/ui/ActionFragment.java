@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Motion;
@@ -37,6 +40,7 @@ public class ActionFragment extends TrackerFragment implements
     private static final String TAG = makeLogTag(ActionFragment.class);
 
     private RecyclerView  mTracksView;
+    private TextView      mShowTimelinesView;
     private TimelinesView mTimelinesView;
     private MotionsView   mMotionsView;
     private ProgressBar   mLoadingView;
@@ -123,6 +127,7 @@ public class ActionFragment extends TrackerFragment implements
         mTimelinesView = (TimelinesView) layout.findViewById(R.id.activities_view);
         mMotionsView   = (MotionsView) layout.findViewById(R.id.motions_view);
         mLoadingView   = (ProgressBar) layout.findViewById(R.id.motions_loading_progress);
+        mShowTimelinesView = (TextView) layout.findViewById(R.id.show_timeline);
 
         layout.setOnFootprintFabClickedListener(new ActionFrameLayout.OnFootprintFabClickedListener() {
             @Override
@@ -163,6 +168,10 @@ public class ActionFragment extends TrackerFragment implements
                 return false;
             }
         });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mShowTimelinesView.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ripple_effect));
+        }
 
         return layout;
     }

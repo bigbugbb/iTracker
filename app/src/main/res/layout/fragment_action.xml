@@ -41,8 +41,7 @@
             android:paddingBottom="16dp"
             android:gravity="center_horizontal"
             android:text="@string/show_timeline"
-            android:textAppearance="@style/TextAppearance.AppCompat.Button"
-            android:background="@drawable/ripple_effect"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Button"/>
     </FrameLayout>
 
     <com.localytics.android.itracker.ui.widget.MotionsView
