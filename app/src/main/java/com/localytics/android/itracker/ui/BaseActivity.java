@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
 import com.google.android.gcm.GCMRegistrar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,6 +37,7 @@ import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PlayServicesUtils;
 import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.util.RequestUtils;
 
 import java.util.ArrayList;
 
@@ -61,8 +63,7 @@ public class BaseActivity extends AppCompatActivity implements
 
     protected Menu mOptionsMenu;
 
-    // AsyncTask that performs GCM registration in the background
-    private AsyncTask<Void, Void, Void> mGCMRegisterTask;
+    protected RequestQueue mRequestQueue;
 
     // handle to our sync observer (that notifies us about changes in our sync state)
     private Object mSyncObserverHandle;
@@ -78,6 +79,8 @@ public class BaseActivity extends AppCompatActivity implements
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         sp.registerOnSharedPreferenceChangeListener(this);
+
+        mRequestQueue = RequestUtils.getRequestQueue(context);
 
         // Verifies the proper version of Google Play Services exists on the device.
         PlayServicesUtils.checkGooglePlaySevices(this);
@@ -202,18 +205,6 @@ public class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        if (mGCMRegisterTask != null) {
-            LOGD(TAG, "Cancelling GCM registration task.");
-            mGCMRegisterTask.cancel(true);
-        }
-
-        try {
-            GCMRegistrar.onDestroy(this);
-        } catch (Exception e) {
-            LOGW(TAG, "C2DM unregistration error", e);
-        }
-
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         sp.unregisterOnSharedPreferenceChangeListener(this);
     }

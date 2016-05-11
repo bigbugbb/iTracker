@@ -158,6 +158,7 @@ public class SignUpFragment extends Fragment {
                         mListener.onAccountSignUpError(intent.getStringExtra(KEY_ERROR_MESSAGE));
                     }
                     mEmail.setEnabled(true);
+                    mUsername.setEnabled(true);
                     mPassword.setEnabled(true);
                     mPasswordConfirmation.setEnabled(true);
                     mSignUp.setEnabled(true);

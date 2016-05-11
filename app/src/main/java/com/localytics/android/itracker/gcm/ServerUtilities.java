@@ -21,10 +21,18 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.StringRequest;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.DeviceUtils;
+import com.localytics.android.itracker.util.RequestUtils;
+
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,11 +46,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.LOGV;
+import static com.localytics.android.itracker.util.LogUtils.LOGW;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
@@ -56,8 +68,9 @@ public final class ServerUtilities {
     private static final String PROPERTY_REGISTERED_TS = "registered_ts";
     private static final String PROPERTY_REG_ID = "reg_id";
     private static final String PROPERTY_GCM_KEY = "gcm_key";
-    private static final int MAX_ATTEMPTS = 5;
-    private static final int BACKOFF_MILLI_SECONDS = 2000;
+
+    private static final int MAX_ATTEMPTS = 3;
+    private static final int BACKOFF_SECONDS = 2;
 
     private static final Random sRandom = new Random();
 
@@ -78,58 +91,60 @@ public final class ServerUtilities {
     /**
      * Register this account/device pair within the server.
      *
-     * @param context Current context
-     * @param gcmId   The GCM registration ID for this device
-     * @param gcmKey  The GCM key with which to register.
+     * @param context   Current context
+     * @param pushToken The GCM registration ID for this device
      * @return whether the registration succeeded or not.
      */
-    public static boolean register(final Context context, final String gcmId, final String gcmKey) {
+    public static boolean register(final Context context, final String pushToken) {
         if (!checkGcmEnabled()) {
             return false;
         }
 
-        String appVersion = String.valueOf(getAppVersion(context));
-        String deviceUUID = DeviceUtils.getDeviceUUID(context);
-        LOGI(TAG, "registering device (gcm_id = " + gcmId + ")");
-        String serverUrl = Config.GCM_SERVER_URL + "/register";
-        LOGI(TAG, "registering on GCM with GCM key: " + AccountUtils.sanitizeGcmKey(gcmKey));
+        LOGI(TAG, "registering device (push_token = " + pushToken + ")");
+        String registerUrl = Config.GCM_SERVER_URL + "/register";
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("reg_id", gcmId);
-        params.put("reg_key", gcmKey);
-        params.put("app_version", appVersion);
-        params.put("dev_uuid", deviceUUID);
-        params.put("dev_name", android.os.Build.MODEL);
-        params.put("dev_os", android.os.Build.VERSION.RELEASE);
-        long backoff = BACKOFF_MILLI_SECONDS + sRandom.nextInt(1000);
-        // Once GCM returns a registration id, we need to register it in the app server.
-        // As the server might be down, we will retry it a couple times.
-        String authToken = AccountUtils.getAuthToken(context);
-        for (int i = 1; i <= MAX_ATTEMPTS; i++) {
-            LOGV(TAG, "Attempt #" + i + " to register");
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest request = new StringRequest(registerUrl, future, future) {
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", AccountUtils.getAuthToken(context));
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("push_token", pushToken);
+                return params;
+            }
+        };
+        RequestUtils.getRequestQueue(context).add(request);
+
+        int backoff = BACKOFF_SECONDS;
+        for (int i = 1; i <= MAX_ATTEMPTS; ++i) {
             try {
-                post(serverUrl, authToken, params);
-                setRegisteredOnServer(context, true, gcmId, gcmKey);
-                return true;
-            } catch (IOException e) {
-                // Here we are simplifying and retrying on any error; in a real
-                // application, it should retry only on unrecoverable errors
-                // (like HTTP error code 503).
-                LOGE(TAG, "Failed to register on attempt " + i, e);
-                if (i == MAX_ATTEMPTS) {
+                String response = future.get(10, TimeUnit.SECONDS);
+                if (!TextUtils.isEmpty(response)) {
+                    LOGV(TAG, "Push token updated: " + response);
+                    return true;
+                } else {
+                    LOGW(TAG, "Empty response, server must be broken");
                     break;
                 }
+            } catch (ExecutionException | TimeoutException e) {
+                LOGE(TAG, "Fail to update push token: " + e.getMessage());
                 try {
-                    LOGV(TAG, "Sleeping for " + backoff + " ms before retry");
-                    Thread.sleep(backoff);
-                } catch (InterruptedException e1) {
-                    // Activity finished before we complete - exit.
-                    LOGD(TAG, "Thread interrupted: abort remaining retries!");
-                    Thread.currentThread().interrupt();
-                    return false;
+                    LOGD(TAG, String.format("Wait for %d seconds to try again...", backoff));
+                    Thread.sleep((long) Math.pow(backoff, i) * DateUtils.SECOND_IN_MILLIS);
+                } catch (InterruptedException ex) {
+                    LOGE(TAG, "Push token update request has been cancelled: " + ex.getMessage());
+                    break;
                 }
-                // increase backoff exponentially
-                backoff *= 2;
+            } catch (InterruptedException e) {
+                LOGE(TAG, "Push token update request has been cancelled: " + e.getMessage());
+                break;
             }
         }
         return false;
