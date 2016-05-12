@@ -4,23 +4,14 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.RequestUtils;
-
-import org.joda.time.DateTime;
+import com.localytics.android.itracker.util.ServerUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
@@ -68,10 +59,10 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendTokenToServer(String token) {
         final Context context = getApplicationContext();
-
         // Send the token to the app server
-        ServerUtilities.register(context);
-        PrefUtils.setSentTokenToServer(context, true);
+        if (ServerUtils.register(context, token)) {
+            PrefUtils.setSentTokenToServer(context, true);
+        }
     }
 
     /**

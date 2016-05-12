@@ -13,7 +13,6 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.User;
 

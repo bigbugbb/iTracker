@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.localytics.android.itracker.gcm;
+package com.localytics.android.itracker.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,15 +24,11 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
+import com.localytics.android.itracker.BuildConfig;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.DeviceUtils;
-import com.localytics.android.itracker.util.RequestUtils;
-
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -45,7 +41,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -59,20 +54,20 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
 /**
- * Helper class used to communicate with the demo server.
+ * Helper class used to communicate with the itracker server.
  */
-public final class ServerUtilities {
-    private static final String TAG = makeLogTag("ServerUtilities");
+public final class ServerUtils {
+    private static final String TAG = makeLogTag(ServerUtils.class);
 
-    private static final String PREFERENCES = "com.google.samples.apps.iosched.gcm";
+    private static final String PREFERENCES = "com.localytics.android.itracker.gcm";
     private static final String PROPERTY_REGISTERED_TS = "registered_ts";
-    private static final String PROPERTY_REG_ID = "reg_id";
-    private static final String PROPERTY_GCM_KEY = "gcm_key";
+    private static final String PROPERTY_SENDER_ID = "sender_id";
+    private static final String PROPERTY_PUSH_TOKEN = "push_token";
+    private static final String PROPERTY_MESSAGE = "message";
+    private static final String PROPERTY_TARGET_ACCOUNT = "target_email";
 
-    private static final int MAX_ATTEMPTS = 3;
+    private static final int MAX_ATTEMPTS = 5;
     private static final int BACKOFF_SECONDS = 2;
-
-    private static final Random sRandom = new Random();
 
     private static boolean checkGcmEnabled() {
         if (TextUtils.isEmpty(Config.GCM_SERVER_URL)) {
@@ -103,31 +98,35 @@ public final class ServerUtilities {
         LOGI(TAG, "registering device (push_token = " + pushToken + ")");
         String registerUrl = Config.GCM_SERVER_URL + "/register";
 
-        RequestFuture<String> future = RequestFuture.newFuture();
-        StringRequest request = new StringRequest(registerUrl, future, future) {
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", AccountUtils.getAuthToken(context));
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("push_token", pushToken);
-                return params;
-            }
-        };
-        RequestUtils.getRequestQueue(context).add(request);
-
-        int backoff = BACKOFF_SECONDS;
         for (int i = 1; i <= MAX_ATTEMPTS; ++i) {
             try {
+                RequestFuture<String> future = RequestFuture.newFuture();
+                StringRequest request = new StringRequest(Request.Method.POST, registerUrl, future, future) {
+
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Content-Type", "application/x-www-form-urlencoded");
+                        headers.put("Accept", Config.API_HEADER_ACCEPT);
+                        headers.put("Authorization", AccountUtils.getAuthToken(context));
+                        return headers;
+                    }
+
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError {
+                        Map<String, String> params = new HashMap<>();
+                        params.put(PROPERTY_PUSH_TOKEN, pushToken);
+                        return params;
+                    }
+                };
+                RequestUtils.getRequestQueue(context).add(request);
+
                 String response = future.get(10, TimeUnit.SECONDS);
                 if (!TextUtils.isEmpty(response)) {
                     LOGV(TAG, "Push token updated: " + response);
+                    if (BuildConfig.DEBUG) {
+                        ping(context);
+                    }
                     return true;
                 } else {
                     LOGW(TAG, "Empty response, server must be broken");
@@ -136,8 +135,9 @@ public final class ServerUtilities {
             } catch (ExecutionException | TimeoutException e) {
                 LOGE(TAG, "Fail to update push token: " + e.getMessage());
                 try {
-                    LOGD(TAG, String.format("Wait for %d seconds to try again...", backoff));
-                    Thread.sleep((long) Math.pow(backoff, i) * DateUtils.SECOND_IN_MILLIS);
+                    long timeToWait = (long) Math.pow(BACKOFF_SECONDS, i);
+                    LOGD(TAG, "Wait for " + timeToWait + " seconds to try again...");
+                    Thread.sleep(timeToWait * DateUtils.SECOND_IN_MILLIS);
                 } catch (InterruptedException ex) {
                     LOGE(TAG, "Push token update request has been cancelled: " + ex.getMessage());
                     break;
@@ -219,22 +219,23 @@ public final class ServerUtilities {
     /**
      * Sets whether the device was successfully registered in the server side.
      *
-     * @param context Current context
-     * @param flag    True if registration was successful, false otherwise
-     * @param gcmId   True if registration was successful, false otherwise
+     * @param context   Current context
+     * @param flag      True if registration was successful, false otherwise
+     * @param senderId  The push sender id, which equals the project id from google dev console
+     * @param pushToken The push registration token from google gcm api
      */
-    private static void setRegisteredOnServer(Context context, boolean flag, String gcmId, String gcmKey) {
+    private static void setRegisteredOnServer(Context context, boolean flag, String senderId, String pushToken) {
         final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        LOGD(TAG, "Setting registered on server status as: " + flag + ", gcmKey=" + AccountUtils.sanitizeGcmKey(gcmKey));
+        LOGD(TAG, "Setting registered on server status as: " + flag + ", gcmKey=" + AccountUtils.sanitizeGcmKey(senderId));
         Editor editor = prefs.edit();
         if (flag) {
             editor.putLong(PROPERTY_REGISTERED_TS, new Date().getTime());
-            editor.putString(PROPERTY_GCM_KEY, gcmKey == null ? "" : gcmKey);
-            editor.putString(PROPERTY_REG_ID, gcmId);
+            editor.putString(PROPERTY_SENDER_ID, senderId == null ? "" : senderId);
+            editor.putString(PROPERTY_PUSH_TOKEN, pushToken);
         } else {
-            editor.remove(PROPERTY_REG_ID);
+            editor.remove(PROPERTY_PUSH_TOKEN);
         }
-        editor.commit();
+        editor.apply();
     }
 
     /**
@@ -243,7 +244,7 @@ public final class ServerUtilities {
      * @param context Current context
      * @return True if registration was successful, false otherwise
      */
-    public static boolean isRegisteredOnServer(Context context, String gcmKey) {
+    public static boolean isRegisteredOnServer(Context context, String pushToken) {
         final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         // Find registration threshold
         Calendar cal = Calendar.getInstance();
@@ -251,20 +252,20 @@ public final class ServerUtilities {
         long yesterdayTS = cal.getTimeInMillis();
         long regTS = prefs.getLong(PROPERTY_REGISTERED_TS, 0);
 
-        gcmKey = gcmKey == null ? "" : gcmKey;
+        pushToken = pushToken == null ? "" : pushToken;
 
         if (regTS > yesterdayTS) {
             LOGV(TAG, "GCM registration current. regTS=" + regTS + " yesterdayTS=" + yesterdayTS);
 
-            final String registeredGcmKey = prefs.getString(PROPERTY_GCM_KEY, "");
-            if (registeredGcmKey.equals(gcmKey)) {
+            final String registeredPushToken = prefs.getString(PROPERTY_PUSH_TOKEN, "");
+            if (registeredPushToken.equals(pushToken)) {
                 LOGD(TAG, "GCM registration is valid and for the correct gcm key: "
-                        + AccountUtils.sanitizeGcmKey(registeredGcmKey));
+                        + AccountUtils.sanitizeGcmKey(registeredPushToken));
                 return true;
             }
             LOGD(TAG, "GCM registration is for DIFFERENT gcm key "
-                    + AccountUtils.sanitizeGcmKey(registeredGcmKey) + ". We were expecting "
-                    + AccountUtils.sanitizeGcmKey(gcmKey));
+                    + AccountUtils.sanitizeGcmKey(registeredPushToken) + ". We were expecting "
+                    + AccountUtils.sanitizeGcmKey(pushToken));
             return false;
         } else {
             LOGV(TAG, "GCM registration expired. regTS=" + regTS + " yesterdayTS=" + yesterdayTS);
@@ -274,7 +275,7 @@ public final class ServerUtilities {
 
     public static String getGcmId(Context context) {
         final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        return prefs.getString(PROPERTY_REG_ID, null);
+        return prefs.getString(PROPERTY_PUSH_TOKEN, null);
     }
 
     /**
@@ -286,6 +287,18 @@ public final class ServerUtilities {
         String gcmId = getGcmId(context);
         if (gcmId != null) {
             unregister(context, gcmId);
+        }
+    }
+
+    public static void ping(Context context) {
+        String pushSendUrl = Config.GCM_SERVER_URL;
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put(PROPERTY_MESSAGE, "pong");
+            params.put(PROPERTY_TARGET_ACCOUNT, AccountUtils.getActiveAccountName(context));
+            post(pushSendUrl, AccountUtils.getAuthToken(context), params);
+        } catch (IOException e) {
+            LOGE(TAG, "Fail to self send a test message");
         }
     }
 
@@ -325,7 +338,7 @@ public final class ServerUtilities {
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
             conn.setRequestProperty("Content-Length", Integer.toString(body.length()));
-            conn.setRequestProperty("Accept", "application/vnd.localytics-show.v1");
+            conn.setRequestProperty("Accept", "application/vnd.itracker.v1");
             conn.setRequestProperty("Authorization", authToken);
             // post the request
             OutputStream out = conn.getOutputStream();

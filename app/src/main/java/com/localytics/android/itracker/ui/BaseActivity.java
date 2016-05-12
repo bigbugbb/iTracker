@@ -10,7 +10,6 @@ import android.content.SyncStatusObserver;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -27,7 +26,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
-import com.google.android.gcm.GCMRegistrar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.localytics.android.itracker.R;
@@ -42,7 +40,6 @@ import com.localytics.android.itracker.util.RequestUtils;
 import java.util.ArrayList;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
 
 public class BaseActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,

@@ -25,6 +25,7 @@ public class Config {
     public static final String BACKUPS_URL = URL_BASE + "/api/backups";
 
     public static final String MANIFEST_FORMAT = "itracker-api-json-v1";
+    public static final String API_HEADER_ACCEPT = "application/vnd.itracker.v1";
 
     // GCM config
     public static final String GCM_SERVER_URL = MANIFEST_URL + "/pushes";
