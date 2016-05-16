@@ -94,6 +94,7 @@ public class AuthenticateService extends Service {
                         authToken = user != null ? user.auth_token : null;
                     } catch (Exception e) {
                         LOGE(TAG, "Exception: " + e.getMessage());
+                        authToken = null;
                     }
                 }
                 AccountUtils.clearAuthTokenExpiredState(mContext);

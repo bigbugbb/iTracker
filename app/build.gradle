@@ -166,4 +166,7 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-ddb:2.+'
     compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
     compile 'com.android.support:multidex:1.0.1'
+    compile 'org.igniterealtime.smack:smack-android:4.2.0-beta1'
+    compile 'org.igniterealtime.smack:smack-tcp:4.2.0-beta1'
+    compile 'org.igniterealtime.smack:smack-extensions:4.2.0-beta1'
 }

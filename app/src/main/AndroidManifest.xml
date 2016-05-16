@@ -159,11 +159,6 @@
                 android:resource="@xml/sync_adapter"/>
         </service>
         <service
-            android:name=".sync.DataImportService"
-            android:enabled="true"
-            android:exported="false">
-        </service>
-        <service
             android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
             android:enabled="true">
         </service>
@@ -246,11 +241,23 @@
             </intent-filter>
         </receiver>
 
+        <!-- Service related to restore data from s3 -->
+        <service
+            android:name=".sync.DataImportService"
+            android:enabled="true"
+            android:exported="false">
+        </service>
+
         <receiver android:name=".sync.DataImportReceiver">
             <intent-filter>
                 <action android:name="com.localytics.android.itracker.intent.action.IMPORT_DATA"/>
             </intent-filter>
         </receiver>
+
+        <!-- Service used to handle instance messages -->
+        <service
+            android:name=".im.ChatService"
+            android:enabled="true" />
 
         <!-- [START Localytics Integration] -->
         <meta-data

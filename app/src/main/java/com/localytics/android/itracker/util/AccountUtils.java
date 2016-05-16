@@ -277,6 +277,10 @@ public class AccountUtils {
             }
 
             User user = new Gson().fromJson(responseString, User.class);
+
+            // Create a openfire user
+
+
             return user;
         } catch (IOException e) {
             e.printStackTrace();
