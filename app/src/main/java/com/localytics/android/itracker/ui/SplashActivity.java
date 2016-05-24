@@ -3,6 +3,9 @@ package com.localytics.android.itracker.ui;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,10 +13,15 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.PrefUtils;
+
+import java.io.IOException;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -25,6 +33,11 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_splash);
 
         ActionBar actionBar = getSupportActionBar();
@@ -49,7 +62,6 @@ public class SplashActivity extends AppCompatActivity {
         } else {
             Intent intent = new Intent(this, TrackerActivity.class);
             startActivity(intent);
-            finish();
         }
     }
 
@@ -59,27 +71,29 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private static class SimpleAccountManagerCallback implements AccountManagerCallback<Bundle> {
-        private Context mContext;
+        private Activity mActivity;
 
-        public SimpleAccountManagerCallback(@NonNull Context context) {
-            mContext = context.getApplicationContext();
+        public SimpleAccountManagerCallback(@NonNull Activity activity) {
+            mActivity = activity;
         }
 
         @Override
         public void run(AccountManagerFuture<Bundle> future) {
+            final Bundle result;
             try {
-                Bundle result = future.getResult();
+                result = future.getResult();
                 String authToken = result.getString(AccountManager.KEY_AUTHTOKEN);
                 if (authToken != null) {
                     LOGD(TAG, authToken != null ? "SUCCESS!\nToken: " + authToken : "FAIL");
                     Intent intent = new Intent();
-                    intent.setClass(mContext, TrackerActivity.class);
+                    intent.setClass(mActivity, TrackerActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    mContext.startActivity(intent);
+                    mActivity.startActivity(intent);
+                    mActivity.finish();
                 }
                 LOGD(TAG, "GetTokenForAccount Bundle is " + result);
             } catch (Exception e) {
-                LOGE(TAG, "Error: " + e.getMessage());
+                LOGE(TAG, "Can't get result from future", e);
             }
         }
     }

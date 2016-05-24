@@ -22,6 +22,7 @@
             android:layout_height="wrap_content"
             android:hint="Email address"
             android:inputType="textEmailAddress"
+            android:singleLine="true"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"
             android:padding="8dp"/>
@@ -40,6 +41,7 @@
             android:layout_height="wrap_content"
             android:hint="Username"
             android:inputType="textAutoComplete"
+            android:singleLine="true"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"
             android:padding="8dp"/>
@@ -57,7 +59,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:hint="Password (8 characters minimum)"
+            android:singleLine="true"
+            android:hint="Password"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"
             android:padding="8dp"/>
@@ -75,6 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
+            android:singleLine="true"
             android:hint="Password confirmation"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"

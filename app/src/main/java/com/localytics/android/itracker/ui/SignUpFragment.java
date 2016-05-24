@@ -6,9 +6,14 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -32,6 +37,8 @@ public class SignUpFragment extends Fragment {
 
     private static final String KEY_ERROR_MESSAGE = "ERR_MSG";
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+
     private OnAccountSignUpListener mListener;
 
     private Button   mSignUp;
@@ -40,6 +47,10 @@ public class SignUpFragment extends Fragment {
     private EditText mUsername;
     private EditText mPassword;
     private EditText mPasswordConfirmation;
+    private TextInputLayout mEmailInputLayout;
+    private TextInputLayout mUsernameInputLayout;
+    private TextInputLayout mPasswordInputLayout;
+    private TextInputLayout mPasswordConfirmationInputLayout;
 
     public SignUpFragment() {
         // Required empty public constructor
@@ -71,17 +82,21 @@ public class SignUpFragment extends Fragment {
         mPassword = (EditText) view.findViewById(R.id.edit_password);
         mPasswordConfirmation = (EditText) view.findViewById(R.id.password_confirmation);
 
+        mEmailInputLayout = (TextInputLayout) view.findViewById(R.id.input_email);
+        mUsernameInputLayout = (TextInputLayout) view.findViewById(R.id.input_username);
+        mPasswordInputLayout = (TextInputLayout) view.findViewById(R.id.input_password);
+        mPasswordConfirmationInputLayout = (TextInputLayout) view.findViewById(R.id.input_password_confirmation);
+
+        mEmail.addTextChangedListener(new AuthTextWatcher(mEmail));
+        mUsername.addTextChangedListener(new AuthTextWatcher(mPassword));
+        mPassword.addTextChangedListener(new AuthTextWatcher(mEmail));
+        mPasswordConfirmation.addTextChangedListener(new AuthTextWatcher(mPassword));
+
         mSignUp = (Button) view.findViewById(R.id.sign_up);
         mSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mEmail.setEnabled(false);
-                mUsername.setEnabled(false);
-                mPassword.setEnabled(false);
-                mPasswordConfirmation.setEnabled(false);
-                mSignUp.setEnabled(false);
-                mSignUp.setText(R.string.creating_new_account);
-                mAccountExists.setEnabled(false);
+                enableUi(false);
                 if (mListener != null) {
                     mListener.onAccountStartSignUp();
                 }
@@ -124,6 +139,15 @@ public class SignUpFragment extends Fragment {
         final String passwordConfirmation = mPasswordConfirmation.getText().toString().trim();
         final String accountType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_ACCOUNT_TYPE);
 
+        if (!validateEmail(email) || !validateUsername(username) ||
+                !validatePassword(password) || !validatePasswordConfirmation(passwordConfirmation)) {
+            enableUi(true);
+            if (mListener != null) {
+                mListener.onAccountSignUpError("Invalid input, please try again");
+            }
+            return;
+        }
+
         new AsyncTask<String, Void, Intent>() {
 
             @Override
@@ -157,13 +181,7 @@ public class SignUpFragment extends Fragment {
                     if (mListener != null) {
                         mListener.onAccountSignUpError(intent.getStringExtra(KEY_ERROR_MESSAGE));
                     }
-                    mEmail.setEnabled(true);
-                    mUsername.setEnabled(true);
-                    mPassword.setEnabled(true);
-                    mPasswordConfirmation.setEnabled(true);
-                    mSignUp.setEnabled(true);
-                    mSignUp.setText(R.string.sign_up);
-                    mAccountExists.setEnabled(true);
+                    enableUi(true);
                 } else {
                     if (mListener != null) {
                         mListener.onAccountSignUpSuccess(intent);
@@ -171,6 +189,111 @@ public class SignUpFragment extends Fragment {
                 }
             }
         }.execute();
+    }
+
+    private void enableUi(boolean enabled) {
+        mEmail.setEnabled(enabled);
+        mUsername.setEnabled(enabled);
+        mPassword.setEnabled(enabled);
+        mPasswordConfirmation.setEnabled(enabled);
+        mSignUp.setEnabled(enabled);
+        mSignUp.setText(enabled ? R.string.sign_up : R.string.creating_new_account);
+        mAccountExists.setEnabled(enabled);
+    }
+
+    private boolean validateEmail(String email) {
+        if (TextUtils.isEmpty(email) || !isValidEmail(email)) {
+            mEmailInputLayout.setError(getString(R.string.invalid_email));
+            requestFocus(mEmail);
+            return false;
+        } else {
+            mEmailInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validateUsername(String username) {
+        if (TextUtils.isEmpty(username)) {
+            mUsernameInputLayout.setError(getString(R.string.invalid_username));
+            requestFocus(mUsername);
+            return false;
+        } else {
+            mUsernameInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validatePassword(String password) {
+        if (TextUtils.isEmpty(password)) {
+            mPasswordInputLayout.setError(getString(R.string.invalid_password));
+            requestFocus(mPassword);
+            return false;
+        } else if (TextUtils.getTrimmedLength(password) < MIN_PASSWORD_LENGTH) {
+            mPasswordInputLayout.setError(getString(R.string.invalid_password_length));
+            requestFocus(mPassword);
+            return false;
+        } else {
+            mPasswordInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validatePasswordConfirmation(String passwordConfirmation) {
+        final String password = mPassword.getText().toString().trim();
+        if (TextUtils.isEmpty(passwordConfirmation)) {
+            mPasswordConfirmationInputLayout.setError(getString(R.string.invalid_password_confirmation));
+            requestFocus(mPasswordConfirmation);
+            return false;
+        } else if (!TextUtils.equals(passwordConfirmation, password)) {
+            mPasswordConfirmationInputLayout.setError(getString(R.string.invalid_password_confirmation2));
+            requestFocus(mPasswordConfirmation);
+            return false;
+        } else {
+            mPasswordConfirmationInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean isValidEmail(String email) {
+        return !TextUtils.isEmpty(email) && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private void requestFocus(View view) {
+        if (isAdded() && view.requestFocus()) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
+    private class AuthTextWatcher implements TextWatcher {
+
+        private View mView;
+
+        private AuthTextWatcher(View view) {
+            mView = view;
+        }
+
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void afterTextChanged(Editable editable) {
+            switch (mView.getId()) {
+                case R.id.input_email:
+                    validateEmail(editable.toString().trim());
+                    break;
+                case R.id.input_username:
+                    validateUsername(editable.toString().trim());
+                    break;
+                case R.id.input_password:
+                    validatePassword(editable.toString().trim());
+                    break;
+                case R.id.input_password_confirmation:
+                    validatePasswordConfirmation(editable.toString().trim());
+                    break;
+            }
+        }
     }
 
     /**

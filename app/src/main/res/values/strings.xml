@@ -132,6 +132,12 @@
     <string name="new_user">New user?</string>
     <string name="sign_up">Create Account</string>
     <string name="already_a_memeber">Already a member?</string>
+    <string name="invalid_email">Enter valid email address</string>
+    <string name="invalid_username">Enter your username</string>
+    <string name="invalid_password">Enter your password</string>
+    <string name="invalid_password_length">Password must have at least 8 characters</string>
+    <string name="invalid_password_confirmation">Enter your password confirmation</string>
+    <string name="invalid_password_confirmation2">Password confirmation is not the same as password</string>
 
     <!-- Title text for dialog screen about the application -->
     <string name="title_about">About</string>

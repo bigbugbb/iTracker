@@ -6,12 +6,18 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.User;
@@ -38,6 +44,8 @@ public class SignInFragment extends Fragment {
     private TextView mNewAccount;
     private EditText mEmail;
     private EditText mPassword;
+    private TextInputLayout mEmailInputLayout;
+    private TextInputLayout mPasswordInputLayout;
 
     public SignInFragment() {
         // Required empty public constructor
@@ -67,19 +75,20 @@ public class SignInFragment extends Fragment {
         mEmail = (EditText) view.findViewById(R.id.edit_email);
         mPassword = (EditText) view.findViewById(R.id.edit_password);
 
+        mEmailInputLayout = (TextInputLayout) view.findViewById(R.id.input_email);
+        mPasswordInputLayout = (TextInputLayout) view.findViewById(R.id.input_password);
+
+        mEmail.addTextChangedListener(new AuthTextWatcher(mEmail));
+        mPassword.addTextChangedListener(new AuthTextWatcher(mPassword));
+
         mSignIn = (Button) view.findViewById(R.id.sign_in);
         mSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSignIn.setEnabled(false);
-                mSignIn.setText(R.string.sign_in_user);
-                mNewAccount.setEnabled(false);
-                mEmail.setEnabled(false);
-                mPassword.setEnabled(false);
+                enableUi(false);
                 if (mListener != null) {
                     mListener.onAccountStartSignIn();
                 }
-
                 signIn();
             }
         });
@@ -111,9 +120,17 @@ public class SignInFragment extends Fragment {
     }
 
     public void signIn() {
-        final String email = mEmail.getText().toString();
-        final String password = mPassword.getText().toString();
+        final String email = mEmail.getText().toString().trim();
+        final String password = mPassword.getText().toString().trim();
         final String accountType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_ACCOUNT_TYPE);
+
+        if (!validateEmail(email) || !validatePassword(password)) {
+            enableUi(true);
+            if (mListener != null) {
+                mListener.onAccountSignInError("Invalid input, please try again");
+            }
+            return;
+        }
 
         new AsyncTask<String, Void, Intent>() {
 
@@ -148,11 +165,7 @@ public class SignInFragment extends Fragment {
                     if (mListener != null) {
                         mListener.onAccountSignInError(intent.getStringExtra(KEY_ERROR_MESSAGE));
                     }
-                    mEmail.setEnabled(true);
-                    mPassword.setEnabled(true);
-                    mSignIn.setEnabled(true);
-                    mSignIn.setText(R.string.sign_in);
-                    mNewAccount.setEnabled(true);
+                    enableUi(true);
                 } else {
                     if (mListener != null) {
                         mListener.onAccountSignInSuccess(intent);
@@ -160,6 +173,72 @@ public class SignInFragment extends Fragment {
                 }
             }
         }.execute();
+    }
+
+    private void enableUi(boolean enabled) {
+        mEmail.setEnabled(enabled);
+        mPassword.setEnabled(enabled);
+        mSignIn.setEnabled(enabled);
+        mSignIn.setText(enabled ? R.string.sign_in : R.string.sign_in_user);
+        mNewAccount.setEnabled(enabled);
+    }
+
+    private boolean validateEmail(String email) {
+        if (TextUtils.isEmpty(email) || !isValidEmail(email)) {
+            mEmailInputLayout.setError(getString(R.string.invalid_email));
+            requestFocus(mEmail);
+            return false;
+        } else {
+            mEmailInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validatePassword(String password) {
+        if (TextUtils.isEmpty(password)) {
+            mPasswordInputLayout.setError(getString(R.string.invalid_password));
+            requestFocus(mPassword);
+            return false;
+        } else {
+            mPasswordInputLayout.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean isValidEmail(String email) {
+        return !TextUtils.isEmpty(email) && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private void requestFocus(View view) {
+        if (isAdded() && view.requestFocus()) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
+    private class AuthTextWatcher implements TextWatcher {
+
+        private View mView;
+
+        private AuthTextWatcher(View view) {
+            mView = view;
+        }
+
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void afterTextChanged(Editable editable) {
+            switch (mView.getId()) {
+                case R.id.input_email:
+                    validateEmail(editable.toString().trim());
+                    break;
+                case R.id.input_password:
+                    validatePassword(editable.toString().trim());
+                    break;
+            }
+        }
     }
 
     /**

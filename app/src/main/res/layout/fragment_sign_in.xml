@@ -21,6 +21,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"
             android:inputType="textEmailAddress"
+            android:singleLine="true"
             android:padding="8dp" />
 
     </android.support.design.widget.TextInputLayout>
@@ -35,6 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
+            android:singleLine="true"
             android:hint="Password"
             android:text=""
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
