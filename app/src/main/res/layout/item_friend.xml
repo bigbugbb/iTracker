@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="16dp"
+        android:background="@color/gray_background">
+
+        <ImageView
+            android:id="@+id/friend_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"/>
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="5"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/friend_message_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:paddingStart="24dp"
+            android:singleLine="true"
+            android:textColor="@color/body_text_3"
+            android:textSize="12sp"
+            tools:text="6/1/16"/>
+
+        <TextView
+            android:id="@+id/friend_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_toLeftOf="@id/friend_message_time"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="@color/body_text_1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            tools:text="Username"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/friend_username"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/friend_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:gravity="start"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/body_text_2"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:text="last chat message"/>
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>
