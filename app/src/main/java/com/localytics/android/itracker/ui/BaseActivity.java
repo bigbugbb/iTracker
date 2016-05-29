@@ -2,9 +2,11 @@ package com.localytics.android.itracker.ui;
 
 import android.Manifest;
 import android.accounts.Account;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SyncStatusObserver;
 import android.content.pm.ActivityInfo;
@@ -12,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -30,6 +33,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.gcm.RegistrationIntentService;
+import com.localytics.android.itracker.im.ChatService;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.LogUtils;
@@ -66,6 +70,8 @@ public class BaseActivity extends AppCompatActivity implements
     private Object mSyncObserverHandle;
 
     private boolean mManualSyncRequest;
+
+    private boolean mServiceBound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,6 +182,8 @@ public class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+        Intent intent = new Intent(this, ChatService.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -200,11 +208,35 @@ public class BaseActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        if (mServiceBound) {
+            unbindService(mServiceConnection);
+            mServiceBound = false;
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         sp.unregisterOnSharedPreferenceChangeListener(this);
     }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+//            MyBinder myBinder = (MyBinder) service;
+//            mBoundService = myBinder.getService();
+            mServiceBound = true;
+        }
+    };
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

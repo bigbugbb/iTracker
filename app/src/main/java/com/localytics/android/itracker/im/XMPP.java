@@ -29,6 +29,8 @@ import org.jivesoftware.smackx.receipts.DeliveryReceiptManager;
 import org.jivesoftware.smackx.receipts.DeliveryReceiptManager.AutoReceiptMode;
 import org.jivesoftware.smackx.receipts.ReceiptReceivedListener;
 import org.jxmpp.jid.Jid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
 
@@ -85,17 +87,23 @@ class XMPP {
     }
 
     private void initializeConnection() {
-        XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-//                .setServiceName(mServerUrl)
-                .setHost(mServerUrl)
-                .setPort(Config.XMPP_CLIENT_PORT)
-                .setDebuggerEnabled(true)
-                .build();
+        XMPPTCPConnectionConfiguration config = null;
+        try {
+            config = XMPPTCPConnectionConfiguration.builder()
+                    .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+                    .setXmppDomain(JidCreate.domainBareFrom(mServerUrl))
+                    .setHost(mServerUrl)
+                    .setPort(Config.XMPP_CLIENT_PORT)
+                    .setDebuggerEnabled(true)
+                    .build();
+        } catch (XmppStringprepException e) {
+            e.printStackTrace();
+        }
         XMPPTCPConnection.setUseStreamManagementResumptionDefault(true);
         XMPPTCPConnection.setUseStreamManagementDefault(true);
         mConnection = new XMPPTCPConnection(config);
         mConnection.addConnectionListener(new XMPPConnectionListener());
+        mConnection.setPacketReplyTimeout(30000);
     }
 
     public void disconnect() {
@@ -110,7 +118,7 @@ class XMPP {
     public void connect(final String caller) {
         new AsyncTask<Void, Void, Boolean>() {
             @Override
-            protected synchronized Boolean doInBackground(Void... arg0) {
+            protected Boolean doInBackground(Void... arg0) {
                 if (mConnection.isConnected()) {
                     return false;
                 }

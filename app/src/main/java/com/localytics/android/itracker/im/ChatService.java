@@ -11,6 +11,8 @@ import com.localytics.android.itracker.util.AccountUtils;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
@@ -29,8 +31,8 @@ public class ChatService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        String username = AccountUtils.getActiveAccountName(this);
-        String password = toHex(username);
+        String username = formatUsername(AccountUtils.getActiveAccountName(this));
+        String password = encodeUsername(username);
         mXMPP = new XMPP(this, Config.XMPP_SERVER_URL, username, password);
         mXMPP.connect(AccountUtils.getActiveAccountName(this));
     }
@@ -51,13 +53,32 @@ public class ChatService extends Service {
         mXMPP.disconnect();
     }
 
-    private String toHex(String origin) {
+    private String formatUsername(String username) {
+        return username.replace('@', '.');
+    }
+
+    private String encodeUsername(String username) {
+        final String MD5 = "MD5";
         try {
-            return new BigInteger(1, origin.getBytes("UTF-8")).toString(16);
-        } catch (UnsupportedEncodingException e) {
-            LOGE(TAG, "Fail to convert original string to hex form: " + e.getMessage());
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest.getInstance(MD5);
+            digest.update(username.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuilder hexString = new StringBuilder();
+            for (byte aMessageDigest : messageDigest) {
+                String h = Integer.toHexString(0xFF & aMessageDigest);
+                while (h.length() < 2)
+                    h = "0" + h;
+                hexString.append(h);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
-        return origin;
+        return "";
     }
 
     private class LocalBinder<T> extends Binder {
