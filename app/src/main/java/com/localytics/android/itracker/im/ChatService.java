@@ -8,13 +8,10 @@ import android.os.IBinder;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.util.AccountUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 

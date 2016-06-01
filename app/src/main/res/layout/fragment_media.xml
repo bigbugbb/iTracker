@@ -5,15 +5,54 @@
     android:layout_height="match_parent"
     tools:context=".ui.PhotoFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/media_view"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="4dp"
-        android:clipToPadding="false"
-        android:background="@color/tracks_background"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"/>
+        android:animateLayoutChanges="true">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/media_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="4dp"
+            android:clipToPadding="false"
+            android:background="@color/tracks_background"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"/>
+
+        <LinearLayout
+            android:id="@+id/loading_pannel"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:gravity="center"
+            android:visibility="invisible"
+            android:background="@color/translucent_black"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:indeterminate="false"
+                android:indeterminateDrawable="@drawable/app_loading_progress"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/load_more_watch_history"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
     <ProgressBar
         android:id="@+id/progress_view"

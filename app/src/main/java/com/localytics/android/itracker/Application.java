@@ -4,11 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.multidex.MultiDex;
 
-import com.localytics.android.itracker.im.ChatService;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
 import com.localytics.android.itracker.util.LogUtils;
-
-import org.jivesoftware.smack.chat.Chat;
 
 public class Application extends android.app.Application {
 

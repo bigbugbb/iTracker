@@ -63,7 +63,12 @@ import com.localytics.android.itracker.util.PrefUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -82,10 +87,15 @@ public class MediaFragment extends TrackerFragment implements
     private MediaAdapter mMediaAdapter;
     private LinearLayoutManager mLayoutManager;
 
+    private View mLoadingPannel;
     private ProgressBar mProgressView;
 
+    private Set<String> mTokenSet = Collections.synchronizedSet(new HashSet<String>());
+
+    private volatile String mNextPageToken;
     private volatile boolean mLoading;
 
+    private static final long MAX_NUMBER_OF_ITEMS = 50l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
     /**
@@ -165,9 +175,17 @@ public class MediaFragment extends TrackerFragment implements
                 int totalItemCount = mLayoutManager.getItemCount();
                 int firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
 
+                LOGD(TAG, String.format("visibleItemCount: %d, firstVisibleItem: %d, totalItemCount: %d",
+                        visibleItemCount, firstVisibleItem, totalItemCount));
                 if (visibleItemCount + firstVisibleItem >= totalItemCount) {
+                    if (mTokenSet.contains(mNextPageToken)) {
+                        return; // All watch histories have been loaded
+                    }
                     if (!mLoading) {
                         mLoading = true;
+                        mLoadingPannel.setVisibility(View.VISIBLE);
+                        mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
+                                mMediaView.getPaddingRight(), mMediaView.getPaddingBottom() + mLoadingPannel.getHeight());
                         reloadYouTubeMedia();
                     }
                 }
@@ -176,6 +194,8 @@ public class MediaFragment extends TrackerFragment implements
 
         mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
         mProgressView.setVisibility(mMediaAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
+
+        mLoadingPannel = view.findViewById(R.id.loading_pannel);
     }
 
     @Override
@@ -263,7 +283,6 @@ public class MediaFragment extends TrackerFragment implements
         new AsyncTask<Void, Void, List<Video>>() {
             @Override
             protected List<Video> doInBackground(Void... voids) {
-
                 YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
                         .setApplicationName("iTracker")
                         .build();
@@ -279,7 +298,7 @@ public class MediaFragment extends TrackerFragment implements
                             .list("contentDetails").setMine(true).execute();
 
                     // Get the user's uploads playlist's id from channel list response
-                    String uploadsPlaylistId = clr.getItems().get(0)
+                    String watchHistoryPlaylistIds = clr.getItems().get(0)
                             .getContentDetails().getRelatedPlaylists()
                             .getWatchHistory();
 
@@ -288,11 +307,16 @@ public class MediaFragment extends TrackerFragment implements
                     // Get videos from user's upload playlist with a playlist items list request
                     PlaylistItemListResponse pilr = youtube.playlistItems()
                             .list("id,contentDetails")
-                            .setPlaylistId(uploadsPlaylistId)
-                            .setMaxResults(50l).execute();
-                    List<String> videoIds = new ArrayList<>();
+                            .setPlaylistId(watchHistoryPlaylistIds)
+                            .setPageToken(mNextPageToken)
+                            .setMaxResults(MAX_NUMBER_OF_ITEMS).execute();
+
+                    // Get page token for further loading
+                    mTokenSet.add(pilr.getPrevPageToken());
+                    mNextPageToken = pilr.getNextPageToken();
 
                     // Iterate over playlist item list response to get uploaded videos' ids.
+                    List<String> videoIds = new ArrayList<>();
                     for (PlaylistItem item : pilr.getItems()) {
                         videoIds.add(item.getContentDetails().getVideoId());
                     }
@@ -331,7 +355,12 @@ public class MediaFragment extends TrackerFragment implements
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
                     mMediaAdapter.updateVideos(videos);
+                    if (mLoadingPannel.getVisibility() == View.VISIBLE) {
+                        mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
+                                mMediaView.getPaddingRight(), mMediaView.getPaddingBottom() - mLoadingPannel.getHeight());
+                    }
                     mProgressView.setVisibility(View.GONE);
+                    mLoadingPannel.setVisibility(View.GONE);
                 }
             }
 
@@ -516,6 +545,7 @@ public class MediaFragment extends TrackerFragment implements
     private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
         private Context mContext;
+        private LinkedHashMap<String, Video> mVideoMap = new LinkedHashMap<>();
         private List<Video> mVideos = new ArrayList<>();
 
         public MediaAdapter(Context context) {
@@ -523,8 +553,10 @@ public class MediaFragment extends TrackerFragment implements
         }
 
         public void updateVideos(List<Video> videos) {
-            mVideos.clear();
-            mVideos.addAll(videos);
+            for (Video video : videos) {
+                mVideoMap.put(video.getId(), video);
+            }
+            mVideos = new ArrayList<>(mVideoMap.values());
             notifyDataSetChanged();
         }
 

@@ -182,6 +182,7 @@
     <string name="google_play_not_available">Google Play Services not available</string>
     <string name="connection_to_google_play_failed">Connection to Play Services failed.</string>
     <string name="video_submitted_to_youtube">Video submitted to YouTube</string>
+    <string name="load_more_watch_history">Load more watch history...</string>
     <string name="not_signed_in">Not signed in</string>
 
     <!-- Permission request prompt -->
