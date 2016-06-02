@@ -6,17 +6,20 @@
         android:toDegrees="1080.0">
 
     <shape
-           android:innerRadiusRatio="3"
-           android:shape="ring"
-           android:thicknessRatio="9"
-           android:useLevel="false">
+        android:innerRadiusRatio="3"
+        android:shape="ring"
+        android:thicknessRatio="9"
+        android:useLevel="false">
+
         <gradient
             android:endColor="@color/colorAccent"
             android:startColor="#FFFFFF"
             android:type="sweep" />
+
         <stroke
             android:width="1dp"
             android:color="@color/black_overlay" />
+
     </shape>
 
 </rotate>

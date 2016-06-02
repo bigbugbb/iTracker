@@ -10,15 +10,22 @@
         android:layout_height="match_parent"
         android:animateLayoutChanges="true">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/media_view"
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/media_swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingTop="4dp"
-            android:clipToPadding="false"
-            android:background="@color/tracks_background"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"/>
+            android:layout_height="wrap_content">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/media_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="4dp"
+                android:clipToPadding="false"
+                android:background="@color/tracks_background"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"/>
+
+        </android.support.v4.widget.SwipeRefreshLayout>
 
         <LinearLayout
             android:id="@+id/loading_pannel"
@@ -31,11 +38,10 @@
             android:orientation="horizontal">
 
             <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="center"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
+                android:layout_marginRight="8dp"
                 android:indeterminate="false"
                 android:indeterminateDrawable="@drawable/app_loading_progress"
                 android:layout_centerVertical="true"

@@ -19,6 +19,7 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -63,11 +64,11 @@ import com.localytics.android.itracker.util.PrefUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -86,6 +87,8 @@ public class MediaFragment extends TrackerFragment implements
     private RecyclerView mMediaView;
     private MediaAdapter mMediaAdapter;
     private LinearLayoutManager mLayoutManager;
+
+    private SwipeRefreshLayout mMediaSwipeRefresh;
 
     private View mLoadingPannel;
     private ProgressBar mProgressView;
@@ -186,9 +189,19 @@ public class MediaFragment extends TrackerFragment implements
                         mLoadingPannel.setVisibility(View.VISIBLE);
                         mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
                                 mMediaView.getPaddingRight(), mMediaView.getPaddingBottom() + mLoadingPannel.getHeight());
-                        reloadYouTubeMedia();
+                        reloadYouTubeMedia(false);
                     }
                 }
+            }
+        });
+
+        mMediaSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.media_swipe_refresh);
+        mMediaSwipeRefresh.setColorSchemeResources(R.color.colorAccent);
+        mMediaSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mLoading = true;
+                reloadYouTubeMedia(true);
             }
         });
 
@@ -248,8 +261,7 @@ public class MediaFragment extends TrackerFragment implements
             mCredential.setSelectedAccountName(accountName);
             PrefUtils.setChosenGoogleAccountName(getActivity(), mChosenAccountName);
         }
-
-        reloadYouTubeMedia();
+        reloadYouTubeMedia(true);
     }
 
     @Override
@@ -272,7 +284,7 @@ public class MediaFragment extends TrackerFragment implements
         }
     }
 
-    private void reloadYouTubeMedia() {
+    private void reloadYouTubeMedia(final boolean refreshLatest) {
         final String accountName = mCredential.getSelectedAccountName();
 
         if (TextUtils.isEmpty(accountName)) {
@@ -308,12 +320,18 @@ public class MediaFragment extends TrackerFragment implements
                     PlaylistItemListResponse pilr = youtube.playlistItems()
                             .list("id,contentDetails")
                             .setPlaylistId(watchHistoryPlaylistIds)
-                            .setPageToken(mNextPageToken)
+                            .setPageToken(refreshLatest ? null : mNextPageToken)
                             .setMaxResults(MAX_NUMBER_OF_ITEMS).execute();
 
                     // Get page token for further loading
-                    mTokenSet.add(pilr.getPrevPageToken());
-                    mNextPageToken = pilr.getNextPageToken();
+                    if (refreshLatest) {
+                        if (mNextPageToken == null) {
+                            mNextPageToken = pilr.getNextPageToken();
+                        }
+                    } else {
+                        mTokenSet.add(pilr.getPrevPageToken());
+                        mNextPageToken = pilr.getNextPageToken();
+                    }
 
                     // Iterate over playlist item list response to get uploaded videos' ids.
                     List<String> videoIds = new ArrayList<>();
@@ -354,13 +372,14 @@ public class MediaFragment extends TrackerFragment implements
             protected void onPostExecute(List<Video> videos) {
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
-                    mMediaAdapter.updateVideos(videos);
+                    mMediaAdapter.updateVideos(videos, refreshLatest);
                     if (mLoadingPannel.getVisibility() == View.VISIBLE) {
                         mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
                                 mMediaView.getPaddingRight(), mMediaView.getPaddingBottom() - mLoadingPannel.getHeight());
                     }
                     mProgressView.setVisibility(View.GONE);
                     mLoadingPannel.setVisibility(View.GONE);
+                    mMediaSwipeRefresh.setRefreshing(false);
                 }
             }
 
@@ -545,18 +564,31 @@ public class MediaFragment extends TrackerFragment implements
     private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
         private Context mContext;
-        private LinkedHashMap<String, Video> mVideoMap = new LinkedHashMap<>();
-        private List<Video> mVideos = new ArrayList<>();
+        private LinkedList<Video> mVideos = new LinkedList<>();
+        private HashSet<String> mVideoIds = new HashSet<>();
 
         public MediaAdapter(Context context) {
             mContext = context;
         }
 
-        public void updateVideos(List<Video> videos) {
-            for (Video video : videos) {
-                mVideoMap.put(video.getId(), video);
+        public void updateVideos(List<Video> videos, boolean prepend) {
+            if (prepend) {
+                ListIterator<Video> back = videos.listIterator(videos.size());
+                while (back.hasPrevious()) {
+                    Video previous = back.previous();
+                    if (!mVideoIds.contains(previous.getId())) {
+                        mVideos.push(previous);
+                        mVideoIds.add(previous.getId());
+                    }
+                }
+            } else {
+                for (Video video : videos) {
+                    if (!mVideoIds.contains(video.getId())) {
+                        mVideos.offer(video);
+                        mVideoIds.add(video.getId());
+                    }
+                }
             }
-            mVideos = new ArrayList<>(mVideoMap.values());
             notifyDataSetChanged();
         }
 
