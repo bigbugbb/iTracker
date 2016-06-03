@@ -1,90 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:gravity="center_vertical"
-    android:orientation="horizontal">
-
-    <FrameLayout
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:layout_weight="2"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginRight="16dp"
-        android:background="@color/gray_background">
-
-        <ImageView
-            android:id="@+id/media_thumbnail"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:adjustViewBounds="true"/>
-
-        <TextView
-            android:id="@+id/media_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:background="@drawable/media_duration_background"
-            android:textColor="@android:color/white"
-            android:textSize="11.5sp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
-            tools:text="4:02"/>
-
-    </FrameLayout>
+    android:layout_height="wrap_content">
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="3"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="center_vertical"
-        android:orientation="vertical">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-        <TextView
-            android:id="@+id/media_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textColor="@color/body_text_1"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="2"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="16dp"
+            android:background="@color/gray_background">
 
-        <TextView
-            android:id="@+id/media_owner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textColor="@color/data_item_lightbg_body_text"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            tools:text="bigbugbb"/>
+            <ImageView
+                android:id="@+id/media_thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"/>
 
-        <TextView
-            android:id="@+id/media_published_at_and_views"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textColor="@color/data_item_lightbg_body_text"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            tools:text="2 years ago · 5K views"/>
+            <TextView
+                android:id="@+id/media_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="@drawable/media_duration_background"
+                android:textColor="@android:color/white"
+                android:textSize="11.5sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
+                tools:text="4:02"/>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/media_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textColor="@color/body_text_1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
+
+            <TextView
+                android:id="@+id/media_owner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/data_item_lightbg_body_text"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:text="bigbugbb"/>
+
+            <TextView
+                android:id="@+id/media_published_at_and_views"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/data_item_lightbg_body_text"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:text="2 years ago · 5K views"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/media_selection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:visibility="gone"
+        android:orientation="horizontal">
+
+        <android.support.v4.widget.Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+
+        <CheckBox
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="right|center_vertical"
+            android:checked="false"/>
+
+    </LinearLayout>
+
+</FrameLayout>

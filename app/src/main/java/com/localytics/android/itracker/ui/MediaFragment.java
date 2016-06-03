@@ -700,6 +700,13 @@ public class MediaFragment extends TrackerFragment implements
                         });
                     }
                 });
+
+                itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        return false;
+                    }
+                });
             }
 
             private String formatDuration(String duration) {
