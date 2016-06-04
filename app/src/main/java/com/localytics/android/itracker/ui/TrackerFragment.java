@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
+import android.view.KeyEvent;
+import android.view.View;
 
 import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -22,7 +24,8 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
  * The base class for other fragment.
  * It defines the common communication between each fragment and the TrackerActivity.
  */
-public abstract class TrackerFragment extends Fragment implements LoaderCallbacks<Cursor> {
+public abstract class TrackerFragment extends Fragment
+        implements LoaderCallbacks<Cursor>, View.OnKeyListener {
     protected static final String TAG = makeLogTag(TrackerFragment.class);
 
     public static final String SELECTED_TRACK = "selected_track";
@@ -47,6 +50,19 @@ public abstract class TrackerFragment extends Fragment implements LoaderCallback
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        view.setFocusableInTouchMode(true);
+        view.requestFocus();
+        view.setOnKeyListener(this);
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return false;
     }
 
     @Override

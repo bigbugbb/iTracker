@@ -48,7 +48,8 @@
 
         </FrameLayout>
 
-        <LinearLayout
+        <RelativeLayout
+            android:id="@+id/extra_info"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="3"
@@ -68,10 +69,24 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
 
+            <CheckBox
+                android:id="@+id/media_selected"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:visibility="invisible"
+                android:checked="false"/>
+
             <TextView
                 android:id="@+id/media_owner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/media_title"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@id/media_selected"
                 android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:singleLine="true"
@@ -83,6 +98,9 @@
                 android:id="@+id/media_published_at_and_views"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/media_owner"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@id/media_selected"
                 android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:singleLine="true"
@@ -90,30 +108,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 tools:text="2 years ago · 5K views"/>
 
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/media_selection_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:visibility="gone"
-        android:orientation="horizontal">
-
-        <android.support.v4.widget.Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"/>
-
-        <CheckBox
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="16dp"
-            android:layout_gravity="right|center_vertical"
-            android:checked="false"/>
+        </RelativeLayout>
 
     </LinearLayout>
 

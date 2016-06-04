@@ -24,9 +24,11 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -65,10 +67,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
@@ -94,9 +98,10 @@ public class MediaFragment extends TrackerFragment implements
     private ProgressBar mProgressView;
 
     private Set<String> mTokenSet = Collections.synchronizedSet(new HashSet<String>());
-
     private volatile String mNextPageToken;
     private volatile boolean mLoading;
+
+    private boolean mSelectMode;
 
     private static final long MAX_NUMBER_OF_ITEMS = 50l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
@@ -561,11 +566,24 @@ public class MediaFragment extends TrackerFragment implements
         startActivity(intent);
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mSelectMode) {
+                mSelectMode = false;
+                mMediaAdapter.clearSelection();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
         private Context mContext;
         private LinkedList<Video> mVideos = new LinkedList<>();
-        private HashSet<String> mVideoIds = new HashSet<>();
+        private Set<String> mVideoIds = new HashSet<>();
+        private Map<String, Boolean> mCheckedMap = new HashMap<>();
 
         public MediaAdapter(Context context) {
             mContext = context;
@@ -589,6 +607,12 @@ public class MediaFragment extends TrackerFragment implements
                     }
                 }
             }
+
+            notifyDataSetChanged();
+        }
+
+        public void clearSelection() {
+            mCheckedMap.clear();
             notifyDataSetChanged();
         }
 
@@ -614,6 +638,7 @@ public class MediaFragment extends TrackerFragment implements
             TextView  title;
             TextView  owner;
             TextView  published;
+            CheckBox  selected;
 
             public ViewHolder(View itemView) {
                 super(itemView);
@@ -622,6 +647,7 @@ public class MediaFragment extends TrackerFragment implements
                 title     = (TextView) itemView.findViewById(R.id.media_title);
                 owner     = (TextView) itemView.findViewById(R.id.media_owner);
                 published = (TextView) itemView.findViewById(R.id.media_published_at_and_views);
+                selected  = (CheckBox) itemView.findViewById(R.id.media_selected);
             }
 
             public void bindData(final Video video) {
@@ -638,6 +664,22 @@ public class MediaFragment extends TrackerFragment implements
                         .centerCrop()
                         .crossFade()
                         .into(thumbnail);
+
+                if (mSelectMode) {
+                    selected.setVisibility(View.VISIBLE);
+                    Boolean isChecked = mCheckedMap.get(video.getId());
+                    selected.setChecked(isChecked != null && isChecked);
+                } else {
+                    selected.setVisibility(View.INVISIBLE);
+                }
+                selected.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String videoId = video.getId();
+                        Boolean isChecked = mCheckedMap.get(videoId);
+                        mCheckedMap.put(videoId, isChecked == null || !isChecked);
+                    }
+                });
 
                 itemView.setOnClickListener(new View.OnClickListener() {
 
@@ -664,6 +706,19 @@ public class MediaFragment extends TrackerFragment implements
 
                     @Override
                     public void onClick(View v) {
+                        if (mSelectMode) {
+                            String videoId = video.getId();
+                            Boolean isChecked = mCheckedMap.get(videoId);
+                            if (isChecked == null || !isChecked) {
+                                mCheckedMap.put(videoId, true);
+                                selected.setChecked(true);
+                            } else {
+                                mCheckedMap.put(videoId, false);
+                                selected.setChecked(false);
+                            }
+                            return;
+                        }
+
                         // TODO: play the media in another activity or the floating view
                         YouTubeExtractor extractor = new YouTubeExtractor(video.getId());
                         extractor.extract(new YouTubeExtractor.Callback() {
@@ -704,6 +759,11 @@ public class MediaFragment extends TrackerFragment implements
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
+                        if (!mSelectMode) {
+                            mSelectMode = true;
+                            mMediaAdapter.notifyDataSetChanged();
+                            return true;
+                        }
                         return false;
                     }
                 });
