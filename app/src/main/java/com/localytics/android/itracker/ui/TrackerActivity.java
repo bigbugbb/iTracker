@@ -1,6 +1,5 @@
 package com.localytics.android.itracker.ui;
 
-import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,27 +19,16 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.text.SpannableString;
-import android.text.style.StyleSpan;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.DatePicker;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.widget.FragmentPagerAdapter;
 import com.localytics.android.itracker.util.LogUtils;
-import com.localytics.android.itracker.util.PrefUtils;
-
-import org.joda.time.DateTime;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -61,24 +48,13 @@ public class TrackerActivity extends BaseActivity implements
     private NavigationView mNavView;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
-
     private Menu mMenu;
-    private View mTimeRange;
-    private TextView mBeginText;
-    private TextView mEndText;
-
-    private OnTimeRangeChangedListener mTimeRangeChangedListener;
-
-    private DateTime mBeginDate;
-    private DateTime mEndDate;
-
-    private final static String SELECTED_TAB = "selected_tab";
-    private final static String BEGIN_DATE = "begin_date";
-    private final static String END_DATE = "end_date";
 
     private Handler mHandler = new Handler();
 
     private boolean mReadyToFinish;
+
+    private final static String SELECTED_TAB = "selected_tab";
 
     final int[] TAB_NAMES = new int[] {
             R.string.tab_name_action,
@@ -142,75 +118,7 @@ public class TrackerActivity extends BaseActivity implements
         mViewPager.addOnPageChangeListener(new TrackerOnPageChangeListener(mTabLayout));
 
         if (savedInstanceState != null) {
-            mBeginDate = new DateTime(savedInstanceState.getLong(BEGIN_DATE));
-            mEndDate = new DateTime(savedInstanceState.getLong(END_DATE));
-            updateOutdatedTimeRange();
             mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
-        } else {
-            initTimeRange();
-        }
-
-        mTimeRange = LayoutInflater.from(this).inflate(R.layout.search_date_range, null);
-        mBeginText = (TextView) mTimeRange.findViewById(R.id.begin_date);
-        mBeginText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePickerDialog dialog = new DatePickerDialog(
-                        TrackerActivity.this,
-                        0,
-                        mBeginDateSetListener,
-                        mBeginDate.getYear(),
-                        mBeginDate.getMonthOfYear() - 1,
-                        mBeginDate.getDayOfMonth());
-                int[] location = new int[2];
-                mBeginText.getLocationOnScreen(location);
-                WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-                params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                params.y = location[1];
-
-                dialog.show();
-            }
-        });
-        mEndText = (TextView) mTimeRange.findViewById(R.id.end_date);
-        mEndText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePickerDialog dialog = new DatePickerDialog(
-                        TrackerActivity.this,
-                        0,
-                        mEndDateSetListener,
-                        mEndDate.getYear(),
-                        mEndDate.getMonthOfYear() - 1,
-                        mEndDate.getDayOfMonth());
-
-                int[] location = new int[2];
-                mEndText.getLocationOnScreen(location);
-                WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-                params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                params.y = location[1];
-
-                dialog.show();
-            }
-        });
-
-        setDateText(mBeginText, mBeginDate);
-        setDateText(mEndText, mEndDate);
-    }
-
-    private void initTimeRange() {
-        mEndDate = DateTime.now().plusDays(1).withTimeAtStartOfDay().minusSeconds(1);
-        mBeginDate = mEndDate.minusDays(Config.DEFAULT_DAYS_BACK_FROM_TODAY + 1).plusSeconds(1);
-    }
-
-    private void updateOutdatedTimeRange() {
-        long lastUpdatedTime = PrefUtils.getLastDateRangeUpdateTime(getApplicationContext());
-        if (lastUpdatedTime > 0) {
-            DateTime startOfLastDate = new DateTime(lastUpdatedTime).withTimeAtStartOfDay();
-            DateTime startOfToday = DateTime.now().withTimeAtStartOfDay();
-            if (!startOfLastDate.isEqual(startOfToday)) {
-                // It assumes the user won't bother the outdated time range setting.
-                initTimeRange();
-            }
         }
     }
 
@@ -234,9 +142,6 @@ public class TrackerActivity extends BaseActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        updateOutdatedTimeRange();
-        setDateText(mBeginText, mBeginDate);
-        setDateText(mEndText, mEndDate);
     }
 
     @Override
@@ -257,23 +162,17 @@ public class TrackerActivity extends BaseActivity implements
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SELECTED_TAB, mViewPager.getCurrentItem());
-        outState.putLong(BEGIN_DATE, mBeginDate.getMillis());
-        outState.putLong(END_DATE, mEndDate.getMillis());
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_tracker, menu);
-
-        // Cache the menu so we can configure the menu item in onOptionsItemSelected.
         mMenu = menu;
         return true;
     }
@@ -281,23 +180,10 @@ public class TrackerActivity extends BaseActivity implements
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_search: {
-                item.setVisible(false);
-                mToolbar.addView(mTimeRange, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT));
-                mMenu.findItem(R.id.action_clear).setVisible(true);
-                return true;
-            }
-            case R.id.action_clear: {
-                item.setVisible(false);
-                mToolbar.removeView(mTimeRange);
-                mMenu.findItem(R.id.action_search).setVisible(true);
-            }
             case R.id.action_settings: {
                 return true;
             }
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -368,14 +254,6 @@ public class TrackerActivity extends BaseActivity implements
         super.onBackPressed();
     }
 
-    public DateTime getBeginDate() {
-        return mBeginDate;
-    }
-
-    public DateTime getEndDate() {
-        return mEndDate;
-    }
-
     public int getSelectedTab() {
         return mViewPager.getCurrentItem();
     }
@@ -404,43 +282,6 @@ public class TrackerActivity extends BaseActivity implements
         adapter.addFragment(new FriendFragment(), getString(TAB_NAMES[3]));
         mViewPager.setAdapter(adapter);
     }
-
-    private void setDateText(TextView textView, DateTime datetime) {
-        SpannableString text = new SpannableString(String.format("%02d/%02d/%02d",
-                datetime.getYear() - 2000, datetime.getMonthOfYear(), datetime.getDayOfMonth()));
-        text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
-        textView.setText(text);
-    }
-
-    private DatePickerDialog.OnDateSetListener mBeginDateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
-            mBeginDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            setDateText(mBeginText, mBeginDate);
-
-            PrefUtils.setLastDateRangeUpdateTime(getApplicationContext());
-
-            if (mTimeRangeChangedListener != null) { // It shouldn't be null because we can set the date.
-                mTimeRangeChangedListener.onBeginTimeChanged(mBeginDate.getMillis());
-            }
-        }
-    };
-
-    private DatePickerDialog.OnDateSetListener mEndDateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
-            mEndDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            setDateText(mEndText, mEndDate);
-
-            PrefUtils.setLastDateRangeUpdateTime(getApplicationContext());
-
-            if (mTimeRangeChangedListener != null) {
-                mTimeRangeChangedListener.onEndTimeChanged(mEndDate.getMillis());
-            }
-        }
-    };
 
     /**
      * Called when a tab enters the selected state.
@@ -514,11 +355,6 @@ public class TrackerActivity extends BaseActivity implements
         ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
         TrackerFragment fragment = (TrackerFragment) adapter.getItem(tab.getPosition());
         fragment.onFragmentSelected();
-        if (fragment instanceof OnTimeRangeChangedListener) {
-            mTimeRangeChangedListener = (OnTimeRangeChangedListener) fragment;
-        } else {
-            mTimeRangeChangedListener = null;
-        }
     }
 
     private static class TrackerOnPageChangeListener extends SimpleOnPageChangeListener {

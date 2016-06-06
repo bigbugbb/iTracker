@@ -21,11 +21,15 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -90,7 +94,6 @@ public class MediaFragment extends TrackerFragment implements
 
     private RecyclerView mMediaView;
     private MediaAdapter mMediaAdapter;
-    private LinearLayoutManager mLayoutManager;
 
     private SwipeRefreshLayout mMediaSwipeRefresh;
 
@@ -103,8 +106,12 @@ public class MediaFragment extends TrackerFragment implements
 
     private boolean mSelectMode;
 
+    private boolean mShowAsGrid;
+
     private static final long MAX_NUMBER_OF_ITEMS = 50l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
+
+    private static final String SHOW_MEDIA_AS_GRID = "show_media_as_grid";
 
     /**
      * Define a global instance of the HTTP transport.
@@ -140,7 +147,6 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mPosition = 2;
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
@@ -157,6 +163,10 @@ public class MediaFragment extends TrackerFragment implements
         mCredential.setSelectedAccountName(mChosenAccountName);
 
         mMediaAdapter = new MediaAdapter(getActivity());
+
+        if (savedInstanceState != null) {
+            mShowAsGrid = savedInstanceState.getBoolean(SHOW_MEDIA_AS_GRID, false);
+        }
     }
 
     @Override
@@ -170,18 +180,17 @@ public class MediaFragment extends TrackerFragment implements
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mLayoutManager = new LinearLayoutManager(getActivity());
-
         mMediaView = (RecyclerView) view.findViewById(R.id.media_view);
-        mMediaView.setLayoutManager(mLayoutManager);
+        mMediaView.setLayoutManager(mShowAsGrid ? new GridLayoutManager(getActivity(), 2) : new LinearLayoutManager(getActivity()));
         mMediaView.setItemAnimator(new DefaultItemAnimator());
         mMediaView.setAdapter(mMediaAdapter);
         mMediaView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                int visibleItemCount = mLayoutManager.getChildCount();
-                int totalItemCount = mLayoutManager.getItemCount();
-                int firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+                LinearLayoutManager layoutManager = (LinearLayoutManager) mMediaView.getLayoutManager();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
 
                 LOGD(TAG, String.format("visibleItemCount: %d, firstVisibleItem: %d, totalItemCount: %d",
                         visibleItemCount, firstVisibleItem, totalItemCount));
@@ -217,6 +226,58 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if (mSelectMode) {
+            inflater.inflate(R.menu.menu_media_select, menu);
+        } else {
+            inflater.inflate(R.menu.menu_media, menu);
+            menu.findItem(R.id.action_grid).setVisible(!mShowAsGrid);
+            menu.findItem(R.id.action_list).setVisible(mShowAsGrid);
+        }
+
+        mMenu = menu;
+    }
+
+    @Override
+    public void onDestroyOptionsMenu() {
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_current_downloads: {
+                // Start the current download screen
+                return true;
+            }
+            case R.id.action_grid: {
+                showMediaAsGridOrList(true);
+                return true;
+            }
+            case R.id.action_list: {
+                showMediaAsGridOrList(false);
+                return true;
+            }
+            case R.id.action_download: {
+                return true;
+            }
+            case R.id.action_share: {
+                return true;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showMediaAsGridOrList(boolean showAsGrid) {
+        mShowAsGrid = showAsGrid;
+        mMenu.findItem(R.id.action_grid).setVisible(!mShowAsGrid);
+        mMenu.findItem(R.id.action_list).setVisible(mShowAsGrid);
+        mMediaView.setLayoutManager(mShowAsGrid ?
+                new GridLayoutManager(getActivity(), 2) : new LinearLayoutManager(getActivity()));
+        mMediaView.setAdapter(mMediaAdapter);
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
     }
@@ -231,6 +292,12 @@ public class MediaFragment extends TrackerFragment implements
     public void onPause() {
         super.onPause();
         mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SHOW_MEDIA_AS_GRID, mShowAsGrid);
     }
 
     @Override
@@ -571,6 +638,7 @@ public class MediaFragment extends TrackerFragment implements
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mSelectMode) {
                 mSelectMode = false;
+                getActivity().invalidateOptionsMenu();
                 mMediaAdapter.clearSelection();
                 return true;
             }
@@ -618,7 +686,8 @@ public class MediaFragment extends TrackerFragment implements
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View item = LayoutInflater.from(mContext).inflate(R.layout.item_media, parent, false);
+            View item = LayoutInflater.from(mContext).inflate(mShowAsGrid ?
+                    R.layout.item_media_grid : R.layout.item_media, parent, false);
             return new ViewHolder(item);
         }
 
@@ -761,6 +830,8 @@ public class MediaFragment extends TrackerFragment implements
                     public boolean onLongClick(View v) {
                         if (!mSelectMode) {
                             mSelectMode = true;
+                            mCheckedMap.put(video.getId(), true);
+                            getActivity().invalidateOptionsMenu();
                             mMediaAdapter.notifyDataSetChanged();
                             return true;
                         }

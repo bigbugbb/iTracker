@@ -9,9 +9,9 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.provider.MediaStore;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.View;
 
 import com.localytics.android.itracker.data.model.Track;
@@ -32,15 +32,12 @@ public abstract class TrackerFragment extends Fragment
     public static final String BEGIN_DATE = "begin_date";
     public static final String END_DATE = "end_date";
 
-    protected long mBeginTime;
-    protected long mEndTime;
-
     protected boolean mSelected;
 
     protected int mPosition;
 
+    protected Menu mMenu;
     protected Handler mHandler;
-    protected HandlerThread mBackgroundThread;
 
     public TrackerFragment() {
         // Required empty public constructor
@@ -50,6 +47,7 @@ public abstract class TrackerFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -69,7 +67,6 @@ public abstract class TrackerFragment extends Fragment
     public void onResume() {
         super.onResume();
 //        updateSelected();
-        updateTimeRange();
     }
 
     @Override
@@ -129,15 +126,6 @@ public abstract class TrackerFragment extends Fragment
         if (activity instanceof TrackerActivity) {
             TrackerActivity trackerActivity = (TrackerActivity) activity;
             mSelected = trackerActivity.getSelectedTab() == mPosition;
-        }
-    }
-
-    protected void updateTimeRange() {
-        Activity activity = getActivity();
-        if (activity instanceof TrackerActivity) {
-            TrackerActivity trackerActivity = (TrackerActivity) activity;
-            mBeginTime = trackerActivity.getBeginDate().getMillis();
-            mEndTime = trackerActivity.getEndDate().getMillis();
         }
     }
 

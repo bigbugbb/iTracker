@@ -18,12 +18,17 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,8 +53,7 @@ import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
-public class PhotoFragment extends TrackerFragment implements
-        OnTimeRangeChangedListener {
+public class PhotoFragment extends TrackerFragment {
 
     private static final String TAG = makeLogTag(PhotoFragment.class);
 
@@ -61,7 +65,11 @@ public class PhotoFragment extends TrackerFragment implements
     private String mCurrentPhotoPath;
     private FloatingActionButton mFabTakePhoto;
 
+    private TimeRangeController mTimeRangeController;
+
     private ThrottledContentObserver mPhotosObserver;
+
+    private boolean mSearchEnabled;
 
     private boolean mPermissionRequested = true;
 
@@ -79,6 +87,8 @@ public class PhotoFragment extends TrackerFragment implements
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        mTimeRangeController = new TimeRangeController(this);
 
         // Should be triggered after we taking a new photo
         mPhotosObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
@@ -104,12 +114,14 @@ public class PhotoFragment extends TrackerFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPosition = 1;
+        mTimeRangeController.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         PhotoCoordinatorLayout root = (PhotoCoordinatorLayout) inflater.inflate(R.layout.fragment_photo, container, false);
+
         mPhotoCollectionView = (CollectionView) root.findViewById(R.id.photos_view);
         mPhotoCollectionAdapter = new PhotoCollectionAdapter();
         mPhotoCollectionView.setCollectionAdapter(mPhotoCollectionAdapter);
@@ -184,6 +196,58 @@ public class PhotoFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_action, menu);
+
+        if (mSearchEnabled) {
+            Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+            toolbar.addView(mTimeRangeController.getTimeRange(),
+                    new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            menu.findItem(R.id.action_clear).setVisible(true);
+            menu.findItem(R.id.action_search).setVisible(false);
+        }
+
+        mMenu = menu;
+    }
+
+    @Override
+    public void onDestroyOptionsMenu() {
+        if (mSearchEnabled) {
+            Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+            toolbar.removeView(mTimeRangeController.getTimeRange());
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        switch (item.getItemId()) {
+            case R.id.action_search: {
+                mSearchEnabled = true;
+                item.setVisible(false);
+                toolbar.addView(mTimeRangeController.getTimeRange(),
+                        new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                mMenu.findItem(R.id.action_clear).setVisible(true);
+                return true;
+            }
+            case R.id.action_clear: {
+                mSearchEnabled = false;
+                item.setVisible(false);
+                toolbar.removeView(mTimeRangeController.getTimeRange());
+                mMenu.findItem(R.id.action_search).setVisible(true);
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mTimeRangeController.updateTimeRange();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         reloadPhotosWithRequiredPermission();
@@ -193,6 +257,12 @@ public class PhotoFragment extends TrackerFragment implements
     public void onPause() {
         super.onPause();
         mPhotosObserver.cancelPendingCallback();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mTimeRangeController.onSaveInstanceState(outState);
     }
 
     @Override
@@ -351,21 +421,11 @@ public class PhotoFragment extends TrackerFragment implements
         }
     }
 
-    @Override
-    public void onBeginTimeChanged(long begin) {
-        mBeginTime = begin;
-        reloadPhotosWithRequiredPermission();
-    }
-
-    @Override
-    public void onEndTimeChanged(long end) {
-        mEndTime = end;
-        reloadPhotosWithRequiredPermission();
-    }
-
     private void reloadPhotosWithRequiredPermission() {
         if (!requestPhotosAccessPermission()) {
-            reloadPhotos(getLoaderManager(), mBeginTime, mEndTime, this);
+            long beginTime = mTimeRangeController.getBeginDate().getMillis();
+            long endtime = mTimeRangeController.getEndDate().getMillis();
+            reloadPhotos(getLoaderManager(), beginTime, endtime, this);
         }
     }
 

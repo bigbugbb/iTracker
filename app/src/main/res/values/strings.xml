@@ -19,6 +19,11 @@
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_list">Show media as list</string>
+    <string name="action_grid">Show media as grid</string>
+    <string name="action_share">Share</string>
+    <string name="action_download">Download</string>
+    <string name="action_current_download">Current download</string>
     <string name="title_activity_base">BaseActivity</string>
     <string name="title_activity_welcome">WelcomeActivity</string>
 

@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.PhotoFragment">
+    android:background="@color/tracks_background"
+    tools:context=".ui.MediaFragment">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -19,9 +20,8 @@
                 android:id="@+id/media_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingTop="4dp"
+                android:padding="8dp"
                 android:clipToPadding="false"
-                android:background="@color/tracks_background"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"/>
 

@@ -11,10 +11,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -34,7 +39,6 @@ import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 public class ActionFragment extends TrackerFragment implements
-        OnTimeRangeChangedListener,
         OnTrackItemSelectedListener {
 
     private static final String TAG = makeLogTag(ActionFragment.class);
@@ -45,6 +49,8 @@ public class ActionFragment extends TrackerFragment implements
     private MotionsView   mMotionsView;
     private ProgressBar   mLoadingView;
 
+    private TimeRangeController mTimeRangeController;
+
     private TrackItemAdapter mTrackItemAdapter;
 
     private Track mSelectedTrack;
@@ -52,6 +58,8 @@ public class ActionFragment extends TrackerFragment implements
     private ThrottledContentObserver mTracksObserver;
     private ThrottledContentObserver mMotionsObserver;
     private ThrottledContentObserver mActivitiesObserver;
+
+    private boolean mSearchEnabled;
 
     public ActionFragment() {
         // Required empty public constructor
@@ -61,13 +69,17 @@ public class ActionFragment extends TrackerFragment implements
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
+        mTimeRangeController = new TimeRangeController(this);
+
         mTracksObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
             @Override
             public void onThrottledContentObserverFired() {
                 LOGD(TAG, "ThrottledContentObserver fired (tracks). Content changed.");
                 if (isAdded()) {
                     LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
-                    reloadTracks(getLoaderManager(), mBeginTime, mEndTime, ActionFragment.this);
+                    long beginTime = mTimeRangeController.getBeginDate().getMillis();
+                    long endtime = mTimeRangeController.getEndDate().getMillis();
+                    reloadTracks(getLoaderManager(), beginTime, endtime, ActionFragment.this);
                 }
             }
         });
@@ -117,12 +129,14 @@ public class ActionFragment extends TrackerFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPosition = 0;
+        mTimeRangeController.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         ActionFrameLayout layout = (ActionFrameLayout) inflater.inflate(R.layout.fragment_action, container, false);
+
         mTracksView    = (RecyclerView) layout.findViewById(R.id.tracks_view);
         mTimelinesView = (TimelinesView) layout.findViewById(R.id.activities_view);
         mMotionsView   = (MotionsView) layout.findViewById(R.id.motions_view);
@@ -182,10 +196,64 @@ public class ActionFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_action, menu);
+
+        if (mSearchEnabled) {
+            Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+            toolbar.addView(mTimeRangeController.getTimeRange(),
+                    new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            menu.findItem(R.id.action_clear).setVisible(true);
+            menu.findItem(R.id.action_search).setVisible(false);
+        }
+
+        mMenu = menu;
+    }
+
+    @Override
+    public void onDestroyOptionsMenu() {
+        if (mSearchEnabled) {
+            Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+            toolbar.removeView(mTimeRangeController.getTimeRange());
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        switch (item.getItemId()) {
+            case R.id.action_search: {
+                mSearchEnabled = true;
+                item.setVisible(false);
+                toolbar.addView(mTimeRangeController.getTimeRange(),
+                        new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                mMenu.findItem(R.id.action_clear).setVisible(true);
+                return true;
+            }
+            case R.id.action_clear: {
+                mSearchEnabled = false;
+                item.setVisible(false);
+                toolbar.removeView(mTimeRangeController.getTimeRange());
+                mMenu.findItem(R.id.action_search).setVisible(true);
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mTimeRangeController.updateTimeRange();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         LOGD(TAG, "Reloading data as a result of onResume()");
-        reloadTracks(getLoaderManager(), mBeginTime, mEndTime, this);
+        long beginTime = mTimeRangeController.getBeginDate().getMillis();
+        long endtime = mTimeRangeController.getEndDate().getMillis();
+        reloadTracks(getLoaderManager(), beginTime, endtime, this);
     }
 
     @Override
@@ -197,8 +265,24 @@ public class ActionFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mTimeRangeController.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void onFragmentSelected() {
+        super.onFragmentSelected();
+    }
+
+    @Override
+    public void onFragmentUnselected() {
+        super.onFragmentUnselected();
     }
 
     @Override
@@ -253,18 +337,6 @@ public class ActionFragment extends TrackerFragment implements
                 break;
             }
         }
-    }
-
-    @Override
-    public void onBeginTimeChanged(long begin) {
-        mBeginTime = begin;
-        reloadTracks(getLoaderManager(), mBeginTime, mEndTime, ActionFragment.this);
-    }
-
-    @Override
-    public void onEndTimeChanged(long end) {
-        mEndTime = end;
-        reloadTracks(getLoaderManager(), mBeginTime, mEndTime, ActionFragment.this);
     }
 
     private void showLoadingProgress() {
