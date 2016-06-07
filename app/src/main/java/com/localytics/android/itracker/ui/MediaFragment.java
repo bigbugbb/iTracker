@@ -61,14 +61,13 @@ import com.google.api.services.youtube.YouTubeScopes;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
-import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoContentDetails;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatistics;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.util.PrefUtils;
 
 import java.io.IOException;
@@ -112,11 +111,10 @@ public class MediaFragment extends TrackerFragment implements
 
     private boolean mShowAsGrid;
 
-    private static final long MAX_NUMBER_OF_ITEMS = 50l;
+    private static final long MAX_NUMBER_OF_ITEMS = 20l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
     private static final String SHOW_MEDIA_AS_GRID = "show_media_as_grid";
-    private static final String ALL_CACHED_VIDEOS = "all_cached_videos";
 
     /**
      * Define a global instance of the HTTP transport.
@@ -168,6 +166,9 @@ public class MediaFragment extends TrackerFragment implements
         mCredential.setSelectedAccountName(mChosenAccountName);
 
         mMediaAdapter = new MediaAdapter(getActivity());
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mShowAsGrid = sp.getBoolean(SHOW_MEDIA_AS_GRID, false);
     }
 
     @Override
@@ -209,14 +210,6 @@ public class MediaFragment extends TrackerFragment implements
                 }
             }
         });
-
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mShowAsGrid = sp.getBoolean(SHOW_MEDIA_AS_GRID, false);
-        String jsonAllCachedVideos = sp.getString(ALL_CACHED_VIDEOS, null);
-        if (!TextUtils.isEmpty(jsonAllCachedVideos)) {
-            List<Video> videos = new Gson().fromJson(jsonAllCachedVideos, new TypeToken<List<Video>>(){}.getType());
-            mMediaAdapter.updateVideos(videos, false);
-        }
 
         mMediaSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.media_swipe_refresh);
         mMediaSwipeRefresh.setColorSchemeResources(R.color.colorAccent);
@@ -316,7 +309,6 @@ public class MediaFragment extends TrackerFragment implements
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         SharedPreferences.Editor editor = sp.edit();
         editor.putBoolean(SHOW_MEDIA_AS_GRID, mShowAsGrid);
-        editor.putString(ALL_CACHED_VIDEOS, new Gson().toJson(mMediaAdapter.getVideos()));
         editor.apply();
     }
 
@@ -388,7 +380,7 @@ public class MediaFragment extends TrackerFragment implements
             @Override
             protected List<Video> doInBackground(Void... voids) {
                 YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
-                        .setApplicationName("iTracker")
+                        .setApplicationName(getString(R.string.app_name))
                         .build();
 
                 try {
@@ -406,11 +398,9 @@ public class MediaFragment extends TrackerFragment implements
                             .getContentDetails().getRelatedPlaylists()
                             .getWatchHistory();
 
-                    List<Video> videos = new ArrayList<>();
-
                     // Get videos from user's upload playlist with a playlist items list request
                     PlaylistItemListResponse pilr = youtube.playlistItems()
-                            .list("id,contentDetails")
+                            .list("id,contentDetails,snippet")
                             .setPlaylistId(watchHistoryPlaylistIds)
                             .setPageToken(refreshLatest ? null : mNextPageToken)
                             .setMaxResults(MAX_NUMBER_OF_ITEMS).execute();
@@ -425,20 +415,22 @@ public class MediaFragment extends TrackerFragment implements
                         mNextPageToken = pilr.getNextPageToken();
                     }
 
-                    // Iterate over playlist item list response to get uploaded videos' ids.
-                    List<String> videoIds = new ArrayList<>();
+                    // Iterate over playlist item list response to get uploaded videos' ids and last watched time
+                    LinkedHashMap<String, String> watchedVideos = new LinkedHashMap<>();
                     for (PlaylistItem item : pilr.getItems()) {
-                        videoIds.add(item.getContentDetails().getVideoId());
+                        watchedVideos.put(item.getContentDetails().getVideoId(), item.getSnippet().getPublishedAt().toString());
                     }
 
                     // Get details of uploaded videos with a videos list request.
                     VideoListResponse vlr = youtube.videos()
-                            .list("id,snippet,status,statistics,contentDetails")
-                            .setId(TextUtils.join(",", videoIds)).execute();
+                            .list("id,snippet,status,statistics,contentDetails,fileDetails")
+                            .setId(TextUtils.join(",", watchedVideos.keySet())).execute();
 
                     // Add only the public videos to the local videos list.
-                    for (Video video : vlr.getItems()) {
-                        if ("public".equals(video.getStatus().getPrivacyStatus())) {
+                    List<Video> videos = new ArrayList<>();
+                    for (com.google.api.services.youtube.model.Video youtubeVideo : vlr.getItems()) {
+                        if ("public".equals(youtubeVideo.getStatus().getPrivacyStatus())) {
+                            Video video = Video.fromYoutubeVideo(youtubeVideo, watchedVideos.get(youtubeVideo.getId()));
                             videos.add(video);
                         }
                     }
@@ -649,7 +641,7 @@ public class MediaFragment extends TrackerFragment implements
     private void startMediaPlayback(Uri uri, Video video) {
         Intent intent = new Intent(getActivity(), PlayerActivity.class);
         intent.setData(uri);
-        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, video.getSnippet().getTitle());
+        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, video.title);
         startActivity(intent);
     }
 
@@ -682,16 +674,16 @@ public class MediaFragment extends TrackerFragment implements
                 ListIterator<Video> back = videos.listIterator(videos.size());
                 while (back.hasPrevious()) {
                     Video previous = back.previous();
-                    if (!mVideoIds.contains(previous.getId())) {
+                    if (!mVideoIds.contains(previous.identifier)) {
                         mVideos.push(previous);
-                        mVideoIds.add(previous.getId());
+                        mVideoIds.add(previous.identifier);
                     }
                 }
             } else {
                 for (Video video : videos) {
-                    if (!mVideoIds.contains(video.getId())) {
+                    if (!mVideoIds.contains(video.identifier)) {
                         mVideos.offer(video);
-                        mVideoIds.add(video.getId());
+                        mVideoIds.add(video.identifier);
                     }
                 }
             }
@@ -747,30 +739,26 @@ public class MediaFragment extends TrackerFragment implements
             }
 
             public void bindData(final Video video) {
-                VideoSnippet snippet = video.getSnippet();
-                VideoStatistics statistics = video.getStatistics();
-                VideoContentDetails contentDetails = video.getContentDetails();
-
-                duration.setText(formatDuration(contentDetails.getDuration().substring(2)));
-                title.setText(snippet.getTitle());
-                owner.setText(snippet.getChannelTitle());
-                published.setText(formatPublishedAtAndViews(snippet.getPublishedAt(), statistics.getViewCount().longValue()));
+                duration.setText(video.duration);
+                title.setText(video.title);
+                owner.setText(video.owner);
+                published.setText(video.published_and_views);
                 Glide.with(MediaFragment.this)
-                        .load(snippet.getThumbnails().getHigh().getUrl())
+                        .load(video.thumbnail)
                         .centerCrop()
                         .crossFade()
                         .into(thumbnail);
 
                 if (mSelectMode) {
                     selected.setVisibility(View.VISIBLE);
-                    selected.setChecked(mCheckedMap.get(video.getId()) != null);
+                    selected.setChecked(mCheckedMap.get(video.identifier) != null);
                 } else {
                     selected.setVisibility(View.INVISIBLE);
                 }
                 selected.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mCheckedMap.put(video.getId(), video);
+                        mCheckedMap.put(video.identifier, video);
                     }
                 });
 
@@ -800,14 +788,14 @@ public class MediaFragment extends TrackerFragment implements
                     @Override
                     public void onClick(View v) {
                         if (mSelectMode) {
-                            boolean isChecked = mCheckedMap.get(video.getId()) != null;
-                            mCheckedMap.put(video.getId(), isChecked ? null : video);
+                            boolean isChecked = mCheckedMap.get(video.identifier) != null;
+                            mCheckedMap.put(video.identifier, isChecked ? null : video);
                             selected.setChecked(!isChecked);
                             return;
                         }
 
                         // TODO: play the media in another activity or the floating view
-                        YouTubeExtractor extractor = new YouTubeExtractor(video.getId());
+                        YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
                         extractor.extract(new YouTubeExtractor.Callback() {
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
@@ -848,7 +836,7 @@ public class MediaFragment extends TrackerFragment implements
                     public boolean onLongClick(View v) {
                         if (!mSelectMode) {
                             mSelectMode = true;
-                            mCheckedMap.put(video.getId(), video);
+                            mCheckedMap.put(video.identifier, video);
                             getActivity().invalidateOptionsMenu();
                             mMediaAdapter.notifyDataSetChanged();
                             return true;
@@ -856,45 +844,6 @@ public class MediaFragment extends TrackerFragment implements
                         return false;
                     }
                 });
-            }
-
-            private String formatDuration(String duration) {
-                StringBuilder sb = new StringBuilder();
-                int startIndex = 0;
-                int indexH = duration.indexOf("H");
-                if (indexH != -1) {
-                    sb.append(duration.substring(startIndex, indexH))
-                            .append(':');
-                    startIndex = indexH + 1;
-                }
-                int indexM = duration.indexOf("M");
-                if (indexM != -1) {
-                    sb.append(indexM - startIndex < 2 && startIndex > 0 ? "0" : "")
-                            .append(duration.substring(startIndex, indexM))
-                            .append(':');
-                    startIndex = indexM + 1;
-                }
-                int indexS = duration.indexOf("S");
-                if (indexS != -1) {
-                    if (startIndex == 0) {
-                        sb.append("0:");
-                    }
-                    sb.append(indexS - startIndex < 2 ? "0" : "").append(duration.substring(startIndex, indexS));
-                } else {
-                    sb.append("00");
-                }
-                return sb.toString();
-            }
-
-            private String formatPublishedAtAndViews(DateTime time, long viewCount) {
-                String publishedAt = time.toString().substring(0, 10);
-                if (viewCount >= 1000000) {
-                    return String.format("%s · %.1fM views", publishedAt, viewCount / 1000000.0);
-                } else if (viewCount >= 1000) {
-                    return String.format("%s · %dK views", publishedAt, viewCount / 1000);
-                } else {
-                    return String.format("%s · %d views", publishedAt, viewCount);
-                }
             }
         }
     }

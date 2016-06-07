@@ -15,11 +15,13 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
+import com.localytics.android.itracker.provider.TrackerContract.Videos;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.SelectionBuilder;
@@ -61,6 +63,9 @@ public class TrackerProvider extends ContentProvider {
     private static final int ACTIVITIES = 500;
     private static final int ACTIVITIES_ID = 501;
 
+    private static final int VIDEOS = 600;
+    private static final int VIDEOS_ID = 601;
+
     /**
      * Build and return a {@link UriMatcher} that catches all {@link Uri}
      * variations supported by this {@link ContentProvider}.
@@ -83,6 +88,9 @@ public class TrackerProvider extends ContentProvider {
 
         matcher.addURI(authority, "activities", ACTIVITIES);
         matcher.addURI(authority, "activities/*", ACTIVITIES_ID);
+
+        matcher.addURI(authority, "videos", VIDEOS);
+        matcher.addURI(authority, "videos/*", VIDEOS_ID);
 
         return matcher;
     }
@@ -214,6 +222,10 @@ public class TrackerProvider extends ContentProvider {
                 return Activities.CONTENT_TYPE;
             case ACTIVITIES_ID:
                 return Activities.CONTENT_ITEM_TYPE;
+            case VIDEOS:
+                return Videos.CONTENT_TYPE;
+            case VIDEOS_ID:
+                return Videos.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -285,6 +297,10 @@ public class TrackerProvider extends ContentProvider {
                 table = Tables.ACTIVITIES;
                 break;
             }
+            case VIDEOS: {
+                table = Tables.VIDEOS;
+                break;
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
             }
@@ -341,6 +357,11 @@ public class TrackerProvider extends ContentProvider {
                 long newId = db.insertOrThrow(Tables.ACTIVITIES, null, values);
                 notifyChange(uri);
                 return Activities.buildActivityUri("" + newId);
+            }
+            case VIDEOS: {
+                long newId = db.insertOrThrow(Tables.VIDEOS, null, values);
+                notifyChange(uri);
+                return Videos.buildVideoUri("" + newId);
             }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
@@ -421,6 +442,13 @@ public class TrackerProvider extends ContentProvider {
             case ACTIVITIES_ID: {
                 final String id = Activities.getActivityId(uri);
                 return builder.table(Tables.ACTIVITIES).where(Activities._ID + "=?", id);
+            }
+            case VIDEOS: {
+                return builder.table(Tables.VIDEOS);
+            }
+            case VIDEOS_ID: {
+                final String id = Videos.getVideoId(uri);
+                return builder.table(Tables.VIDEOS).where(Videos._ID + "=?", id);
             }
             default: {
                 throw new UnsupportedOperationException("Unknown uri for " + match + ": " + uri);

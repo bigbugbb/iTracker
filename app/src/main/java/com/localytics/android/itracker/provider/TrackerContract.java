@@ -71,12 +71,24 @@ public class TrackerContract {
         String CONFIDENCE = "confidence";
     }
 
+    interface VideoColumns {
+        String IDENTIFIER = "identifier";
+        String THUMBNAIL = "thumbnail";
+        String DURATION = "duration";
+        String TITLE = "title";
+        String OWNER = "owner";
+        String PUBLISHED_AND_VIEWS = "published_and_views";
+        String WATCHED_TIME = "watched_time";
+        String FILE_SIZE = "file_size";
+    }
+
     interface Paths {
         String TRACKS = "tracks";
         String BACKUPS = "backups";
         String MOTIONS = "motions";
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
+        String VIDEOS = "videos";
         String UNKNOWN = "unknown";
     }
 
@@ -238,6 +250,23 @@ public class TrackerContract {
 
         /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
         public static String getActivityId(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
+    }
+
+    public static class Videos implements VideoColumns, BaseColumns {
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.VIDEOS).build();
+
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.video";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.video";
+
+        /** Build a {@link Uri} that references a given video. */
+        public static Uri buildVideoUri(String videoId) {
+            return CONTENT_URI.buildUpon().appendPath(videoId).build();
+        }
+
+        /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
+        public static String getVideoId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
     }
