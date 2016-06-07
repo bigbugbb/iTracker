@@ -114,7 +114,7 @@ public class PhotoFragment extends TrackerFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPosition = 1;
-        mTimeRangeController.onCreate(savedInstanceState);
+        mTimeRangeController.create();
     }
 
     @Override
@@ -257,12 +257,7 @@ public class PhotoFragment extends TrackerFragment {
     public void onPause() {
         super.onPause();
         mPhotosObserver.cancelPendingCallback();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mTimeRangeController.onSaveInstanceState(outState);
+        mTimeRangeController.saveState();
     }
 
     @Override

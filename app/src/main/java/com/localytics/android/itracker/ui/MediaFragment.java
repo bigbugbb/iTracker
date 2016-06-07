@@ -8,6 +8,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -15,6 +16,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -64,6 +66,8 @@ import com.google.api.services.youtube.model.VideoContentDetails;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatistics;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.util.PrefUtils;
 
@@ -71,8 +75,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -112,6 +116,7 @@ public class MediaFragment extends TrackerFragment implements
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
     private static final String SHOW_MEDIA_AS_GRID = "show_media_as_grid";
+    private static final String ALL_CACHED_VIDEOS = "all_cached_videos";
 
     /**
      * Define a global instance of the HTTP transport.
@@ -163,10 +168,6 @@ public class MediaFragment extends TrackerFragment implements
         mCredential.setSelectedAccountName(mChosenAccountName);
 
         mMediaAdapter = new MediaAdapter(getActivity());
-
-        if (savedInstanceState != null) {
-            mShowAsGrid = savedInstanceState.getBoolean(SHOW_MEDIA_AS_GRID, false);
-        }
     }
 
     @Override
@@ -209,6 +210,14 @@ public class MediaFragment extends TrackerFragment implements
             }
         });
 
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mShowAsGrid = sp.getBoolean(SHOW_MEDIA_AS_GRID, false);
+        String jsonAllCachedVideos = sp.getString(ALL_CACHED_VIDEOS, null);
+        if (!TextUtils.isEmpty(jsonAllCachedVideos)) {
+            List<Video> videos = new Gson().fromJson(jsonAllCachedVideos, new TypeToken<List<Video>>(){}.getType());
+            mMediaAdapter.updateVideos(videos, false);
+        }
+
         mMediaSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.media_swipe_refresh);
         mMediaSwipeRefresh.setColorSchemeResources(R.color.colorAccent);
         mMediaSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -246,7 +255,8 @@ public class MediaFragment extends TrackerFragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_current_downloads: {
-                // Start the current download screen
+                Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
+                startActivity(intent);
                 return true;
             }
             case R.id.action_grid: {
@@ -258,6 +268,15 @@ public class MediaFragment extends TrackerFragment implements
                 return true;
             }
             case R.id.action_download: {
+                List<Video> videos = mMediaAdapter.getSelectedVideos();
+                if (videos.size() == 0) {
+                    Toast.makeText(getActivity(), R.string.download_without_selection, Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                final String selectedVideosJson = new Gson().toJson(videos);
+                Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
+                intent.putExtra(MediaDownloadActivity.EXTRA_SELECTED_VIDEOS, selectedVideosJson);
+                startActivity(intent);
                 return true;
             }
             case R.id.action_share: {
@@ -292,12 +311,13 @@ public class MediaFragment extends TrackerFragment implements
     public void onPause() {
         super.onPause();
         mGoogleApiClient.disconnect();
-    }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(SHOW_MEDIA_AS_GRID, mShowAsGrid);
+        // http://stackoverflow.com/questions/5166201/android-onsaveinstancestate-and-onpause
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean(SHOW_MEDIA_AS_GRID, mShowAsGrid);
+        editor.putString(ALL_CACHED_VIDEOS, new Gson().toJson(mMediaAdapter.getVideos()));
+        editor.apply();
     }
 
     @Override
@@ -639,7 +659,7 @@ public class MediaFragment extends TrackerFragment implements
             if (mSelectMode) {
                 mSelectMode = false;
                 getActivity().invalidateOptionsMenu();
-                mMediaAdapter.clearSelection();
+                mMediaAdapter.clearSelectedVideos();
                 return true;
             }
         }
@@ -651,7 +671,7 @@ public class MediaFragment extends TrackerFragment implements
         private Context mContext;
         private LinkedList<Video> mVideos = new LinkedList<>();
         private Set<String> mVideoIds = new HashSet<>();
-        private Map<String, Boolean> mCheckedMap = new HashMap<>();
+        private Map<String, Video> mCheckedMap = new LinkedHashMap<>();
 
         public MediaAdapter(Context context) {
             mContext = context;
@@ -675,11 +695,18 @@ public class MediaFragment extends TrackerFragment implements
                     }
                 }
             }
-
             notifyDataSetChanged();
         }
 
-        public void clearSelection() {
+        public List<Video> getVideos() {
+            return mVideos;
+        }
+
+        public List<Video> getSelectedVideos() {
+            return new ArrayList<>(mCheckedMap.values());
+        }
+
+        public void clearSelectedVideos() {
             mCheckedMap.clear();
             notifyDataSetChanged();
         }
@@ -736,17 +763,14 @@ public class MediaFragment extends TrackerFragment implements
 
                 if (mSelectMode) {
                     selected.setVisibility(View.VISIBLE);
-                    Boolean isChecked = mCheckedMap.get(video.getId());
-                    selected.setChecked(isChecked != null && isChecked);
+                    selected.setChecked(mCheckedMap.get(video.getId()) != null);
                 } else {
                     selected.setVisibility(View.INVISIBLE);
                 }
                 selected.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String videoId = video.getId();
-                        Boolean isChecked = mCheckedMap.get(videoId);
-                        mCheckedMap.put(videoId, isChecked == null || !isChecked);
+                        mCheckedMap.put(video.getId(), video);
                     }
                 });
 
@@ -776,15 +800,9 @@ public class MediaFragment extends TrackerFragment implements
                     @Override
                     public void onClick(View v) {
                         if (mSelectMode) {
-                            String videoId = video.getId();
-                            Boolean isChecked = mCheckedMap.get(videoId);
-                            if (isChecked == null || !isChecked) {
-                                mCheckedMap.put(videoId, true);
-                                selected.setChecked(true);
-                            } else {
-                                mCheckedMap.put(videoId, false);
-                                selected.setChecked(false);
-                            }
+                            boolean isChecked = mCheckedMap.get(video.getId()) != null;
+                            mCheckedMap.put(video.getId(), isChecked ? null : video);
+                            selected.setChecked(!isChecked);
                             return;
                         }
 
@@ -830,7 +848,7 @@ public class MediaFragment extends TrackerFragment implements
                     public boolean onLongClick(View v) {
                         if (!mSelectMode) {
                             mSelectMode = true;
-                            mCheckedMap.put(video.getId(), true);
+                            mCheckedMap.put(video.getId(), video);
                             getActivity().invalidateOptionsMenu();
                             mMediaAdapter.notifyDataSetChanged();
                             return true;

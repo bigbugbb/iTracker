@@ -129,7 +129,7 @@ public class ActionFragment extends TrackerFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPosition = 0;
-        mTimeRangeController.onCreate(savedInstanceState);
+        mTimeRangeController.create();
     }
 
     @Override
@@ -262,12 +262,7 @@ public class ActionFragment extends TrackerFragment implements
         mTracksObserver.cancelPendingCallback();
         mMotionsObserver.cancelPendingCallback();
         mActivitiesObserver.cancelPendingCallback();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mTimeRangeController.onSaveInstanceState(outState);
+        mTimeRangeController.saveState();
     }
 
     @Override

@@ -2,8 +2,10 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 import android.view.Gravity;
@@ -43,7 +45,7 @@ class TimeRangeController {
         mFragment = fragment;
     }
 
-    public void onCreate(Bundle savedInstanceState) {
+    public void create() {
         mTimeRange = LayoutInflater.from(mFragment.getActivity()).inflate(R.layout.search_date_range, null);
         mBeginText = (TextView) mTimeRange.findViewById(R.id.begin_date);
         mBeginText.setOnClickListener(new View.OnClickListener() {
@@ -85,21 +87,23 @@ class TimeRangeController {
             }
         });
 
-        if (savedInstanceState != null) {
-            mBeginDate = new DateTime(savedInstanceState.getLong(BEGIN_DATE));
-            mEndDate = new DateTime(savedInstanceState.getLong(END_DATE));
-            updateOutdatedTimeRange();
-        } else {
-            initTimeRange();
-        }
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mFragment.getActivity());
+        mEndDate = new DateTime(sp.getLong(END_DATE,
+                DateTime.now().plusDays(1).withTimeAtStartOfDay().minusSeconds(1).getMillis()));
+        mBeginDate = new DateTime(sp.getLong(BEGIN_DATE,
+                mEndDate.minusDays(Config.DEFAULT_DAYS_BACK_FROM_TODAY + 1).plusSeconds(1).getMillis()));
+        updateOutdatedTimeRange();
 
         setDateText(mBeginText, mBeginDate);
         setDateText(mEndText, mEndDate);
     }
 
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putLong(BEGIN_DATE, mBeginDate.getMillis());
-        outState.putLong(END_DATE, mEndDate.getMillis());
+    public void saveState() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mFragment.getActivity());
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putLong(BEGIN_DATE, mBeginDate.getMillis());
+        editor.putLong(END_DATE, mEndDate.getMillis());
+        editor.apply();
     }
 
     public View getTimeRange() {
