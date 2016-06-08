@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;

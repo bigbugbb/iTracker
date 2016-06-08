@@ -31,6 +31,7 @@ public abstract class TrackerFragment extends Fragment
     public static final String SELECTED_TRACK = "selected_track";
     public static final String BEGIN_DATE = "begin_date";
     public static final String END_DATE = "end_date";
+    public static final String VIDEO_TITLE = "video_title";
 
     protected boolean mSelected;
 
@@ -121,6 +122,12 @@ public abstract class TrackerFragment extends Fragment
         loaderManager.restartLoader(PhotosQuery.TOKEN_NORMAL, args, callbacks);
     }
 
+    public static void reloadVideos(LoaderManager loaderManager, String title, boolean downloading, LoaderCallbacks callbacks) {
+        Bundle args = new Bundle();
+        args.putString(VIDEO_TITLE, title);
+        loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, args, callbacks);
+    }
+
     protected void updateSelected() {
         Activity activity = getActivity();
         if (activity instanceof TrackerActivity) {
@@ -188,6 +195,16 @@ public abstract class TrackerFragment extends Fragment
                         MediaStore.Images.Media.DATE_ADDED + " DESC");
                 break;
             }
+            case VideosQuery.TOKEN_NORMAL: {
+                loader = new CursorLoader(
+                        getActivity(),
+                        TrackerContract.Videos.CONTENT_URI,
+                        null,
+                        TrackerContract.Videos.SELECTION_BY_TITLE,
+                        new String[]{ args.getString(VIDEO_TITLE) },
+                        TrackerContract.Videos.WATCHED_TIME + " DESC");
+                break;
+            }
         }
 
         return loader;
@@ -219,5 +236,9 @@ public abstract class TrackerFragment extends Fragment
 
     protected interface PhotosQuery {
         int TOKEN_NORMAL = 500;
+    }
+
+    protected interface VideosQuery {
+        int TOKEN_NORMAL = 600;
     }
 }

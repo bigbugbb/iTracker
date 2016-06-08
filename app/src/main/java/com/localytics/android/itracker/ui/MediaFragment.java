@@ -54,21 +54,19 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.YouTubeScopes;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
-import com.google.api.services.youtube.model.VideoContentDetails;
 import com.google.api.services.youtube.model.VideoListResponse;
-import com.google.api.services.youtube.model.VideoSnippet;
-import com.google.api.services.youtube.model.VideoStatistics;
 import com.google.gson.Gson;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
+import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.util.ThrottledContentObserver;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -108,10 +106,11 @@ public class MediaFragment extends TrackerFragment implements
     private volatile boolean mLoading;
 
     private boolean mSelectMode;
-
     private boolean mShowAsGrid;
 
-    private static final long MAX_NUMBER_OF_ITEMS = 20l;
+    private ThrottledContentObserver mVideosObserver;
+
+    private static final long MAX_NUMBER_OF_ITEMS = 50l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
     private static final String SHOW_MEDIA_AS_GRID = "show_media_as_grid";
@@ -140,11 +139,26 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        // Should be triggered after we taking a new photo
+        mVideosObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
+            @Override
+            public void onThrottledContentObserverFired() {
+                LOGD(TAG, "ThrottledContentObserver fired (photos). Content changed.");
+                if (isAdded()) {
+                    LOGD(TAG, "Requesting photos cursor reload as a result of ContentObserver firing.");
+                    reloadVideos(getLoaderManager(), "", MediaFragment.this);
+                }
+            }
+        });
+        activity.getContentResolver().registerContentObserver(TrackerContract.Videos.CONTENT_URI, true, mVideosObserver);
+
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+        getActivity().getContentResolver().unregisterContentObserver(mVideosObserver);
     }
 
     @Override
@@ -423,7 +437,7 @@ public class MediaFragment extends TrackerFragment implements
 
                     // Get details of uploaded videos with a videos list request.
                     VideoListResponse vlr = youtube.videos()
-                            .list("id,snippet,status,statistics,contentDetails,fileDetails")
+                            .list("id,snippet,status,statistics,contentDetails")
                             .setId(TextUtils.join(",", watchedVideos.keySet())).execute();
 
                     // Add only the public videos to the local videos list.

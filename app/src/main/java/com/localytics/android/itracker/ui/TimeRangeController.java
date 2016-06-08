@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
