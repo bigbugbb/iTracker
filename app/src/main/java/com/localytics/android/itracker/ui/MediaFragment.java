@@ -5,17 +5,22 @@ import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.Loader;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -63,8 +68,11 @@ import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.gson.Gson;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.model.Photo;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.ui.widget.CollectionView;
+import com.localytics.android.itracker.util.AppQueryHandler;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
@@ -144,11 +152,8 @@ public class MediaFragment extends TrackerFragment implements
         mVideosObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
             @Override
             public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (photos). Content changed.");
-                if (isAdded()) {
-                    LOGD(TAG, "Requesting photos cursor reload as a result of ContentObserver firing.");
-                    reloadVideos(getLoaderManager(), "", MediaFragment.this);
-                }
+                LOGD(TAG, "ThrottledContentObserver fired (videos). Content changed.");
+                // do nothing here
             }
         });
         activity.getContentResolver().registerContentObserver(TrackerContract.Videos.CONTENT_URI, true, mVideosObserver);
@@ -332,6 +337,35 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (!isAdded()) {
+            return;
+        }
+
+        switch (loader.getId()) {
+            case VideosQuery.TOKEN_NORMAL: {
+                Video[] videos = Video.videosFromCursor(data);
+                if (videos != null && videos.length > 0) {
+                    mMediaAdapter.updateVideos(Arrays.asList(videos));
+                    mProgressView.setVisibility(View.GONE);
+                } else {
+                    reloadYouTubeMedia(true);
+                }
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+            case PhotosQuery.TOKEN_NORMAL: {
+                break;
+            }
+        }
+    }
+
+    @Override
     public void onFragmentSelected() {
         super.onFragmentSelected();
         if (isAdded()) {
@@ -359,7 +393,13 @@ public class MediaFragment extends TrackerFragment implements
             mCredential.setSelectedAccountName(accountName);
             PrefUtils.setChosenGoogleAccountName(getActivity(), mChosenAccountName);
         }
-        reloadYouTubeMedia(true);
+
+        // Check the local cache first for the first time
+        if (mMediaAdapter.size() == 0) {
+            reloadVideos(getLoaderManager(), MediaFragment.this);
+        } else {
+            reloadYouTubeMedia(true);
+        }
     }
 
     @Override
@@ -471,6 +511,7 @@ public class MediaFragment extends TrackerFragment implements
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
                     mMediaAdapter.updateVideos(videos, refreshLatest);
+                    cacheLocalVideos(videos);
                     if (mLoadingPannel.getVisibility() == View.VISIBLE) {
                         mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
                                 mMediaView.getPaddingRight(), mMediaView.getPaddingBottom() - mLoadingPannel.getHeight());
@@ -479,6 +520,36 @@ public class MediaFragment extends TrackerFragment implements
                     mLoadingPannel.setVisibility(View.GONE);
                     mMediaSwipeRefresh.setRefreshing(false);
                 }
+            }
+
+            private void cacheLocalVideos(final List<Video> videos) {
+                /**
+                 *  Build and apply the operations to insert remote youtube videos as local cache.
+                 */
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+                        for (Video video : videos) {
+                            ops.add(ContentProviderOperation
+                                    .newInsert(TrackerContract.Videos.CONTENT_URI)
+                                    .withValue(TrackerContract.Videos.IDENTIFIER, video.identifier)
+                                    .withValue(TrackerContract.Videos.THUMBNAIL, video.thumbnail)
+                                    .withValue(TrackerContract.Videos.DURATION, video.duration)
+                                    .withValue(TrackerContract.Videos.TITLE, video.title)
+                                    .withValue(TrackerContract.Videos.OWNER, video.owner)
+                                    .withValue(TrackerContract.Videos.PUBLISHED_AND_VIEWS, video.published_and_views)
+                                    .withValue(TrackerContract.Videos.WATCHED_TIME, video.watched_time)
+                                    .withValue(TrackerContract.Videos.FILE_SIZE, video.file_size)
+                                    .build());
+                        }
+                        try {
+                            getActivity().getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                        } catch (RemoteException | OperationApplicationException e) {
+                            LOGE(TAG, "Fail to save local youtube video cache: " + e);
+                        }
+                    }
+                }).start();
             }
 
         }.execute();
@@ -683,6 +754,10 @@ public class MediaFragment extends TrackerFragment implements
             mContext = context;
         }
 
+        public void updateVideos(List<Video> videos) {
+            updateVideos(videos, false);
+        }
+
         public void updateVideos(List<Video> videos, boolean prepend) {
             if (prepend) {
                 ListIterator<Video> back = videos.listIterator(videos.size());
@@ -715,6 +790,10 @@ public class MediaFragment extends TrackerFragment implements
         public void clearSelectedVideos() {
             mCheckedMap.clear();
             notifyDataSetChanged();
+        }
+
+        public int size() {
+            return mVideos.size();
         }
 
         @Override

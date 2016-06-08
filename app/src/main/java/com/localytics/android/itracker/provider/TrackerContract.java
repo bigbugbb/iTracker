@@ -260,8 +260,6 @@ public class TrackerContract {
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.video";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.video";
 
-        public static final String SELECTION_BY_TITLE = String.format("%s LIKE '%?%'", TITLE);
-
         /** Build a {@link Uri} that references a given video. */
         public static Uri buildVideoUri(String videoId) {
             return CONTENT_URI.buildUpon().appendPath(videoId).build();

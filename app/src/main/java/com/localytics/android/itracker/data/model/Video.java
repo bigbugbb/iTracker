@@ -33,7 +33,7 @@ public final class Video implements Parcelable {
         Video video = new Video();
         video.identifier = youtubeVideo.getId();
         video.thumbnail = snippet.getThumbnails().getHigh().getUrl();
-        video.duration = contentDetails.getDuration().substring(2);
+        video.duration = formatDuration(contentDetails.getDuration().substring(2));
         video.title = snippet.getTitle();
         video.owner = snippet.getChannelTitle();
         video.published_and_views = formatPublishedAtAndViews(snippet.getPublishedAt(), statistics.getViewCount().longValue());

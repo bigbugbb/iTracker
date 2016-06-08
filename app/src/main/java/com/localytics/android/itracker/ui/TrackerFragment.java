@@ -122,10 +122,8 @@ public abstract class TrackerFragment extends Fragment
         loaderManager.restartLoader(PhotosQuery.TOKEN_NORMAL, args, callbacks);
     }
 
-    public static void reloadVideos(LoaderManager loaderManager, String title, boolean downloading, LoaderCallbacks callbacks) {
-        Bundle args = new Bundle();
-        args.putString(VIDEO_TITLE, title);
-        loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, args, callbacks);
+    public static void reloadVideos(LoaderManager loaderManager, LoaderCallbacks callbacks) {
+        loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, null, callbacks);
     }
 
     protected void updateSelected() {
@@ -200,8 +198,8 @@ public abstract class TrackerFragment extends Fragment
                         getActivity(),
                         TrackerContract.Videos.CONTENT_URI,
                         null,
-                        TrackerContract.Videos.SELECTION_BY_TITLE,
-                        new String[]{ args.getString(VIDEO_TITLE) },
+                        null,
+                        null,
                         TrackerContract.Videos.WATCHED_TIME + " DESC");
                 break;
             }

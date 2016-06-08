@@ -358,7 +358,12 @@ public class TrackerProvider extends ContentProvider {
                 return Activities.buildActivityUri("" + newId);
             }
             case VIDEOS: {
-                long newId = db.insertOrThrow(Tables.VIDEOS, null, values);
+                long newId = -1;
+                try {
+                    newId = db.insertWithOnConflict(Tables.VIDEOS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                } catch (SQLException e) {
+                    Log.e(TAG, "Error inserting " + values, e);
+                }
                 notifyChange(uri);
                 return Videos.buildVideoUri("" + newId);
             }
