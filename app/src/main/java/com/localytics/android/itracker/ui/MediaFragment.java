@@ -68,11 +68,8 @@ import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.gson.Gson;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.data.model.Photo;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.ui.widget.CollectionView;
-import com.localytics.android.itracker.util.AppQueryHandler;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
@@ -121,7 +118,8 @@ public class MediaFragment extends TrackerFragment implements
     private static final long MAX_NUMBER_OF_ITEMS = 50l;
     private static final int REQUEST_PERMISSIONS_TO_GET_ACCOUNTS = 100;
 
-    private static final String SHOW_MEDIA_AS_GRID = "show_media_as_grid";
+    private static final String SHOW_MEDIA_GRID = "show_media_grid";
+    private static final String NEXT_PAGE_TOKEN = "next_page_token";
 
     /**
      * Define a global instance of the HTTP transport.
@@ -187,7 +185,8 @@ public class MediaFragment extends TrackerFragment implements
         mMediaAdapter = new MediaAdapter(getActivity());
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mShowAsGrid = sp.getBoolean(SHOW_MEDIA_AS_GRID, false);
+        mShowAsGrid = sp.getBoolean(SHOW_MEDIA_GRID, false);
+        mNextPageToken = sp.getString(NEXT_PAGE_TOKEN, null);
     }
 
     @Override
@@ -216,10 +215,10 @@ public class MediaFragment extends TrackerFragment implements
                 LOGD(TAG, String.format("visibleItemCount: %d, firstVisibleItem: %d, totalItemCount: %d",
                         visibleItemCount, firstVisibleItem, totalItemCount));
                 if (visibleItemCount + firstVisibleItem >= totalItemCount) {
-                    if (mTokenSet.contains(mNextPageToken)) {
-                        return; // All watch histories have been loaded
-                    }
                     if (!mLoading) {
+                        if (mNextPageToken != null && mTokenSet.contains(mNextPageToken)) {
+                            return; // All watch histories have been loaded
+                        }
                         mLoading = true;
                         mLoadingPannel.setVisibility(View.VISIBLE);
                         mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
@@ -327,7 +326,8 @@ public class MediaFragment extends TrackerFragment implements
         // http://stackoverflow.com/questions/5166201/android-onsaveinstancestate-and-onpause
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         SharedPreferences.Editor editor = sp.edit();
-        editor.putBoolean(SHOW_MEDIA_AS_GRID, mShowAsGrid);
+        editor.putBoolean(SHOW_MEDIA_GRID, mShowAsGrid);
+        editor.putString(NEXT_PAGE_TOKEN, mNextPageToken);
         editor.apply();
     }
 
@@ -422,7 +422,7 @@ public class MediaFragment extends TrackerFragment implements
         }
     }
 
-    private void reloadYouTubeMedia(final boolean refreshLatest) {
+    private void reloadYouTubeMedia(final boolean loadLatest) {
         final String accountName = mCredential.getSelectedAccountName();
 
         if (TextUtils.isEmpty(accountName)) {
@@ -456,16 +456,17 @@ public class MediaFragment extends TrackerFragment implements
                     PlaylistItemListResponse pilr = youtube.playlistItems()
                             .list("id,contentDetails,snippet")
                             .setPlaylistId(watchHistoryPlaylistIds)
-                            .setPageToken(refreshLatest ? null : mNextPageToken)
+                            .setPageToken(loadLatest ? null : mNextPageToken)
                             .setMaxResults(MAX_NUMBER_OF_ITEMS).execute();
 
                     // Get page token for further loading
-                    if (refreshLatest) {
+                    if (loadLatest) {
+                        // First load
                         if (mNextPageToken == null) {
                             mNextPageToken = pilr.getNextPageToken();
                         }
                     } else {
-                        mTokenSet.add(pilr.getPrevPageToken());
+                        mTokenSet.add(mNextPageToken);
                         mNextPageToken = pilr.getNextPageToken();
                     }
 
@@ -510,7 +511,7 @@ public class MediaFragment extends TrackerFragment implements
             protected void onPostExecute(List<Video> videos) {
                 if (isAdded() && videos != null) {
                     LOGD(TAG, "Load videos successfully: " + videos);
-                    mMediaAdapter.updateVideos(videos, refreshLatest);
+                    mMediaAdapter.updateVideos(videos, loadLatest);
                     cacheLocalVideos(videos);
                     if (mLoadingPannel.getVisibility() == View.VISIBLE) {
                         mMediaView.setPadding(mMediaView.getPaddingLeft(), mMediaView.getPaddingTop(),
@@ -820,6 +821,7 @@ public class MediaFragment extends TrackerFragment implements
             TextView  owner;
             TextView  published;
             CheckBox  selected;
+            View      overlay;
 
             public ViewHolder(View itemView) {
                 super(itemView);
@@ -829,6 +831,7 @@ public class MediaFragment extends TrackerFragment implements
                 owner     = (TextView) itemView.findViewById(R.id.media_owner);
                 published = (TextView) itemView.findViewById(R.id.media_published_at_and_views);
                 selected  = (CheckBox) itemView.findViewById(R.id.media_selected);
+                overlay   = itemView.findViewById(R.id.selection_overlay);
             }
 
             public void bindData(final Video video) {
@@ -845,13 +848,17 @@ public class MediaFragment extends TrackerFragment implements
                 if (mSelectMode) {
                     selected.setVisibility(View.VISIBLE);
                     selected.setChecked(mCheckedMap.get(video.identifier) != null);
+                    overlay.setVisibility(mCheckedMap.get(video.identifier) != null ? View.VISIBLE : View.INVISIBLE);
                 } else {
                     selected.setVisibility(View.INVISIBLE);
+                    overlay.setVisibility(View.INVISIBLE);
                 }
                 selected.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mCheckedMap.put(video.identifier, video);
+                        boolean isChecked = mCheckedMap.get(video.identifier) != null;
+                        mCheckedMap.put(video.identifier, isChecked ? null : video);
+                        overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
                     }
                 });
 
@@ -884,6 +891,7 @@ public class MediaFragment extends TrackerFragment implements
                             boolean isChecked = mCheckedMap.get(video.identifier) != null;
                             mCheckedMap.put(video.identifier, isChecked ? null : video);
                             selected.setChecked(!isChecked);
+                            overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
                             return;
                         }
 
@@ -930,6 +938,7 @@ public class MediaFragment extends TrackerFragment implements
                         if (!mSelectMode) {
                             mSelectMode = true;
                             mCheckedMap.put(video.identifier, video);
+                            overlay.setVisibility(View.VISIBLE);
                             getActivity().invalidateOptionsMenu();
                             mMediaAdapter.notifyDataSetChanged();
                             return true;

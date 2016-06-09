@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:baselineAligned="false">
@@ -64,14 +65,12 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
 
-            <CheckBox
-                android:id="@+id/media_selected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <Space
+                android:id="@+id/media_selected_area"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:visibility="invisible"
-                android:checked="false"/>
+                android:layout_alignParentBottom="true"/>
 
             <TextView
                 android:id="@+id/media_owner"
@@ -79,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/media_title"
                 android:layout_alignParentLeft="true"
-                android:layout_toLeftOf="@id/media_selected"
+                android:layout_toLeftOf="@id/media_selected_area"
                 android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:singleLine="true"
@@ -93,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/media_owner"
                 android:layout_alignParentLeft="true"
-                android:layout_toLeftOf="@id/media_selected"
+                android:layout_toLeftOf="@id/media_selected_area"
                 android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:singleLine="true"
@@ -104,5 +103,23 @@
         </RelativeLayout>
 
     </LinearLayout>
+
+    <View
+        android:id="@+id/selection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:background="@drawable/media_selected_background"
+        android:focusable="false"
+        android:clickable="false"/>
+
+    <CheckBox
+        android:id="@+id/media_selected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:paddingRight="2dp"
+        android:paddingBottom="2dp"
+        android:visibility="invisible"/>
 
 </FrameLayout>
