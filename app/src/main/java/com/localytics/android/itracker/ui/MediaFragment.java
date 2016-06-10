@@ -66,7 +66,6 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.VideoListResponse;
-import com.google.gson.Gson;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -284,9 +283,8 @@ public class MediaFragment extends TrackerFragment implements
                     Toast.makeText(getActivity(), R.string.download_without_selection, Toast.LENGTH_SHORT).show();
                     return true;
                 }
-                final String selectedVideosJson = new Gson().toJson(videos);
                 Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
-                intent.putExtra(MediaDownloadActivity.EXTRA_SELECTED_VIDEOS, selectedVideosJson);
+                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
                 startActivity(intent);
                 return true;
             }
@@ -785,7 +783,13 @@ public class MediaFragment extends TrackerFragment implements
         }
 
         public List<Video> getSelectedVideos() {
-            return new ArrayList<>(mCheckedMap.values());
+            List videos = new ArrayList<>();
+            for (Video video : mCheckedMap.values()) {
+                if (video != null) {
+                    videos.add(video);
+                }
+            }
+            return videos;
         }
 
         public void clearSelectedVideos() {

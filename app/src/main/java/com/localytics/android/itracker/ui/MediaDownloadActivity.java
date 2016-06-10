@@ -12,7 +12,7 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 public class MediaDownloadActivity extends BaseActivity {
     private final static String TAG = makeLogTag(MediaDownloadActivity.class);
 
-    public static final String EXTRA_SELECTED_VIDEOS = "extra_selected_videos";
+    public static final String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,9 +24,8 @@ public class MediaDownloadActivity extends BaseActivity {
 
         Fragment fragment = getFragmentManager().findFragmentById(R.id.media_download_fragment);
         if (fragment == null) {
-            final String jsonSelectedVideos = getIntent().getStringExtra(EXTRA_SELECTED_VIDEOS);
             getFragmentManager().beginTransaction()
-                    .replace(R.id.media_download_fragment, MediaDownloadFragment.newInstance(jsonSelectedVideos))
+                    .replace(R.id.media_download_fragment, new MediaDownloadFragment())
                     .commit();
         }
     }
