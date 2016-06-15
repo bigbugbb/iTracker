@@ -126,6 +126,10 @@ public abstract class TrackerFragment extends Fragment
         loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, null, callbacks);
     }
 
+    public static void reloadDownloadVideos(LoaderManager loaderManager, LoaderCallbacks callbacks) {
+        loaderManager.restartLoader(VideosQuery.TOKEN_DOWNLOAD, null, callbacks);
+    }
+
     protected void updateSelected() {
         Activity activity = getActivity();
         if (activity instanceof TrackerActivity) {
@@ -203,6 +207,16 @@ public abstract class TrackerFragment extends Fragment
                         TrackerContract.Videos.WATCHED_TIME + " DESC");
                 break;
             }
+            case VideosQuery.TOKEN_DOWNLOAD: {
+                loader = new CursorLoader(
+                        getActivity(),
+                        TrackerContract.Videos.CONTENT_URI,
+                        null,
+                        String.format("%s != ?", TrackerContract.Videos.DOWNLOAD_STATUS),
+                        new String[]{ TrackerContract.DownloadStatus.CANCELED.status() },
+                        TrackerContract.Videos.DOWNLOAD_START_TIME + " DESC");
+                break;
+            }
         }
 
         return loader;
@@ -238,5 +252,6 @@ public abstract class TrackerFragment extends Fragment
 
     protected interface VideosQuery {
         int TOKEN_NORMAL = 600;
+        int TOKEN_DOWNLOAD = 601;
     }
 }

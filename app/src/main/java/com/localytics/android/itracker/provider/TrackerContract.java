@@ -80,6 +80,9 @@ public class TrackerContract {
         String PUBLISHED_AND_VIEWS = "published_and_views";
         String WATCHED_TIME = "watched_time";
         String FILE_SIZE = "file_size";
+        String DOWNLOAD_STATUS = "download_status";
+        String DOWNLOAD_START_TIME = "download_start_time";
+        String DOWNLOAD_COMPLETE_TIME = "download_complete_time";
     }
 
     interface Paths {
@@ -115,6 +118,26 @@ public class TrackerContract {
 
         public String state() {
             return mState;
+        }
+    }
+
+    public enum DownloadStatus {
+        PREPARING   ("preparing"),
+        RESUMING    ("resuming"),
+        DOWNLOADING ("downloading"),
+        PAUSED      ("paused"),
+        COMPLETED   ("completed"),
+        FAILED      ("failed"),
+        CANCELED    ("canceled");
+
+        private final String mStatus;
+
+        DownloadStatus(String status) {
+            mStatus = status;
+        }
+
+        public String status() {
+            return mStatus;
         }
     }
 

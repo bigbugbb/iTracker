@@ -121,8 +121,11 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Videos.TITLE + " TEXT NOT NULL,"
                 + Videos.OWNER + " TEXT DEFAULT '',"
                 + Videos.PUBLISHED_AND_VIEWS + " TEXT DEFAULT '',"
-                + Videos.WATCHED_TIME + " TEXT UNIQUE NOT NULL,"
-                + Videos.FILE_SIZE + " INTEGER DEFAULT 0);");
+                + Videos.WATCHED_TIME + " TEXT NOT NULL,"
+                + Videos.FILE_SIZE + " INTEGER DEFAULT 0,"
+                + Videos.DOWNLOAD_STATUS + " TEXT,"
+                + Videos.DOWNLOAD_START_TIME + " TEXT,"
+                + Videos.DOWNLOAD_COMPLETE_TIME + " TEXT);");
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
@@ -139,7 +142,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX sync_index ON " + Tables.BACKUPS + "(" + Backups.SYNC + ");");
         db.execSQL("CREATE INDEX date_index ON " + Tables.BACKUPS + "(" + Backups.DATE + ");");
 
-        // C
+        // Create index on download status for videos
+        db.execSQL("CREATE INDEX download_status ON " + Tables.VIDEOS + "(" + Videos.DOWNLOAD_STATUS + ");");
     }
 
     @Override

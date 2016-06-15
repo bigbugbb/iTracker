@@ -284,7 +284,7 @@ public class MediaFragment extends TrackerFragment implements
                     return true;
                 }
                 Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
-                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
+//                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
                 startActivity(intent);
                 return true;
             }

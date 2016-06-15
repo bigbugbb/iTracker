@@ -21,6 +21,9 @@ public final class Video implements Parcelable {
     public String published_and_views;
     public String watched_time;
     public long   file_size;
+    public String download_status;
+    public String download_start_time;
+    public String download_complete_time;
 
     public Video() {
     }
@@ -39,6 +42,9 @@ public final class Video implements Parcelable {
         video.published_and_views = formatPublishedAtAndViews(snippet.getPublishedAt(), statistics.getViewCount().longValue());
         video.watched_time = watchedTime;
         video.file_size = 0;
+        video.download_status = TrackerContract.DownloadStatus.CANCELED.status();
+        video.download_start_time = "";
+        video.download_complete_time = "";
 
         return video;
     }
@@ -52,6 +58,9 @@ public final class Video implements Parcelable {
         published_and_views = cursor.getString(cursor.getColumnIndexOrThrow(TrackerContract.Videos.PUBLISHED_AND_VIEWS));
         watched_time = cursor.getString(cursor.getColumnIndexOrThrow(TrackerContract.Videos.WATCHED_TIME));
         file_size = cursor.getLong(cursor.getColumnIndexOrThrow(TrackerContract.Videos.FILE_SIZE));
+        download_status = cursor.getString(cursor.getColumnIndexOrThrow(TrackerContract.Videos.DOWNLOAD_STATUS));
+        download_start_time = cursor.getString(cursor.getColumnIndexOrThrow(TrackerContract.Videos.DOWNLOAD_START_TIME));
+        download_complete_time = cursor.getString(cursor.getColumnIndexOrThrow(TrackerContract.Videos.DOWNLOAD_COMPLETE_TIME));
     }
 
     // The cursor window should be larger than the whole block of data.
@@ -124,6 +133,9 @@ public final class Video implements Parcelable {
         dest.writeString(published_and_views);
         dest.writeString(watched_time);
         dest.writeLong(file_size);
+        dest.writeString(download_status);
+        dest.writeString(download_start_time);
+        dest.writeString(download_complete_time);
     }
 
     private Video(Parcel in) {
@@ -135,6 +147,8 @@ public final class Video implements Parcelable {
         published_and_views = in.readString();
         watched_time = in.readString();
         file_size = in.readLong();
+        download_status = in.readString();
+        download_complete_time = in.readString();
     }
 
     public static final Parcelable.Creator<Video> CREATOR = new Parcelable.Creator<Video>() {

@@ -1,109 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:baselineAligned="false">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_weight="2"
+        android:layout_marginRight="16dp"
+        android:background="@color/gray_background">
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="2"
-            android:layout_marginRight="16dp"
-            android:background="@color/gray_background">
-
-            <ImageView
-                android:id="@+id/media_thumbnail"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:adjustViewBounds="true"/>
-
-            <TextView
-                android:id="@+id/media_duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:background="@drawable/media_duration_background"
-                android:textColor="@android:color/white"
-                android:textSize="11.5sp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
-                tools:text="4:02"/>
-
-        </FrameLayout>
-
-        <RelativeLayout
-            android:id="@+id/extra_info"
-            android:layout_width="0dp"
+        <ImageView
+            android:id="@+id/media_thumbnail"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:layout_gravity="center_vertical"
-            android:orientation="vertical">
+            android:adjustViewBounds="true"/>
 
-            <TextView
-                android:id="@+id/media_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:textColor="@color/body_text_1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
+    </FrameLayout>
 
-            <TextView
-                android:id="@+id/media_owner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/media_title"
-                android:layout_alignParentLeft="true"
-                android:layout_toLeftOf="@id/media_selected_area"
-                android:gravity="center_vertical"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:textColor="@color/data_item_lightbg_body_text"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                tools:text="bigbugbb"/>
+    <RelativeLayout
+        android:id="@+id/extra_info"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/media_published_at_and_views"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/media_owner"
-                android:layout_alignParentLeft="true"
-                android:layout_toLeftOf="@id/media_selected_area"
-                android:gravity="center_vertical"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:textColor="@color/data_item_lightbg_body_text"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                tools:text="2 years ago · 5K views"/>
+        <TextView
+            android:id="@+id/media_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/body_text_1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="The biggest news of Google I/O 2015 in 10 minutes"/>
 
-        </RelativeLayout>
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:id="@+id/media_download_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:indeterminate="true"/>
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/media_download_file_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/media_download_progress"
+            android:layout_alignParentLeft="true"
+            android:layout_marginRight="8dp"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="12sp"
+            android:textColor="@color/data_item_lightbg_body_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="32.8/95.2M"/>
 
-    <ProgressBar
-        android:id="@+id/media_download_preparing_progress"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="center"
-        android:indeterminate="false"
-        android:indeterminateDrawable="@drawable/data_syncing_progress"
-        android:elevation="8dp"
-        android:visibility="invisible" />
+        <TextView
+            android:id="@+id/media_download_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/media_download_progress"
+            android:layout_toRightOf="@id/media_download_file_size"
+            android:layout_marginRight="8dp"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="12sp"
+            android:textColor="@color/data_item_lightbg_body_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="400K/s"/>
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/media_download_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/media_download_progress"
+            android:layout_alignParentRight="true"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="12sp"
+            android:textColor="@color/data_item_lightbg_body_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="Downloading"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

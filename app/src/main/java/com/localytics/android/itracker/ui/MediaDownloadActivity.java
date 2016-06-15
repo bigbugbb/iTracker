@@ -12,8 +12,6 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 public class MediaDownloadActivity extends BaseActivity {
     private final static String TAG = makeLogTag(MediaDownloadActivity.class);
 
-    public static final String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
