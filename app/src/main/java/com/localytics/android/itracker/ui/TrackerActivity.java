@@ -120,6 +120,8 @@ public class TrackerActivity extends BaseActivity implements
         if (savedInstanceState != null) {
             mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
         }
+
+
     }
 
     @Override

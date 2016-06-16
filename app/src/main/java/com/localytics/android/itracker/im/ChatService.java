@@ -36,7 +36,7 @@ public class ChatService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        return Service.START_NOT_STICKY;
+        return Service.START_STICKY;
     }
 
     @Override

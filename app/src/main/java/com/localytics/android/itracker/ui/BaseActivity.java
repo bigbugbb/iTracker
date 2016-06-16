@@ -183,6 +183,7 @@ public class BaseActivity extends AppCompatActivity implements
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, ChatService.class);
+        startService(intent); // Need this call so the service can still run in background after the unbinding
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 

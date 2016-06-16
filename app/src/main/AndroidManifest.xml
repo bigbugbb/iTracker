@@ -192,6 +192,11 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".download.FileDownloadService"
+            android:exported="false">
+        </service>
+
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
