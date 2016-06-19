@@ -25,8 +25,8 @@ public class FileDownloadService extends Service {
 
     public void onCreate() {
         int availableProcessors = Runtime.getRuntime().availableProcessors();
-        mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadThreadComparator());
-        mExecutor = new ThreadPoolExecutor(availableProcessors, availableProcessors,
+        mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
+        mExecutor = new ThreadPoolExecutor(1, availableProcessors,
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
     }
 
@@ -39,11 +39,13 @@ public class FileDownloadService extends Service {
     public void onDestroy() {
     }
 
-    private class FileDownloadThread extends Thread {
-
+    private class FileDownloadTask implements Runnable {
+        @Override
+        public void run() {
+        }
     }
 
-    private class DownloadThreadComparator implements Comparator<Runnable> {
+    private class DownloadTaskComparator implements Comparator<Runnable> {
         @Override
         public int compare(Runnable lhs, Runnable rhs) {
             return 0;

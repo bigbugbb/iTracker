@@ -116,7 +116,7 @@ public class TrackerContract {
             mState = state;
         }
 
-        public String state() {
+        public String value() {
             return mState;
         }
     }
