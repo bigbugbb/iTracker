@@ -195,6 +195,9 @@
         <service
             android:name=".download.FileDownloadService"
             android:exported="false">
+            <intent-filter>
+                <action android:name="com.localytics.android.itracker.intent.action.FILE_DOWNLOAD"/>
+            </intent-filter>
         </service>
 
         <receiver

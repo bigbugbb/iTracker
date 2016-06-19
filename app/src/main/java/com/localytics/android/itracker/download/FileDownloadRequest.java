@@ -8,7 +8,7 @@ import android.text.TextUtils;
 /**
  * Created by bigbug on 6/16/16.
  */
-public class FileDownloadRequest implements Parcelable {
+class FileDownloadRequest implements Parcelable {
 
     public enum RequestAction {
         START  ("start"),

@@ -15,19 +15,25 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 /**
  * Created by bigbug on 6/15/16.
  */
-public class FileDownloadService extends Service {
+class FileDownloadService extends Service {
     private static final String TAG = makeLogTag(FileDownloadService.class);
 
     private ThreadPoolExecutor mExecutor;
     private PriorityBlockingQueue<Runnable> mQueue;
 
-    private long KEEP_ALIVE_TIME = 60;
+    private FileDownloadManager mFileDownloadManager;
+
+    final static String FILE_DOWNLOAD_REQUEST = "file_download_request";
+
+    private int CORE_POOL_SIZE = 2;
+    private long KEEP_ALIVE_TIME = 150;
 
     public void onCreate() {
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
-        mExecutor = new ThreadPoolExecutor(1, availableProcessors,
+        mExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, Math.max(CORE_POOL_SIZE, availableProcessors),
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
+        mFileDownloadManager = FileDownloadManager.getInstance(getApplicationContext());
     }
 
     @Nullable
@@ -39,9 +45,26 @@ public class FileDownloadService extends Service {
     public void onDestroy() {
     }
 
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
+            FileDownloadTask task = new FileDownloadTask(request);
+            mExecutor.execute(task);
+        }
+        return START_STICKY;
+    }
+
     private class FileDownloadTask implements Runnable {
+
+        private FileDownloadRequest mRequest;
+
+        FileDownloadTask(FileDownloadRequest request) {
+            mRequest = request;
+        }
+
         @Override
         public void run() {
+            // TODO:
         }
     }
 
