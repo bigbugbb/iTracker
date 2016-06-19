@@ -26,10 +26,10 @@ class FileDownloadRequest implements Parcelable {
         }
     }
 
-    private String mId;
-    private RequestAction mAction;
-    private Uri mSrcUri;
-    private Uri mDestUri;
+    String mId;
+    RequestAction mAction;
+    Uri mSrcUri;
+    Uri mDestUri;
 
     private FileDownloadRequest(Builder builder) {
         mId = builder.mId;
