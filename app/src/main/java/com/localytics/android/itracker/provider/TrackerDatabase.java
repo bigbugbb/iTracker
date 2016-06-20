@@ -12,9 +12,12 @@ import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Videos;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.sync.SyncHelper;
 import com.localytics.android.itracker.sync.TrackerDataHandler;
 import com.localytics.android.itracker.util.AccountUtils;
+
+import org.jivesoftware.smackx.si.packet.StreamInitiation;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
@@ -43,15 +46,20 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
         String VIDEOS = "videos";
+        String FILE_DOWNLOADS = "file_downloads";
+        String FILE_DOWNLOADS_JOIN_VIDEOS_ON_IDENTIFIER = "file_downloads "
+                + "LEFT OUTER JOIN videos ON file_downloads.media_id=videos.identifier";
     }
 
     interface FOREIGN_KEY {
         String TRACK_ID = "FOREIGN KEY(track_id) ";
+        String MEDIA_ID = "FOREIGN KEY(media_id) ";
     }
 
     /** {@code REFERENCES} clauses. */
     private interface References {
         String TRACK_ID = "REFERENCES " + Tables.TRACKS + "(" + TrackerContract.Tracks._ID + ")";
+        String VIDEO_IDENTIFIER = "REFERENCES " + Tables.VIDEOS + "(" + Videos.IDENTIFIER + ")";
     }
 
     public TrackerDatabase(Context context) {
@@ -121,11 +129,19 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + Videos.TITLE + " TEXT NOT NULL,"
                 + Videos.OWNER + " TEXT DEFAULT '',"
                 + Videos.PUBLISHED_AND_VIEWS + " TEXT DEFAULT '',"
-                + Videos.WATCHED_TIME + " TEXT NOT NULL,"
-                + Videos.FILE_SIZE + " INTEGER DEFAULT 0,"
-                + Videos.DOWNLOAD_STATUS + " TEXT,"
-                + Videos.DOWNLOAD_START_TIME + " TEXT,"
-                + Videos.DOWNLOAD_COMPLETE_TIME + " TEXT);");
+                + Videos.LAST_OPENED_TIME + " TEXT NOT NULL);");
+
+        db.execSQL("CREATE TABLE " + Tables.FILE_DOWNLOADS + " ("
+                + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + FileDownloads.MEDIA_ID + " TEXT NOT NULL,"
+                + FileDownloads.MEDIA_SIZE + " INTEGER NOT NULL,"
+                + FileDownloads.MEDIA_TYPE + " TEXT NOT NULL,"
+                + FileDownloads.MEDIA_DESC + " TEXT,"
+                + FileDownloads.TARGET_URL + " TEXT NOT NULL,"
+                + FileDownloads.STATUS + " TEXT NOT NULL,"
+                + FileDownloads.START_TIME + " TEXT NOT NULL,"
+                + FileDownloads.FINISH_TIME + " TEXT,"
+                + FOREIGN_KEY.MEDIA_ID + References.VIDEO_IDENTIFIER + " ON DELETE CASCADE);");
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
@@ -142,8 +158,9 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX sync_index ON " + Tables.BACKUPS + "(" + Backups.SYNC + ");");
         db.execSQL("CREATE INDEX date_index ON " + Tables.BACKUPS + "(" + Backups.DATE + ");");
 
-        // Create index on download status for videos
-        db.execSQL("CREATE INDEX download_status ON " + Tables.VIDEOS + "(" + Videos.DOWNLOAD_STATUS + ");");
+        // Create indexes for file_downloads
+        db.execSQL("CREATE INDEX status ON " + Tables.FILE_DOWNLOADS + "(" + FileDownloads.STATUS + ");");
+        db.execSQL("CREATE INDEX download_video_identifier_index ON " + Tables.FILE_DOWNLOADS + "(" + FileDownloads.MEDIA_ID + ");");
     }
 
     @Override

@@ -7,8 +7,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+
+import com.localytics.android.itracker.ui.MediaFragment;
 
 import org.joda.time.DateTime;
 
@@ -78,11 +81,21 @@ public class TrackerContract {
         String TITLE = "title";
         String OWNER = "owner";
         String PUBLISHED_AND_VIEWS = "published_and_views";
-        String WATCHED_TIME = "watched_time";
-        String FILE_SIZE = "file_size";
-        String DOWNLOAD_STATUS = "download_status";
-        String DOWNLOAD_START_TIME = "download_start_time";
-        String DOWNLOAD_COMPLETE_TIME = "download_complete_time";
+        String LAST_OPENED_TIME = "last_opened_time";
+    }
+
+    interface MediaDataColumns {
+        String MEDIA_ID = "media_id";
+        String MEDIA_SIZE = "media_size";
+        String MEDIA_TYPE = "media_type";
+        String MEDIA_DESC = "media_desc";
+    }
+
+    interface FileDownloadColumns extends MediaDataColumns {
+        String TARGET_URL = "target_url";
+        String STATUS = "status";
+        String START_TIME = "start_time";
+        String FINISH_TIME = "finish_time";
     }
 
     interface Paths {
@@ -92,6 +105,7 @@ public class TrackerContract {
         String LOCATIONS = "locations";
         String ACTIVITIES = "activities";
         String VIDEOS = "videos";
+        String FILE_DOWNLOADS = "file_downloads";
         String UNKNOWN = "unknown";
     }
 
@@ -290,6 +304,25 @@ public class TrackerContract {
 
         /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
         public static String getVideoId(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
+    }
+
+    public static class FileDownloads implements FileDownloadColumns, BaseColumns {
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.FILE_DOWNLOADS).build();
+
+        public static final Uri VIDEO_DOWNLOADS_URI = CONTENT_URI.buildUpon().appendPath("videos").build();
+
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.file_download";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.file_download";
+
+        /** Build a {@link Uri} that references a given file_download. */
+        public static Uri buildFileDownloadUri(String fileDownloadId) {
+            return CONTENT_URI.buildUpon().appendPath(fileDownloadId).build();
+        }
+
+        /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
+        public static String getFileDownloadId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
     }

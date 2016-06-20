@@ -126,8 +126,8 @@ public abstract class TrackerFragment extends Fragment
         loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, null, callbacks);
     }
 
-    public static void reloadDownloadVideos(LoaderManager loaderManager, LoaderCallbacks callbacks) {
-        loaderManager.restartLoader(VideosQuery.TOKEN_DOWNLOAD, null, callbacks);
+    public static void reloadFileDownloads(LoaderManager loaderManager, LoaderCallbacks callbacks) {
+        loaderManager.restartLoader(FileDownloadsQuery.TOKEN_NORMAL, null, callbacks);
     }
 
     protected void updateSelected() {
@@ -204,17 +204,27 @@ public abstract class TrackerFragment extends Fragment
                         null,
                         null,
                         null,
-                        TrackerContract.Videos.WATCHED_TIME + " DESC");
+                        TrackerContract.Videos.LAST_OPENED_TIME + " DESC");
                 break;
             }
-            case VideosQuery.TOKEN_DOWNLOAD: {
+            case FileDownloadsQuery.TOKEN_NORMAL: {
                 loader = new CursorLoader(
                         getActivity(),
-                        TrackerContract.Videos.CONTENT_URI,
+                        TrackerContract.FileDownloads.CONTENT_URI,
                         null,
-                        String.format("%s != ?", TrackerContract.Videos.DOWNLOAD_STATUS),
+                        String.format("%s != ?", TrackerContract.FileDownloads.STATUS),
                         new String[]{ TrackerContract.DownloadStatus.CANCELED.status() },
-                        TrackerContract.Videos.DOWNLOAD_START_TIME + " DESC");
+                        TrackerContract.FileDownloads.START_TIME + " DESC");
+                break;
+            }
+            case FileDownloadsQuery.TOKEN_VIDEOS: {
+                loader = new CursorLoader(
+                        getActivity(),
+                        TrackerContract.FileDownloads.VIDEO_DOWNLOADS_URI,
+                        null,
+                        String.format("%s != ?", TrackerContract.FileDownloads.STATUS),
+                        new String[]{ TrackerContract.DownloadStatus.CANCELED.status() },
+                        TrackerContract.FileDownloads.START_TIME + " DESC");
                 break;
             }
         }
@@ -252,6 +262,10 @@ public abstract class TrackerFragment extends Fragment
 
     protected interface VideosQuery {
         int TOKEN_NORMAL = 600;
-        int TOKEN_DOWNLOAD = 601;
+    }
+
+    protected interface FileDownloadsQuery {
+        int TOKEN_NORMAL = 700;
+        int TOKEN_VIDEOS = 701;
     }
 }

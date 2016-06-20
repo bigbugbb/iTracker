@@ -21,7 +21,9 @@ import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Videos;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
+import com.localytics.android.itracker.ui.gles.objects.Table;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.SelectionBuilder;
 
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGV;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
@@ -65,6 +68,10 @@ public class TrackerProvider extends ContentProvider {
     private static final int VIDEOS = 600;
     private static final int VIDEOS_ID = 601;
 
+    private static final int FILE_DOWNLOADS = 700;
+    private static final int FILE_DOWNLOADS_ID = 701;
+    private static final int FILE_DOWNLOADS_VIDEOS = 702;
+
     /**
      * Build and return a {@link UriMatcher} that catches all {@link Uri}
      * variations supported by this {@link ContentProvider}.
@@ -90,6 +97,10 @@ public class TrackerProvider extends ContentProvider {
 
         matcher.addURI(authority, "videos", VIDEOS);
         matcher.addURI(authority, "videos/*", VIDEOS_ID);
+
+        matcher.addURI(authority, "file_downloads", FILE_DOWNLOADS);
+        matcher.addURI(authority, "file_downloads/*", FILE_DOWNLOADS_ID);
+        matcher.addURI(authority, "file_downloads/videos", FILE_DOWNLOADS_VIDEOS);
 
         return matcher;
     }
@@ -225,6 +236,10 @@ public class TrackerProvider extends ContentProvider {
                 return Videos.CONTENT_TYPE;
             case VIDEOS_ID:
                 return Videos.CONTENT_ITEM_TYPE;
+            case FILE_DOWNLOADS:
+                return FileDownloads.CONTENT_TYPE;
+            case FILE_DOWNLOADS_ID:
+                return FileDownloads.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -300,6 +315,10 @@ public class TrackerProvider extends ContentProvider {
                 table = Tables.VIDEOS;
                 break;
             }
+            case FILE_DOWNLOADS: {
+                table = Tables.FILE_DOWNLOADS;
+                break;
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
             }
@@ -361,10 +380,10 @@ public class TrackerProvider extends ContentProvider {
                 long newId = -1;
                 try {
                     newId = db.insertWithOnConflict(Tables.VIDEOS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                    notifyChange(uri);
                 } catch (SQLException e) {
-                    Log.e(TAG, "Error inserting " + values, e);
+                    LOGE(TAG, "Error inserting " + values, e);
                 }
-                notifyChange(uri);
                 return Videos.buildVideoUri("" + newId);
             }
             default: {
@@ -454,6 +473,13 @@ public class TrackerProvider extends ContentProvider {
                 final String id = Videos.getVideoId(uri);
                 return builder.table(Tables.VIDEOS).where(Videos._ID + "=?", id);
             }
+            case FILE_DOWNLOADS: {
+                return builder.table(Tables.FILE_DOWNLOADS);
+            }
+            case FILE_DOWNLOADS_ID: {
+                final String id = FileDownloads.getFileDownloadId(uri);
+                return builder.table(Tables.FILE_DOWNLOADS).where(FileDownloads._ID + "=?", id);
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown uri for " + match + ": " + uri);
             }
@@ -471,6 +497,12 @@ public class TrackerProvider extends ContentProvider {
             case BACKUPS: {
                 return builder.table(Tables.BACKUPS)
                         .groupBy(Backups.DATE + "," + Backups.HOUR + ", " + Backups.CATEGORY);
+            }
+            case FILE_DOWNLOADS_VIDEOS: {
+                // A Left Join returns all rows from the left table even if they don't exist in the right table.
+                return builder.table(Tables.FILE_DOWNLOADS_JOIN_VIDEOS_ON_IDENTIFIER)
+                        .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS)
+                        .groupBy(FileDownloads.MEDIA_ID + "," + FileDownloads.TARGET_URL);
             }
         }
         return null;

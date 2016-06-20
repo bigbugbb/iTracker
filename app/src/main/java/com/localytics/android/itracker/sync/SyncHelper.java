@@ -371,7 +371,7 @@ public class SyncHelper {
                     Backups.CONTENT_URI,
                     null,
                     TrackerContract.SELECTION_BY_SYNC,
-                    new String[] {SyncState.PENDING.state()},
+                    new String[] {SyncState.PENDING.value()},
                     Backups.DATE + " DESC");
             if (cursor != null) {
                 List<Backup> pendingBackups = new ArrayList<>(cursor.getCount());
@@ -398,7 +398,7 @@ public class SyncHelper {
         mOps.clear();
         for (Backup pendingBackup : pendingBackups) {
             mOps.add(ContentProviderOperation.newUpdate(uri)
-                    .withValue(TrackerContract.SyncColumns.SYNC, SyncState.SYNCING.state())
+                    .withValue(TrackerContract.SyncColumns.SYNC, SyncState.SYNCING.value())
                     .withSelection(Backups.SELECTION_BY_S3_KEY, new String[]{pendingBackup.s3_key})
                     .build());
         }
@@ -430,7 +430,7 @@ public class SyncHelper {
                     if (state == TransferState.COMPLETED) {
                         // Update backups sync state from syncing to synced
                         ContentValues values = new ContentValues();
-                        values.put(Backups.SYNC, SyncState.SYNCED.state());
+                        values.put(Backups.SYNC, SyncState.SYNCED.value());
                         if (mContext.getContentResolver().update(uri, values, Backups.SELECTION_BY_S3_KEY, new String[]{key}) == 0) {
                             LOGE(TAG, "Failed to update backups sync state from syncing to synced: " + key);
                         } else {
@@ -453,7 +453,7 @@ public class SyncHelper {
                 public void onError(int id, Exception ex) {
                     // Update backups sync state from syncing to pending
                     ContentValues values = new ContentValues();
-                    values.put(Backups.SYNC, SyncState.PENDING.state());
+                    values.put(Backups.SYNC, SyncState.PENDING.value());
                     if (mContext.getContentResolver().update(uri, values, Backups.SELECTION_BY_S3_KEY, new String[]{key}) == 0) {
                         LOGE(TAG, "Failed to update backups sync state from syncing to pending: " + key);
                     }
@@ -561,7 +561,7 @@ public class SyncHelper {
                     values.put(Backups.CATEGORY, TrackerContract.categoryFromUri(uri));
                     values.put(Backups.DATE, time.toString("yyyy-MM-dd"));
                     values.put(Backups.HOUR, time.getHourOfDay());
-                    values.put(Backups.SYNC, SyncState.SYNCED.state());
+                    values.put(Backups.SYNC, SyncState.SYNCED.value());
                     values.put(TrackerContract.SyncColumns.UPDATED, DateTime.now().getMillis());
                     mOps.add(ContentProviderOperation.newInsert(TrackerContract.addCallerIsSyncAdapterParameter(Backups.CONTENT_URI))
                             .withValues(values)

@@ -2,9 +2,13 @@ package com.localytics.android.itracker.download;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -49,35 +53,40 @@ class FileDownloadService extends Service {
     }
 
     public void onDestroy() {
+        mExecutor.shutdown();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
             if (request != null) {
-                synchronized (this) {
-                    FileDownloadTask currentTask = mTasks.get(request.mId);
-                    if (request.mAction == FileDownloadRequest.RequestAction.START) {
-                        if (currentTask == null) {
-                            FileDownloadTask task = new FileDownloadTask(request);
-                            mTasks.put(request.mId, task);
-                            mExecutor.execute(task);
-                        } else {
-                            LOGD(TAG, "Download task " + request.mId + " is already running");
-                        }
-                    } else if (request.mAction == FileDownloadRequest.RequestAction.PAUSE) {
-                        if (currentTask != null) {
-                            currentTask.pause();
-                        } else {
-                            LOGD(TAG, "Download task " + request.mId + " doesn't exist");
-                        }
-                    } else if (request.mAction == FileDownloadRequest.RequestAction.CANCEL) {
-                        // TODO: delete all local resource and reset the db status of this file item
-                    }
-                }
+                handleRequest(request);
             }
         }
         return START_STICKY;
+    }
+
+    private void handleRequest(FileDownloadRequest request) {
+        synchronized (this) {
+            FileDownloadTask currentTask = mTasks.get(request.mId);
+            if (request.mAction == FileDownloadRequest.RequestAction.START) {
+                if (currentTask == null) {
+                    FileDownloadTask task = new FileDownloadTask(request);
+                    mTasks.put(request.mId, task);
+                    mExecutor.execute(task);
+                } else {
+                    LOGD(TAG, "Download task " + request.mId + " is already running");
+                }
+            } else if (request.mAction == FileDownloadRequest.RequestAction.PAUSE) {
+                if (currentTask != null) {
+                    currentTask.pause();
+                } else {
+                    LOGD(TAG, "Download task " + request.mId + " doesn't exist");
+                }
+            } else if (request.mAction == FileDownloadRequest.RequestAction.CANCEL) {
+                // TODO: delete all local resource and reset the db status of this file item
+            }
+        }
     }
 
     private class FileDownloadTask implements Runnable {
@@ -97,7 +106,10 @@ class FileDownloadService extends Service {
 
         @Override
         public void run() {
-            // TODO:
+            File destFile = new File(mRequest.mDestUri.getPath());
+            if (destFile.exists()) {
+
+            }
         }
     }
 

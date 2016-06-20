@@ -76,7 +76,7 @@ public class BackupsHandler extends JSONHandler {
                     .withValue(Backups.HOUR, backup.hour)
                     .withValue(Backups.UPDATED, now)
                     .withValue(Backups.DIRTY, 0)
-                    .withValue(Backups.SYNC, TrackerContract.SyncState.PENDING.state())
+                    .withValue(Backups.SYNC, TrackerContract.SyncState.PENDING.value())
                     .build());
 
             dates.add(backup.date);

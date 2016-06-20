@@ -538,8 +538,7 @@ public class MediaFragment extends TrackerFragment implements
                                     .withValue(TrackerContract.Videos.TITLE, video.title)
                                     .withValue(TrackerContract.Videos.OWNER, video.owner)
                                     .withValue(TrackerContract.Videos.PUBLISHED_AND_VIEWS, video.published_and_views)
-                                    .withValue(TrackerContract.Videos.WATCHED_TIME, video.watched_time)
-                                    .withValue(TrackerContract.Videos.FILE_SIZE, video.file_size)
+                                    .withValue(TrackerContract.Videos.LAST_OPENED_TIME, video.watched_time)
                                     .build());
                         }
                         try {

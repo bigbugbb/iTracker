@@ -19,6 +19,7 @@ import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,11 +71,11 @@ public class MediaDownloadFragment extends TrackerFragment {
                 LOGD(TAG, "ThrottledContentObserver fired (download videos). Content changed.");
                 if (isAdded()) {
                     LOGD(TAG, "Requesting download videos cursor reload as a result of ContentObserver firing.");
-                    reloadDownloadVideos(getLoaderManager(), MediaDownloadFragment.this);
+                    reloadFileDownloads(getLoaderManager(), MediaDownloadFragment.this);
                 }
             }
         });
-        activity.getContentResolver().registerContentObserver(TrackerContract.Tracks.CONTENT_URI, true, mMediaDownloadsObserver);
+        activity.getContentResolver().registerContentObserver(TrackerContract.FileDownloads.CONTENT_URI, true, mMediaDownloadsObserver);
     }
 
     @Override
@@ -90,9 +91,7 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
 
         switch (loader.getId()) {
-            case VideosQuery.TOKEN_DOWNLOAD: {
-                Video[] downloads = Video.videosFromCursor(data);
-                mMediaDownloadAdapter.updateDownloads(downloads);
+            case FileDownloadsQuery.TOKEN_VIDEOS: {
                 break;
             }
         }
@@ -105,6 +104,7 @@ public class MediaDownloadFragment extends TrackerFragment {
 
         public MediaDownloadAdapter(Context context) {
             mContext = context;
+            mDownloads = new ArrayList<>();
         }
 
         public void updateDownloads(Video[] downloads) {
