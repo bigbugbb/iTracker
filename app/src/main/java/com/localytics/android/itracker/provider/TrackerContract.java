@@ -7,11 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-
-import com.localytics.android.itracker.ui.MediaFragment;
 
 import org.joda.time.DateTime;
 
@@ -87,7 +84,6 @@ public class TrackerContract {
     interface MediaDataColumns {
         String MEDIA_ID = "media_id";
         String MEDIA_SIZE = "media_size";
-        String MEDIA_TYPE = "media_type";
         String MEDIA_DESC = "media_desc";
     }
 
@@ -136,6 +132,7 @@ public class TrackerContract {
     }
 
     public enum DownloadStatus {
+        INITIALIZED ("initialized"),
         PREPARING   ("preparing"),
         RESUMING    ("resuming"),
         DOWNLOADING ("downloading"),
@@ -150,7 +147,7 @@ public class TrackerContract {
             mStatus = status;
         }
 
-        public String status() {
+        public String value() {
             return mStatus;
         }
     }

@@ -3,7 +3,6 @@ package com.localytics.android.itracker.data.model;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.provider.MediaStore;
 
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 
@@ -14,7 +13,6 @@ public class FileDownload implements Parcelable {
 
     public String media_id;
     public long   media_size;
-    public String media_type;
     public String media_desc;
     public String target_url;
     public String status;
@@ -27,7 +25,6 @@ public class FileDownload implements Parcelable {
     public FileDownload(Cursor cursor) {
         media_id = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_ID));
         media_size = cursor.getLong(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_SIZE));
-        media_type = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_TYPE));
         media_desc = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_DESC));
         target_url = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.TARGET_URL));
         status = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.STATUS));
@@ -44,7 +41,6 @@ public class FileDownload implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(media_id);
         dest.writeLong(media_size);
-        dest.writeString(media_type);
         dest.writeString(media_desc);
         dest.writeString(target_url);
         dest.writeString(status);
@@ -55,7 +51,6 @@ public class FileDownload implements Parcelable {
     private FileDownload(Parcel in) {
         media_id = in.readString();
         media_size = in.readLong();
-        media_type = in.readString();
         media_desc = in.readString();
         target_url = in.readString();
         status = in.readString();

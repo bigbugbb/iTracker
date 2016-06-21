@@ -213,7 +213,7 @@ public abstract class TrackerFragment extends Fragment
                         TrackerContract.FileDownloads.CONTENT_URI,
                         null,
                         String.format("%s != ?", TrackerContract.FileDownloads.STATUS),
-                        new String[]{ TrackerContract.DownloadStatus.CANCELED.status() },
+                        new String[]{ TrackerContract.DownloadStatus.CANCELED.value() },
                         TrackerContract.FileDownloads.START_TIME + " DESC");
                 break;
             }
@@ -223,7 +223,7 @@ public abstract class TrackerFragment extends Fragment
                         TrackerContract.FileDownloads.VIDEO_DOWNLOADS_URI,
                         null,
                         String.format("%s != ?", TrackerContract.FileDownloads.STATUS),
-                        new String[]{ TrackerContract.DownloadStatus.CANCELED.status() },
+                        new String[]{ TrackerContract.DownloadStatus.CANCELED.value() },
                         TrackerContract.FileDownloads.START_TIME + " DESC");
                 break;
             }

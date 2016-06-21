@@ -8,16 +8,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Videos;
-import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.sync.SyncHelper;
 import com.localytics.android.itracker.sync.TrackerDataHandler;
 import com.localytics.android.itracker.util.AccountUtils;
-
-import org.jivesoftware.smackx.si.packet.StreamInitiation;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
@@ -134,8 +132,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + Tables.FILE_DOWNLOADS + " ("
                 + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + FileDownloads.MEDIA_ID + " TEXT NOT NULL,"
-                + FileDownloads.MEDIA_SIZE + " INTEGER NOT NULL,"
-                + FileDownloads.MEDIA_TYPE + " TEXT NOT NULL,"
+                + FileDownloads.MEDIA_SIZE + " INTEGER,"
                 + FileDownloads.MEDIA_DESC + " TEXT,"
                 + FileDownloads.TARGET_URL + " TEXT NOT NULL,"
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
