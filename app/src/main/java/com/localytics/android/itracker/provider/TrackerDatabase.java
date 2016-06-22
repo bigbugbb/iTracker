@@ -133,10 +133,9 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + FileDownloads.MEDIA_ID + " TEXT NOT NULL,"
                 + FileDownloads.MEDIA_SIZE + " INTEGER,"
-                + FileDownloads.MEDIA_DESC + " TEXT,"
-                + FileDownloads.TARGET_URL + " TEXT NOT NULL,"
+                + FileDownloads.TARGET_URL + " TEXT,"
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
-                + FileDownloads.START_TIME + " TEXT NOT NULL,"
+                + FileDownloads.START_TIME + " TEXT,"
                 + FileDownloads.FINISH_TIME + " TEXT,"
                 + FOREIGN_KEY.MEDIA_ID + References.VIDEO_IDENTIFIER + " ON DELETE CASCADE);");
 

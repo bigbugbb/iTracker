@@ -158,7 +158,6 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'com.opencsv:opencsv:3.5'
     compile 'joda-time:joda-time:2.9.1'
-    compile 'com.github.Commit451:YouTubeExtractor:0.0.1'
     compile 'com.google.android.gms:play-services-base:8.4.0'
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
     compile 'com.google.android.gms:play-services-auth:8.4.0'

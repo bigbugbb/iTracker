@@ -46,7 +46,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.commit451.youtubeextractor.YouTubeExtractor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -71,6 +70,7 @@ import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
+import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -284,7 +284,7 @@ public class MediaFragment extends TrackerFragment implements
                     return true;
                 }
                 Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
-//                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
+                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
                 startActivity(intent);
                 return true;
             }
@@ -867,27 +867,6 @@ public class MediaFragment extends TrackerFragment implements
 
                 itemView.setOnClickListener(new View.OnClickListener() {
 
-                    @Nullable
-                    public Uri getWorstAvaiableQualityVideoUri(YouTubeExtractor.Result result) {
-                        Uri uri = result.getSd240VideoUri();
-                        if (uri != null) {
-                            return uri;
-                        } else {
-                            uri = result.getSd360VideoUri();
-                            if (uri != null) {
-                                return uri;
-                            } else {
-                                uri = result.getHd720VideoUri();
-                                if (uri != null) {
-                                    return uri;
-                                } else {
-                                    uri = result.getHd1080VideoUri();
-                                    return uri != null ? uri : null;
-                                }
-                            }
-                        }
-                    }
-
                     @Override
                     public void onClick(View v) {
                         if (mSelectMode) {
@@ -900,7 +879,7 @@ public class MediaFragment extends TrackerFragment implements
 
                         // TODO: play the media in another activity or the floating view
                         YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
-                        extractor.extract(new YouTubeExtractor.Callback() {
+                        extractor.extractAsync(new YouTubeExtractor.Callback() {
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
                                 ConnectivityManager manager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -915,7 +894,7 @@ public class MediaFragment extends TrackerFragment implements
                                             Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
                                         }
                                     } else {
-                                        Uri uri = getWorstAvaiableQualityVideoUri(result);
+                                        Uri uri = result.getWorstAvaiableQualityVideoUri();
                                         if (uri != null) {
                                             startMediaPlayback(uri, video);
                                         } else {

@@ -68,9 +68,9 @@ public class MediaDownloadFragment extends TrackerFragment {
         mMediaDownloadsObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
             @Override
             public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (download videos). Content changed.");
+                LOGD(TAG, "ThrottledContentObserver fired (file downloads). Content changed.");
                 if (isAdded()) {
-                    LOGD(TAG, "Requesting download videos cursor reload as a result of ContentObserver firing.");
+                    LOGD(TAG, "Requesting file downloads cursor reload as a result of ContentObserver firing.");
                     reloadFileDownloads(getLoaderManager(), MediaDownloadFragment.this);
                 }
             }

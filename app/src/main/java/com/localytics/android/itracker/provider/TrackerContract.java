@@ -84,7 +84,6 @@ public class TrackerContract {
     interface MediaDataColumns {
         String MEDIA_ID = "media_id";
         String MEDIA_SIZE = "media_size";
-        String MEDIA_DESC = "media_desc";
     }
 
     interface FileDownloadColumns extends MediaDataColumns {

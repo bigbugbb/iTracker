@@ -18,9 +18,11 @@ public class FileDownloadManager {
 
     private final static String FILE_DOWNLOAD_INTENT_ACTION = "com.localytics.android.itracker.intent.action.FILE_DOWNLOAD";
 
-    public static synchronized FileDownloadManager getInstance(final Context context) {
-        if (sInstance == null) {
-            sInstance = new FileDownloadManager(context);
+    public static FileDownloadManager getInstance(final Context context) {
+        synchronized (FileDownloadManager.class) {
+            if (sInstance == null) {
+                sInstance = new FileDownloadManager(context);
+            }
         }
         return sInstance;
     }

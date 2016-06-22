@@ -385,6 +385,16 @@ public class TrackerProvider extends ContentProvider {
                 }
                 return Videos.buildVideoUri("" + newId);
             }
+            case FILE_DOWNLOADS: {
+                long newId = -1;
+                try {
+                    newId = db.insertWithOnConflict(Tables.FILE_DOWNLOADS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                    notifyChange(uri);
+                } catch (SQLException e) {
+                    LOGE(TAG, "Error inserting " + values, e);
+                }
+                return FileDownloads.buildFileDownloadUri("" + newId);
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown insert uri: " + uri);
             }
