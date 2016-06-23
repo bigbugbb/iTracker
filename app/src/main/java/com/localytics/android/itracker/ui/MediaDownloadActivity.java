@@ -5,6 +5,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -14,6 +15,7 @@ import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AppQueryHandler;
+import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import java.util.ArrayList;
 
@@ -52,11 +54,19 @@ public class MediaDownloadActivity extends BaseActivity {
             @Override
             public void run() {
                 ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                // Every two prayers are paired as a partner group.
-                for (Video video : videos) {
+                for (final Video video : videos) {
+                    String targetUrl = "";
+                    YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
+                    if (result != null) {
+                        Uri videoUri = result.getBestAvaiableQualityVideoUri();
+                        if (videoUri != null) {
+                            targetUrl = videoUri.getPath();
+                        }
+                    }
                     ops.add(ContentProviderOperation
                             .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
                             .withValue(TrackerContract.FileDownloads.MEDIA_ID, video.identifier)
+                            .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
                             .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED)
                             .build());
                 }

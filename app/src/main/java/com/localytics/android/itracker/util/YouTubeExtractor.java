@@ -46,7 +46,7 @@ public class YouTubeExtractor {
         });
     }
 
-    public void extract(final YouTubeExtractor.Callback listener) {
+    public YouTubeExtractor.Result extract(final YouTubeExtractor.Callback listener) {
         final Handler listenerHandler = new Handler(Looper.getMainLooper());
         try {
             String elField = "embedded";
@@ -74,6 +74,7 @@ public class YouTubeExtractor {
 
                     }
                 });
+                return result;
             }
         } catch (final Exception var8) {
             listenerHandler.post(new Runnable() {
@@ -89,6 +90,8 @@ public class YouTubeExtractor {
                 mConnection.disconnect();
             }
         }
+
+        return null;
     }
 
     public void cancel() {

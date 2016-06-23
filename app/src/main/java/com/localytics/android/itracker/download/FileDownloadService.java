@@ -11,11 +11,13 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -153,70 +155,25 @@ class FileDownloadService extends Service {
                 onPrepare();
 
                 // Query for any existing download record for this media
-                Uri prevSrcUri = null;
-                Cursor cursor = mResolver.query(
-                        FileDownloads.CONTENT_URI,
-                        null,
-                        String.format("%s = ?", FileDownloads.MEDIA_ID),
-                        new String[]{ mRequest.mId },
-                        null);
-                if (cursor != null) {
-                    try {
-                        if (cursor.moveToFirst()) {
-                            updateStatus(DownloadStatus.valueOf(cursor.getString(cursor.getColumnIndex(FileDownloads.STATUS))), false);
-                            mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.MEDIA_SIZE));
-                            prevSrcUri = Uri.parse(cursor.getString(cursor.getColumnIndex(FileDownloads.TARGET_URL)));
-                            if (mRequest.mSrcUri == null) {
-                                mRequest.mSrcUri = prevSrcUri;
-                            }
-                        }
-                    } finally {
-                        cursor.close();
+                Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.MEDIA_ID + " = ?", new String[]{ mRequest.mId }, null);
+                try {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.MEDIA_SIZE));
                     }
-                }
-
-                // Extract source uri if it's not included in the request
-                if (mRequest.mSrcUri == null) {
-                    new YouTubeExtractor(mRequest.mId).extract(new YouTubeExtractor.Callback() {
-                        @Override
-                        public void onSuccess(YouTubeExtractor.Result result) {
-                            mRequest.mSrcUri = result.getBestAvaiableQualityVideoUri();
-                        }
-
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            LOGE(TAG, "Can't get the file url");
-                        }
-                    });
-
-                    if (mRequest.mSrcUri == null) {
-                        LOGE(TAG, "Can't get the target url of the source file");
-                        onFailed();
-                        return;
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
                     }
                 }
 
                 // Retrieve existing local file size if exists, otherwise create a new file
                 File destFile = new File(mRequest.mDestUri.getPath());
-                if (!destFile.exists()) {
+                if (!destFile.exists() || destFile.isDirectory()) {
                     destFile.getParentFile().mkdirs();
                     destFile.createNewFile();
                 } else {
-                    // Check whether the previous source uri diffs from the current, if so we should
-                    // make a total new file, otherwise continue to download the previous fille
-                    if (prevSrcUri != null) {
-                        mRequest.mSrcUri = prevSrcUri; // still download from the old location
-                        mCurrentFileSize = destFile.length();
-                    } else {
-                        // Invalid condition, just delete the existing file and start a new download
-                        destFile.delete();
-                        destFile.createNewFile();
-                    }
+                    mCurrentFileSize = destFile.length();
                 }
-
-                ContentValues values = new ContentValues();
-                values.put(FileDownloads.TARGET_URL, mRequest.mSrcUri.getPath());
-                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.MEDIA_ID), new String[]{ mRequest.mId });
 
                 // Try to connect the download url (with location redirect)
                 URL url = new URL(mRequest.mSrcUri.getPath());
@@ -235,7 +192,7 @@ class FileDownloadService extends Service {
                 /***** Downloading *****/
                 updateStatus(DownloadStatus.DOWNLOADING, false);
 
-                values = new ContentValues();
+                ContentValues values = new ContentValues();
                 values.put(FileDownloads.STATUS, mStatus.value());
                 if (mTotalFileSize == 0) {
                     mTotalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
@@ -244,7 +201,7 @@ class FileDownloadService extends Service {
                 mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.MEDIA_ID), new String[]{ mRequest.mId });
 
                 // Keep downloading the file
-                output = new FileOutputStream(destFile);
+                output = new BufferedOutputStream(new FileOutputStream(destFile));
                 byte[] buffer = new byte[1024 * 32];
                 long prevTime = SystemClock.uptimeMillis();
                 for (int read = input.read(buffer); read > 0;) {
@@ -265,7 +222,7 @@ class FileDownloadService extends Service {
 
                     mCurrentFileSize += read;
 
-                    if (SystemClock.uptimeMillis() - prevTime > 1000) {
+                    if (SystemClock.uptimeMillis() - prevTime > DateUtils.SECOND_IN_MILLIS) {
                         onProgress(mCurrentFileSize, mTotalFileSize);
                         prevTime = SystemClock.uptimeMillis();
                     }
