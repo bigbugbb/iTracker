@@ -55,7 +55,7 @@
             android:indeterminate="true"/>
 
         <TextView
-            android:id="@+id/media_download_file_size"
+            android:id="@+id/media_file_size"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@id/media_download_progress"
@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@id/media_download_progress"
-            android:layout_toRightOf="@id/media_download_file_size"
+            android:layout_toRightOf="@id/media_file_size"
             android:layout_marginRight="8dp"
             android:gravity="center_vertical"
             android:ellipsize="end"

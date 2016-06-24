@@ -25,6 +25,7 @@
     <FrameLayout
         android:id="@+id/media_download_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:paddingTop="?attr/actionBarSize"/>
 
 </android.support.design.widget.CoordinatorLayout>

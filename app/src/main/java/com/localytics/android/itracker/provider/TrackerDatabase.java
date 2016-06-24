@@ -46,18 +46,17 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         String VIDEOS = "videos";
         String FILE_DOWNLOADS = "file_downloads";
         String MEDIA_DOWNLOADS = "file_downloads "
-                + "LEFT OUTER JOIN videos ON file_downloads.media_id=videos.identifier"; // union other media later
+                + "LEFT OUTER JOIN videos ON file_downloads.file_id=videos.identifier"; // union other media later
     }
 
     interface FOREIGN_KEY {
         String TRACK_ID = "FOREIGN KEY(track_id) ";
-        String MEDIA_ID = "FOREIGN KEY(media_id) ";
+        String FILE_ID = "FOREIGN KEY(file_id) ";
     }
 
     /** {@code REFERENCES} clauses. */
     private interface References {
         String TRACK_ID = "REFERENCES " + Tables.TRACKS + "(" + TrackerContract.Tracks._ID + ")";
-        String VIDEO_IDENTIFIER = "REFERENCES " + Tables.VIDEOS + "(" + Videos.IDENTIFIER + ")";
     }
 
     public TrackerDatabase(Context context) {
@@ -131,13 +130,13 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + Tables.FILE_DOWNLOADS + " ("
                 + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + FileDownloads.MEDIA_ID + " TEXT NOT NULL,"
-                + FileDownloads.MEDIA_SIZE + " INTEGER,"
-                + FileDownloads.TARGET_URL + " TEXT,"
+                + FileDownloads.FILE_ID + " TEXT NOT NULL,"
+                + FileDownloads.TOTAL_SIZE + " INTEGER,"
+                + FileDownloads.TARGET_URL + " TEXT DEFAULT ''," // CAN'T be null otherwise it shoots the unique check out the window
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
                 + FileDownloads.START_TIME + " TEXT,"
                 + FileDownloads.FINISH_TIME + " TEXT,"
-                + FOREIGN_KEY.MEDIA_ID + References.VIDEO_IDENTIFIER + " ON DELETE CASCADE);");
+                + "UNIQUE (" + FileDownloads.FILE_ID + ", " + FileDownloads.TARGET_URL + ") ON CONFLICT IGNORE);");
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");
@@ -156,7 +155,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         // Create indexes for file_downloads
         db.execSQL("CREATE INDEX status ON " + Tables.FILE_DOWNLOADS + "(" + FileDownloads.STATUS + ");");
-        db.execSQL("CREATE INDEX download_video_identifier_index ON " + Tables.FILE_DOWNLOADS + "(" + FileDownloads.MEDIA_ID + ");");
+        db.execSQL("CREATE INDEX download_file_id_index ON " + Tables.FILE_DOWNLOADS + "(" + FileDownloads.FILE_ID + ");");
     }
 
     @Override

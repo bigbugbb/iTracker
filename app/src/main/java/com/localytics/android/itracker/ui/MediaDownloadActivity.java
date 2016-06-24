@@ -65,7 +65,7 @@ public class MediaDownloadActivity extends BaseActivity {
                     }
                     ops.add(ContentProviderOperation
                             .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
-                            .withValue(TrackerContract.FileDownloads.MEDIA_ID, video.identifier)
+                            .withValue(TrackerContract.FileDownloads.FILE_ID, video.identifier)
                             .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
                             .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED.value())
                             .build());

@@ -96,7 +96,7 @@ public class TrackerProvider extends ContentProvider {
         matcher.addURI(authority, "videos/*", VIDEOS_ID);
 
         matcher.addURI(authority, "file_downloads", FILE_DOWNLOADS);
-        matcher.addURI(authority, "file_downloads/*", FILE_DOWNLOADS_ID);
+        matcher.addURI(authority, "file_downloads/#", FILE_DOWNLOADS_ID);
         matcher.addURI(authority, "file_downloads/media", FILE_DOWNLOADS_MEDIA);
 
         return matcher;
@@ -503,7 +503,7 @@ public class TrackerProvider extends ContentProvider {
                 // A Left Join returns all rows from the left table even if they don't exist in the right table.
                 return builder.table(Tables.MEDIA_DOWNLOADS)
                         .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS)
-                        .groupBy(FileDownloads.MEDIA_ID + "," + FileDownloads.TARGET_URL);
+                        .groupBy(FileDownloads.FILE_ID + "," + FileDownloads.TARGET_URL);
             }
         }
         return null;

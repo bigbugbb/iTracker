@@ -14,7 +14,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
@@ -92,6 +94,10 @@ public class MediaDownloadFragment extends TrackerFragment {
 
         switch (loader.getId()) {
             case MediaDownloadsQuery.TOKEN_NORMAL: {
+                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(data);
+                if (downloads != null && downloads.length > 0) {
+                    mMediaDownloadAdapter.updateDownloads(downloads);
+                }
                 break;
             }
         }
@@ -100,19 +106,20 @@ public class MediaDownloadFragment extends TrackerFragment {
     private class MediaDownloadAdapter extends RecyclerView.Adapter<MediaDownloadAdapter.ViewHolder> {
 
         private Context mContext;
-        private List<Video> mDownloads;
+        private List<MediaDownload> mDownloads;
 
         public MediaDownloadAdapter(Context context) {
             mContext = context;
             mDownloads = new ArrayList<>();
         }
 
-        public void updateDownloads(Video[] downloads) {
+        public void updateDownloads(MediaDownload[] downloads) {
             updateDownloads(Arrays.asList(downloads));
         }
 
-        public void updateDownloads(List<Video> downloads) {
+        public void updateDownloads(List<MediaDownload> downloads) {
             mDownloads = downloads;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -142,13 +149,21 @@ public class MediaDownloadFragment extends TrackerFragment {
                 super(itemView);
                 thumbnail = (ImageView) itemView.findViewById(R.id.media_thumbnail);
                 title     = (TextView) itemView.findViewById(R.id.media_title);
-                downloadFileSize = (TextView) itemView.findViewById(R.id.media_download_file_size);
+                downloadFileSize = (TextView) itemView.findViewById(R.id.media_file_size);
                 downloadSpeed = (TextView) itemView.findViewById(R.id.media_download_speed);
                 downloadStatus = (TextView) itemView.findViewById(R.id.media_download_status);
             }
 
-            public void bindData(final Video video) {
-
+            public void bindData(final MediaDownload download) {
+                title.setText(download.title);
+                downloadFileSize.setText(String.valueOf(download.total_size));
+                downloadSpeed.setText("500KB/s");
+                downloadStatus.setText(download.status);
+                Glide.with(MediaDownloadFragment.this)
+                        .load(download.thumbnail)
+                        .centerCrop()
+                        .crossFade()
+                        .into(thumbnail);
             }
         }
     }

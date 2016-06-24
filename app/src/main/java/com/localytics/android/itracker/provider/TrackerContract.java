@@ -71,26 +71,29 @@ public class TrackerContract {
         String CONFIDENCE = "confidence";
     }
 
-    interface VideoColumns {
+    interface MediaCommonColumns {
         String IDENTIFIER = "identifier";
         String THUMBNAIL = "thumbnail";
         String DURATION = "duration";
         String TITLE = "title";
+    }
+
+    interface VideoColumns extends MediaCommonColumns {
         String OWNER = "owner";
         String PUBLISHED_AND_VIEWS = "published_and_views";
         String LAST_OPENED_TIME = "last_opened_time";
     }
 
-    interface MediaDataColumns {
-        String MEDIA_ID = "media_id";
-        String MEDIA_SIZE = "media_size";
-    }
-
-    interface FileDownloadColumns extends MediaDataColumns {
+    interface FileDownloadColumns {
+        String FILE_ID = "file_id";
+        String TOTAL_SIZE = "total_size";
         String TARGET_URL = "target_url";
         String STATUS = "status";
         String START_TIME = "start_time";
         String FINISH_TIME = "finish_time";
+    }
+
+    interface MediaDownloadColumns extends FileDownloadColumns, MediaCommonColumns {
     }
 
     interface Paths {

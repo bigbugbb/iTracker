@@ -155,10 +155,10 @@ class FileDownloadService extends Service {
                 onPrepare();
 
                 // Query for any existing download record for this media
-                Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.MEDIA_ID + " = ?", new String[]{ mRequest.mId }, null);
+                Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
                 try {
                     if (cursor != null && cursor.moveToFirst()) {
-                        mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.MEDIA_SIZE));
+                        mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
                     }
                 } finally {
                     if (cursor != null) {
@@ -196,9 +196,9 @@ class FileDownloadService extends Service {
                 values.put(FileDownloads.STATUS, mStatus.value());
                 if (mTotalFileSize == 0) {
                     mTotalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
-                    values.put(FileDownloads.MEDIA_SIZE, mTotalFileSize);
+                    values.put(FileDownloads.TOTAL_SIZE, mTotalFileSize);
                 }
-                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.MEDIA_ID), new String[]{ mRequest.mId });
+                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
 
                 // Keep downloading the file
                 output = new BufferedOutputStream(new FileOutputStream(destFile));
@@ -351,7 +351,7 @@ class FileDownloadService extends Service {
             if (syncDb) {
                 ContentValues values = new ContentValues();
                 values.put(FileDownloads.STATUS, mStatus.value());
-                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.MEDIA_ID), new String[]{ mRequest.mId });
+                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
             }
         }
     }
