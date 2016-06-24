@@ -45,8 +45,8 @@ public class TrackerDatabase extends SQLiteOpenHelper {
         String ACTIVITIES = "activities";
         String VIDEOS = "videos";
         String FILE_DOWNLOADS = "file_downloads";
-        String FILE_DOWNLOADS_JOIN_VIDEOS_ON_IDENTIFIER = "file_downloads "
-                + "LEFT OUTER JOIN videos ON file_downloads.media_id=videos.identifier";
+        String MEDIA_DOWNLOADS = "file_downloads "
+                + "LEFT OUTER JOIN videos ON file_downloads.media_id=videos.identifier"; // union other media later
     }
 
     interface FOREIGN_KEY {

@@ -13,7 +13,6 @@ public class FileDownload implements Parcelable {
 
     public String media_id;
     public long   media_size;
-    public String media_desc;
     public String target_url;
     public String status;
     public String start_time;
@@ -25,7 +24,6 @@ public class FileDownload implements Parcelable {
     public FileDownload(Cursor cursor) {
         media_id = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_ID));
         media_size = cursor.getLong(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_SIZE));
-        media_desc = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.MEDIA_DESC));
         target_url = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.TARGET_URL));
         status = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.STATUS));
         start_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.START_TIME));
@@ -41,7 +39,6 @@ public class FileDownload implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(media_id);
         dest.writeLong(media_size);
-        dest.writeString(media_desc);
         dest.writeString(target_url);
         dest.writeString(status);
         dest.writeString(start_time);
@@ -51,7 +48,6 @@ public class FileDownload implements Parcelable {
     private FileDownload(Parcel in) {
         media_id = in.readString();
         media_size = in.readLong();
-        media_desc = in.readString();
         target_url = in.readString();
         status = in.readString();
         start_time = in.readString();

@@ -71,7 +71,7 @@ public class MediaDownloadFragment extends TrackerFragment {
                 LOGD(TAG, "ThrottledContentObserver fired (file downloads). Content changed.");
                 if (isAdded()) {
                     LOGD(TAG, "Requesting file downloads cursor reload as a result of ContentObserver firing.");
-                    reloadFileDownloads(getLoaderManager(), MediaDownloadFragment.this);
+                    reloadMediaDownloads(getLoaderManager(), MediaDownloadFragment.this);
                 }
             }
         });
@@ -91,7 +91,7 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
 
         switch (loader.getId()) {
-            case FileDownloadsQuery.TOKEN_VIDEOS: {
+            case MediaDownloadsQuery.TOKEN_NORMAL: {
                 break;
             }
         }

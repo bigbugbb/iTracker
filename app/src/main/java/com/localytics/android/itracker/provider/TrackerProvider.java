@@ -45,8 +45,6 @@ public class TrackerProvider extends ContentProvider {
 
     private TrackerDatabase mOpenHelper;
 
-    private final ThreadLocal<Boolean> mIsInBatchMode = new ThreadLocal<>();
-
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     private static final int TRACKS = 100;
@@ -69,7 +67,7 @@ public class TrackerProvider extends ContentProvider {
 
     private static final int FILE_DOWNLOADS = 700;
     private static final int FILE_DOWNLOADS_ID = 701;
-    private static final int FILE_DOWNLOADS_VIDEOS = 702;
+    private static final int FILE_DOWNLOADS_MEDIA = 702;
 
     /**
      * Build and return a {@link UriMatcher} that catches all {@link Uri}
@@ -99,7 +97,7 @@ public class TrackerProvider extends ContentProvider {
 
         matcher.addURI(authority, "file_downloads", FILE_DOWNLOADS);
         matcher.addURI(authority, "file_downloads/*", FILE_DOWNLOADS_ID);
-        matcher.addURI(authority, "file_downloads/videos", FILE_DOWNLOADS_VIDEOS);
+        matcher.addURI(authority, "file_downloads/media", FILE_DOWNLOADS_MEDIA);
 
         return matcher;
     }
@@ -248,7 +246,6 @@ public class TrackerProvider extends ContentProvider {
     public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
             throws OperationApplicationException {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        mIsInBatchMode.set(true);
         // the next line works because SQLiteDatabase
         // uses a thread local SQLiteSession object for all manipulations
         db.beginTransaction();
@@ -258,13 +255,8 @@ public class TrackerProvider extends ContentProvider {
 //            getContext().getContentResolver().notifyChange(LentItemsContract.CONTENT_URI, null);
             return results;
         } finally {
-            mIsInBatchMode.remove();
             db.endTransaction();
         }
-    }
-
-    private boolean isInBatchMode() {
-        return mIsInBatchMode.get() != null && mIsInBatchMode.get();
     }
 
     private void notifyChange(Uri uri) {
@@ -273,7 +265,7 @@ public class TrackerProvider extends ContentProvider {
         // more intelligently than we can -- for example, doing it only once at the end
         // of the sync instead of issuing thousands of notifications for each record).
         boolean syncToNetwork = !TrackerContract.hasCallerIsSyncAdapterParameter(uri);
-        if (syncToNetwork && !isInBatchMode()) {
+        if (syncToNetwork) {
             Context context = getContext();
             context.getContentResolver().notifyChange(uri, null);
 
@@ -507,9 +499,9 @@ public class TrackerProvider extends ContentProvider {
                 return builder.table(Tables.BACKUPS)
                         .groupBy(Backups.DATE + "," + Backups.HOUR + ", " + Backups.CATEGORY);
             }
-            case FILE_DOWNLOADS_VIDEOS: {
+            case FILE_DOWNLOADS_MEDIA: {
                 // A Left Join returns all rows from the left table even if they don't exist in the right table.
-                return builder.table(Tables.FILE_DOWNLOADS_JOIN_VIDEOS_ON_IDENTIFIER)
+                return builder.table(Tables.MEDIA_DOWNLOADS)
                         .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS)
                         .groupBy(FileDownloads.MEDIA_ID + "," + FileDownloads.TARGET_URL);
             }

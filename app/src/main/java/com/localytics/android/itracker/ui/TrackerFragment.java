@@ -126,8 +126,8 @@ public abstract class TrackerFragment extends Fragment
         loaderManager.restartLoader(VideosQuery.TOKEN_NORMAL, null, callbacks);
     }
 
-    public static void reloadFileDownloads(LoaderManager loaderManager, LoaderCallbacks callbacks) {
-        loaderManager.restartLoader(FileDownloadsQuery.TOKEN_NORMAL, null, callbacks);
+    public static void reloadMediaDownloads(LoaderManager loaderManager, LoaderCallbacks callbacks) {
+        loaderManager.restartLoader(MediaDownloadsQuery.TOKEN_NORMAL, null, callbacks);
     }
 
     protected void updateSelected() {
@@ -207,20 +207,10 @@ public abstract class TrackerFragment extends Fragment
                         TrackerContract.Videos.LAST_OPENED_TIME + " DESC");
                 break;
             }
-            case FileDownloadsQuery.TOKEN_NORMAL: {
+            case MediaDownloadsQuery.TOKEN_NORMAL: {
                 loader = new CursorLoader(
                         getActivity(),
-                        TrackerContract.FileDownloads.CONTENT_URI,
-                        null,
-                        null,
-                        null,
-                        TrackerContract.FileDownloads.START_TIME + " DESC");
-                break;
-            }
-            case FileDownloadsQuery.TOKEN_VIDEOS: {
-                loader = new CursorLoader(
-                        getActivity(),
-                        TrackerContract.FileDownloads.VIDEO_DOWNLOADS_URI,
+                        TrackerContract.FileDownloads.MEDIA_DOWNLOADS_URI,
                         null,
                         null,
                         null,
@@ -264,8 +254,7 @@ public abstract class TrackerFragment extends Fragment
         int TOKEN_NORMAL = 600;
     }
 
-    protected interface FileDownloadsQuery {
+    protected interface MediaDownloadsQuery {
         int TOKEN_NORMAL = 700;
-        int TOKEN_VIDEOS = 701;
     }
 }

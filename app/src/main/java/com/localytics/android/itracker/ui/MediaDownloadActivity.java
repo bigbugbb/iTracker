@@ -60,14 +60,14 @@ public class MediaDownloadActivity extends BaseActivity {
                     if (result != null) {
                         Uri videoUri = result.getBestAvaiableQualityVideoUri();
                         if (videoUri != null) {
-                            targetUrl = videoUri.getPath();
+                            targetUrl = videoUri.toString();
                         }
                     }
                     ops.add(ContentProviderOperation
                             .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
                             .withValue(TrackerContract.FileDownloads.MEDIA_ID, video.identifier)
                             .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
-                            .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED)
+                            .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED.value())
                             .build());
                 }
                 try {

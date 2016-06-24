@@ -307,7 +307,7 @@ public class TrackerContract {
     public static class FileDownloads implements FileDownloadColumns, BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(Paths.FILE_DOWNLOADS).build();
 
-        public static final Uri VIDEO_DOWNLOADS_URI = CONTENT_URI.buildUpon().appendPath("videos").build();
+        public static final Uri MEDIA_DOWNLOADS_URI = CONTENT_URI.buildUpon().appendPath("media").build();
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.itracker.file_download";
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.itracker.file_download";
