@@ -85,6 +85,9 @@ public class Config {
     // YouTube upload playlist id
     public static final String YOUTUBE_UPLOAD_PLAYLIST = "WL";
 
+    // Default max file download tasks
+    public static final int DEFAULT_MAX_FILE_DOWNLOAD_TASKS = 3;
+
     public static void enableStrictMode() {
         if (SdkVersionUtils.hasGingerbread()) {
             StrictMode.ThreadPolicy.Builder threadPolicyBuilder =

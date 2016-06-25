@@ -136,7 +136,7 @@ public class TrackerContract {
     public enum DownloadStatus {
         INITIALIZED ("initialized"),
         PREPARING   ("preparing"),
-        RESUMING    ("resuming"),
+        PENDING     ("pending"),
         DOWNLOADING ("downloading"),
         PAUSED      ("paused"),
         COMPLETED   ("completed"),
@@ -320,10 +320,18 @@ public class TrackerContract {
             return CONTENT_URI.buildUpon().appendPath(fileDownloadId).build();
         }
 
+        public static Uri buildMediaDownloadUriByStatus(String status) {
+            return CONTENT_URI.buildUpon().appendPath("media").appendQueryParameter(STATUS, status).build();
+        }
+
         /** Read {@link #_ID} from {@link BaseColumns} {@link Uri}. */
         public static String getFileDownloadId(Uri uri) {
             return uri.getPathSegments().get(1);
         }
+    }
+
+    public static class MediaDownloads implements MediaDownloadColumns {
+        // Only served as a public interface for MediaDownloadColumns
     }
 
     public static String categoryFromUri(@NonNull Uri uri) {

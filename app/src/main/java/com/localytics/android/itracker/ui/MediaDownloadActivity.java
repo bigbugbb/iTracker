@@ -2,20 +2,23 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Fragment;
 import android.content.ContentProviderOperation;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
-import android.text.method.DateTimeKeyListener;
+import android.text.TextUtils;
 
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
+import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.AppQueryHandler;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
+import com.localytics.android.itracker.util.ExternalStorageUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import org.joda.time.DateTime;
@@ -68,20 +71,50 @@ public class MediaDownloadActivity extends BaseActivity {
                             }
                         }
                         ops.add(ContentProviderOperation
-                                .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
-                                .withValue(TrackerContract.FileDownloads.FILE_ID, video.identifier)
-                                .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
-                                .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED.value())
-                                .withValue(TrackerContract.FileDownloads.START_TIME, DateTime.now().toString())
+                                .newInsert(FileDownloads.CONTENT_URI)
+                                .withValue(FileDownloads.FILE_ID, video.identifier)
+                                .withValue(FileDownloads.TARGET_URL, targetUrl)
+                                .withValue(FileDownloads.STATUS, DownloadStatus.INITIALIZED.value())
+                                .withValue(FileDownloads.START_TIME, DateTime.now().toString())
                                 .build());
                     }
                     try {
                         context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                        startDownloadTasks();
                     } catch (RemoteException | OperationApplicationException e) {
                         LOGE(TAG, "Fail to initialize new downloads: " + e);
                     }
                 }
             }).start();
+        }
+    }
+
+    private void startDownloadTasks() {
+        Context context = getApplicationContext();
+        String availableStatus = String.format("%s,%s", DownloadStatus.INITIALIZED.value(), DownloadStatus.PAUSED.value());
+        Cursor cursor = context.getContentResolver().query(
+                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
+                null,
+                null,
+                null,
+                TrackerContract.FileDownloads.START_TIME + " DESC");
+        if (cursor != null) {
+            try {
+                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
+                FileDownloadManager fdm = FileDownloadManager.getInstance(context);
+                for (MediaDownload download : downloads) {
+                    fdm.setFileDownloadListener(new FileDownloadManager.SimpleFileDownloadListener() {
+
+                    });
+                    Uri srcUri = Uri.parse(download.target_url);
+                    Uri destUri = Uri.parse(ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/" + download.identifier);
+                    fdm.startDownload(download.identifier, srcUri, destUri);
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Got error when start triggering the download", e);
+            } finally {
+                cursor.close();
+            }
         }
     }
 }

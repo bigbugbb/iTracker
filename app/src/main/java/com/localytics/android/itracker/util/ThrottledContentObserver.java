@@ -14,8 +14,8 @@ import android.os.Handler;
 public class ThrottledContentObserver extends ContentObserver {
     Handler mHandler;
     Runnable mScheduledRun = null;
-    private static final int THROTTLE_DELAY = 1000;
     Callbacks mCallback = null;
+    int mThrottleDelay = 1000;
 
     public interface Callbacks {
         void onThrottledContentObserverFired();
@@ -25,6 +25,10 @@ public class ThrottledContentObserver extends ContentObserver {
         super(null);
         mHandler  = new Handler();
         mCallback = callback;
+    }
+
+    public void setThrottleDelay(int throttleDelay) {
+        mThrottleDelay = throttleDelay;
     }
 
     @Override
@@ -41,7 +45,7 @@ public class ThrottledContentObserver extends ContentObserver {
                 }
             };
         }
-        mHandler.postDelayed(mScheduledRun, THROTTLE_DELAY);
+        mHandler.postDelayed(mScheduledRun, mThrottleDelay);
     }
 
     public void cancelPendingCallback() {

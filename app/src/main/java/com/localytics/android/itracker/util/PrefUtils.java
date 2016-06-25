@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.localytics.android.itracker.Config;
+
 /**
  * Utilities and constants related to app preferences.
  */
@@ -45,6 +47,8 @@ public class PrefUtils {
 
     /** String indicating the chosen google account name for youtube data */
     public static final String PREF_CHOSEN_GOOGLE_ACCOUNT_NAME = "_pref_chosen_google_account_name";
+
+    public static final String PREF_MAX_FILE_DOWNLOAD_TASKS = "_pref_max_file_download_tasks";
 
     public static void init(final Context context) {}
 
@@ -136,6 +140,16 @@ public class PrefUtils {
     public static void setChosenGoogleAccountName(final Context context, String chosenAccountName) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putString(PREF_CHOSEN_GOOGLE_ACCOUNT_NAME, chosenAccountName).apply();
+    }
+
+    public static int getMaxFileDownloadTasks(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getInt(PREF_MAX_FILE_DOWNLOAD_TASKS, Config.DEFAULT_MAX_FILE_DOWNLOAD_TASKS);
+    }
+
+    public static void setMaxFileDownloadTasks(final Context context, int maxFileDownloadTasks) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putInt(PREF_MAX_FILE_DOWNLOAD_TASKS, maxFileDownloadTasks).apply();
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,

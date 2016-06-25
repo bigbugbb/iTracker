@@ -1,14 +1,19 @@
 package com.localytics.android.itracker.download;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.net.Uri;
+
+import com.localytics.android.itracker.data.model.FileDownload;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 
 
 /**
  * Provides the public api to trigger the file download actions
  */
-public class FileDownloadManager {
+public class FileDownloadManager extends ContentObserver {
 
     private Context mContext;
 
@@ -28,7 +33,14 @@ public class FileDownloadManager {
     }
 
     private FileDownloadManager(final Context context) {
+        super(null);
+
+        if (context == null) {
+            throw new IllegalArgumentException("Context can never be null");
+        }
+
         mContext = context;
+        mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
     }
 
     public void setFileDownloadListener(FileDownloadListener listener) {
@@ -67,6 +79,7 @@ public class FileDownloadManager {
 
     private void postRequest(FileDownloadRequest request) {
         Intent intent = new Intent(FILE_DOWNLOAD_INTENT_ACTION);
+        intent.setPackage(mContext.getPackageName());
         intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
         mContext.startService(intent);
     }

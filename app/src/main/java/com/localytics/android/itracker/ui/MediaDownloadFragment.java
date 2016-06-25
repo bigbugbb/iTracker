@@ -82,6 +82,7 @@ public class MediaDownloadFragment extends TrackerFragment {
                 }
             }
         });
+        mMediaDownloadsObserver.setThrottleDelay(100);
         activity.getContentResolver().registerContentObserver(TrackerContract.FileDownloads.CONTENT_URI, true, mMediaDownloadsObserver);
     }
 

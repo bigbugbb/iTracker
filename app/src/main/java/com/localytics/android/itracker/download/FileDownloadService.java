@@ -11,8 +11,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 
+import com.localytics.android.itracker.data.model.FileDownload;
+import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.util.YouTubeExtractor;
@@ -25,8 +28,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +45,7 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 /**
  * Created by bigbug on 6/15/16.
  */
-class FileDownloadService extends Service {
+public class FileDownloadService extends Service {
     private static final String TAG = makeLogTag(FileDownloadService.class);
 
     private ThreadPoolExecutor mExecutor;
@@ -49,7 +54,7 @@ class FileDownloadService extends Service {
     private Handler mHandler;
     private FileDownloadManager mDownloadManager;
 
-    private HashMap<String, FileDownloadTask> mTasks;
+    private Map<String, FileDownloadTask> mTasks;
 
     final static String FILE_DOWNLOAD_REQUEST = "file_download_request";
 
@@ -66,7 +71,7 @@ class FileDownloadService extends Service {
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
         mHandler = new Handler();
         mDownloadManager = FileDownloadManager.getInstance(getApplicationContext());
-        mTasks = new HashMap<>();
+        mTasks = Collections.synchronizedMap(new HashMap<String, FileDownloadTask>());
     }
 
     @Nullable
@@ -126,6 +131,8 @@ class FileDownloadService extends Service {
         private long mTotalFileSize;
         private DownloadStatus mStatus;
 
+        private String mContentType;
+
         private FileDownloadListener mListener;
 
         FileDownloadTask(Context context, FileDownloadRequest request) {
@@ -156,18 +163,18 @@ class FileDownloadService extends Service {
 
                 // Query for any existing download record for this media
                 Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
-                try {
-                    if (cursor != null && cursor.moveToFirst()) {
-                        mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
-                    }
-                } finally {
-                    if (cursor != null) {
+                if (cursor != null) {
+                    try {
+                        if (cursor.moveToFirst()) {
+                            mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
+                        }
+                    } finally {
                         cursor.close();
                     }
                 }
 
                 // Retrieve existing local file size if exists, otherwise create a new file
-                File destFile = new File(mRequest.mDestUri.getPath());
+                File destFile = new File(mRequest.mDestUri.toString());
                 if (!destFile.exists() || destFile.isDirectory()) {
                     destFile.getParentFile().mkdirs();
                     destFile.createNewFile();
@@ -176,7 +183,7 @@ class FileDownloadService extends Service {
                 }
 
                 // Try to connect the download url (with location redirect)
-                URL url = new URL(mRequest.mSrcUri.getPath());
+                URL url = new URL(mRequest.mSrcUri.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
                 connection.setConnectTimeout(15000);
@@ -200,11 +207,21 @@ class FileDownloadService extends Service {
                 }
                 mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
 
+                mContentType = connection.getHeaderField("Content-Type");
+
                 // Keep downloading the file
                 output = new BufferedOutputStream(new FileOutputStream(destFile));
-                byte[] buffer = new byte[1024 * 32];
+                long bytesToWrite = mTotalFileSize - mCurrentFileSize;
+                int BUFFER_SIZE = 1024 * 32;
+                byte[] buffer = new byte[BUFFER_SIZE];
                 long prevTime = SystemClock.uptimeMillis();
-                for (int read = input.read(buffer); read > 0;) {
+                while (bytesToWrite > 0) {
+                    int read;
+                    if (bytesToWrite > BUFFER_SIZE) {
+                        read = input.read(buffer);
+                    } else {
+                        read = input.read(buffer, 0, (int) bytesToWrite);
+                    }
                     output.write(buffer, 0, read);
 
                     // Pause means cancel the download task but retain the partial downloaded file
@@ -221,6 +238,7 @@ class FileDownloadService extends Service {
                     }
 
                     mCurrentFileSize += read;
+                    bytesToWrite -= read;
 
                     if (SystemClock.uptimeMillis() - prevTime > DateUtils.SECOND_IN_MILLIS) {
                         onProgress(mCurrentFileSize, mTotalFileSize);
@@ -228,9 +246,12 @@ class FileDownloadService extends Service {
                     }
                 }
                 output.flush();
+                closeOutput(output);
 
                 /***** Completed *****/
                 updateStatus(DownloadStatus.COMPLETED, true);
+                updateFileName();
+                onCompleted();
 
             } catch (DownloadInterruptedException e) {
                 if (e.getReason().equals(INTERRUPT_BY_PAUSE)) {
@@ -251,10 +272,49 @@ class FileDownloadService extends Service {
                 closeOutput(output);
 
                 if (mCanceled.get()) {
-                    File destFile = new File(mRequest.mDestUri.getPath());
+                    File destFile = new File(mRequest.mDestUri.toString());
                     destFile.delete();
                 }
+
+                mTasks.put(mRequest.mId, null);
             }
+        }
+
+        private void updateFileName() {
+            String type = mContentType.split("[/]")[1]; // Assume the content type is always correct from youtube
+            String path = mRequest.mDestUri.getPath();
+            path = path.substring(0, path.lastIndexOf("/") + 1) + getTitle().replace("/", "_");
+            File oldFile = new File(mRequest.mDestUri.toString());
+            File newFile = new File(path + "." + type);
+            for (int i = 1; newFile.exists(); ++i) {
+                newFile = new File(String.format("%s(%d).%s", path, i, type));
+            }
+            oldFile.renameTo(newFile);
+        }
+
+        private String getTitle() {
+            String title = null;
+            Cursor cursor = mContext.getContentResolver().query(
+                    FileDownloads.MEDIA_DOWNLOADS_URI,
+                    null,
+                    FileDownloads.FILE_ID + " = ?",
+                    new String[]{mRequest.mId},
+                    null);
+            if (cursor != null) {
+                try {
+                    if (cursor.moveToFirst()) {
+                        title = cursor.getString(cursor.getColumnIndex(TrackerContract.MediaDownloads.TITLE));
+                    }
+                } finally {
+                    cursor.close();
+                }
+            }
+
+            if (TextUtils.isEmpty(title)) {
+                title = mRequest.mId;
+            }
+
+            return title;
         }
 
         private void closeInput(InputStream input) {

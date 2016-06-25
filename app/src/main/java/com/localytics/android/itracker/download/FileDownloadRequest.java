@@ -95,7 +95,7 @@ class FileDownloadRequest implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mId);
-        dest.writeString(mAction.value());
+        dest.writeString(mAction.name());
         dest.writeParcelable(mSrcUri, 0);
         dest.writeParcelable(mDestUri, 0);
     }
