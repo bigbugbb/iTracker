@@ -10,12 +10,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
+import android.text.method.DateTimeKeyListener;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.util.AppQueryHandler;
 import com.localytics.android.itracker.util.YouTubeExtractor;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
@@ -50,32 +53,35 @@ public class MediaDownloadActivity extends BaseActivity {
 
         final Context context = getApplicationContext();
         final ArrayList<Video> videos = getIntent().getParcelableArrayListExtra(EXTRA_VIDEOS_TO_DOWNLOAD);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                for (final Video video : videos) {
-                    String targetUrl = "";
-                    YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
-                    if (result != null) {
-                        Uri videoUri = result.getBestAvaiableQualityVideoUri();
-                        if (videoUri != null) {
-                            targetUrl = videoUri.toString();
+        if (videos != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+                    for (final Video video : videos) {
+                        String targetUrl = "";
+                        YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
+                        if (result != null) {
+                            Uri videoUri = result.getBestAvaiableQualityVideoUri();
+                            if (videoUri != null) {
+                                targetUrl = videoUri.toString();
+                            }
                         }
+                        ops.add(ContentProviderOperation
+                                .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
+                                .withValue(TrackerContract.FileDownloads.FILE_ID, video.identifier)
+                                .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
+                                .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED.value())
+                                .withValue(TrackerContract.FileDownloads.START_TIME, DateTime.now().toString())
+                                .build());
                     }
-                    ops.add(ContentProviderOperation
-                            .newInsert(TrackerContract.FileDownloads.CONTENT_URI)
-                            .withValue(TrackerContract.FileDownloads.FILE_ID, video.identifier)
-                            .withValue(TrackerContract.FileDownloads.TARGET_URL, targetUrl)
-                            .withValue(TrackerContract.FileDownloads.STATUS, TrackerContract.DownloadStatus.INITIALIZED.value())
-                            .build());
+                    try {
+                        context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                    } catch (RemoteException | OperationApplicationException e) {
+                        LOGE(TAG, "Fail to initialize new downloads: " + e);
+                    }
                 }
-                try {
-                    context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                } catch (RemoteException | OperationApplicationException e) {
-                    LOGE(TAG, "Fail to initialize new downloads: " + e);
-                }
-            }
-        }).start();
+            }).start();
+        }
     }
 }

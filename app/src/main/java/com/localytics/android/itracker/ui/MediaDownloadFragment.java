@@ -23,7 +23,12 @@ import com.localytics.android.itracker.util.ThrottledContentObserver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
@@ -87,6 +92,12 @@ public class MediaDownloadFragment extends TrackerFragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        reloadMediaDownloads(getLoaderManager(), MediaDownloadFragment.this);
+    }
+
+    @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (!isAdded()) {
             return;
@@ -106,11 +117,13 @@ public class MediaDownloadFragment extends TrackerFragment {
     private class MediaDownloadAdapter extends RecyclerView.Adapter<MediaDownloadAdapter.ViewHolder> {
 
         private Context mContext;
-        private List<MediaDownload> mDownloads;
+        private ArrayList<MediaDownload> mDownloads;
+        private Set<String> mIdentifiers;
 
         public MediaDownloadAdapter(Context context) {
             mContext = context;
             mDownloads = new ArrayList<>();
+            mIdentifiers = new HashSet<>();
         }
 
         public void updateDownloads(MediaDownload[] downloads) {
@@ -118,7 +131,14 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
 
         public void updateDownloads(List<MediaDownload> downloads) {
-            mDownloads = downloads;
+            final int size = downloads.size();
+            for (int i = size - 1; i >= 0; --i) {
+                MediaDownload download = downloads.get(i);
+                if (!mIdentifiers.contains(download.identifier)) {
+                    mDownloads.add(download);
+                    mIdentifiers.add(download.identifier);
+                }
+            }
             notifyDataSetChanged();
         }
 
@@ -130,7 +150,7 @@ public class MediaDownloadFragment extends TrackerFragment {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.bindData(mDownloads.get(position));
+            holder.bindData(mDownloads.get(mDownloads.size() - 1 - position));
         }
 
         @Override

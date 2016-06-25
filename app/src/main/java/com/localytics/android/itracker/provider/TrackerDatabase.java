@@ -130,13 +130,12 @@ public class TrackerDatabase extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + Tables.FILE_DOWNLOADS + " ("
                 + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + FileDownloads.FILE_ID + " TEXT NOT NULL,"
+                + FileDownloads.FILE_ID + " TEXT UNIQUE NOT NULL,"
                 + FileDownloads.TOTAL_SIZE + " INTEGER,"
-                + FileDownloads.TARGET_URL + " TEXT DEFAULT ''," // CAN'T be null otherwise it shoots the unique check out the window
+                + FileDownloads.TARGET_URL + " TEXT DEFAULT '',"
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
                 + FileDownloads.START_TIME + " TEXT,"
-                + FileDownloads.FINISH_TIME + " TEXT,"
-                + "UNIQUE (" + FileDownloads.FILE_ID + ", " + FileDownloads.TARGET_URL + ") ON CONFLICT IGNORE);");
+                + FileDownloads.FINISH_TIME + " TEXT);");
 
         // Create indexes on track_id
         db.execSQL("CREATE INDEX motion_track_id_index ON " + Tables.MOTIONS + "(" + Motions.TRACK_ID + ");");

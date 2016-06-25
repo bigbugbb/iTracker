@@ -502,8 +502,7 @@ public class TrackerProvider extends ContentProvider {
             case FILE_DOWNLOADS_MEDIA: {
                 // A Left Join returns all rows from the left table even if they don't exist in the right table.
                 return builder.table(Tables.MEDIA_DOWNLOADS)
-                        .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS)
-                        .groupBy(FileDownloads.FILE_ID + "," + FileDownloads.TARGET_URL);
+                        .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS);
             }
         }
         return null;
