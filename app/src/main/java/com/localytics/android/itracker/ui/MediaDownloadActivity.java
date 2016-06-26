@@ -7,17 +7,20 @@ import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
-import android.text.TextUtils;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.util.ExternalStorageUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
@@ -34,6 +37,9 @@ public class MediaDownloadActivity extends BaseActivity {
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
 
+    private RequestHandler mRequestHandler;
+    private HandlerThread  mRequestThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,44 +54,25 @@ public class MediaDownloadActivity extends BaseActivity {
                     .replace(R.id.media_download_fragment, new MediaDownloadFragment())
                     .commit();
         }
+
+        mRequestThread = new HandlerThread("DownloadRequest");
+        mRequestThread.start();
+
+        mRequestHandler = new RequestHandler(mRequestThread.getLooper());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mRequestThread.quitSafely();
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
-        final Context context = getApplicationContext();
         final ArrayList<Video> videos = getIntent().getParcelableArrayListExtra(EXTRA_VIDEOS_TO_DOWNLOAD);
-        if (videos != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                    for (final Video video : videos) {
-                        String targetUrl = "";
-                        YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
-                        if (result != null) {
-                            Uri videoUri = result.getBestAvaiableQualityVideoUri();
-                            if (videoUri != null) {
-                                targetUrl = videoUri.toString();
-                            }
-                        }
-                        ops.add(ContentProviderOperation
-                                .newInsert(FileDownloads.CONTENT_URI)
-                                .withValue(FileDownloads.FILE_ID, video.identifier)
-                                .withValue(FileDownloads.TARGET_URL, targetUrl)
-                                .withValue(FileDownloads.STATUS, DownloadStatus.INITIALIZED.value())
-                                .withValue(FileDownloads.START_TIME, DateTime.now().toString())
-                                .build());
-                    }
-                    try {
-                        context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                        startDownloadTasks();
-                    } catch (RemoteException | OperationApplicationException e) {
-                        LOGE(TAG, "Fail to initialize new downloads: " + e);
-                    }
-                }
-            }).start();
+        if (videos != null && videos.size() > 0) {
+            mRequestHandler.obtainMessage(MESSAGE_REQUEST_DOWNLOADS, videos).sendToTarget();
         }
     }
 
@@ -116,5 +103,51 @@ public class MediaDownloadActivity extends BaseActivity {
                 cursor.close();
             }
         }
+    }
+
+    private static final int MESSAGE_REQUEST_DOWNLOADS = 100;
+
+    private class RequestHandler extends Handler {
+
+        public RequestHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Context context = getApplicationContext();
+            ArrayList<Video> videos = (ArrayList<Video>) msg.obj;
+            try {
+                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+                for (final Video video : videos) {
+                    ops.add(ContentProviderOperation
+                            .newInsert(FileDownloads.CONTENT_URI)
+                            .withValue(FileDownloads.FILE_ID, video.identifier)
+                            .withValue(FileDownloads.TARGET_URL, getVideoTargetUrl(video))
+                            .withValue(FileDownloads.STATUS, DownloadStatus.INITIALIZED.value())
+                            .withValue(FileDownloads.START_TIME, DateTime.now().toString())
+                            .build());
+                }
+                try {
+                    context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                    startDownloadTasks();
+                } catch (RemoteException | OperationApplicationException e) {
+                    LOGE(TAG, "Fail to initialize new downloads: " + e);
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Fail to make the download request", e);
+            }
+        }
+    }
+
+    private String getVideoTargetUrl(Video video) {
+        YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
+        if (result != null) {
+            Uri videoUri = result.getBestAvaiableQualityVideoUri();
+            if (videoUri != null) {
+                return videoUri.toString();
+            }
+        }
+        return "";
     }
 }

@@ -3,6 +3,7 @@ package com.localytics.android.itracker.data.model;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 
@@ -28,6 +29,18 @@ public class FileDownload implements Parcelable {
         status = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.STATUS));
         start_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.START_TIME));
         finish_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.FINISH_TIME));
+    }
+
+    public void update(FileDownload download) {
+        if (!TextUtils.equals(file_id, download.file_id)) {
+            return;
+        }
+
+        total_size = download.total_size;
+        target_url = download.target_url;
+        status = download.status;
+        start_time = download.start_time;
+        finish_time = download.finish_time;
     }
 
     @Override

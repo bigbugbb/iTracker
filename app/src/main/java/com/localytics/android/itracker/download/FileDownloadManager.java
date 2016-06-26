@@ -1,12 +1,10 @@
 package com.localytics.android.itracker.download;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 
-import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 
 

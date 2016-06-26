@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.multidex.MultiDex;
 
-import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.download.FileDownloadService;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
 import com.localytics.android.itracker.util.LogUtils;

@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
@@ -25,6 +26,8 @@ import com.localytics.android.itracker.provider.TrackerContract.Videos;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
 import com.localytics.android.itracker.util.AccountUtils;
 import com.localytics.android.itracker.util.SelectionBuilder;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -493,16 +496,33 @@ public class TrackerProvider extends ContentProvider {
      * performs table joins useful for {@link Cursor} data.
      */
     private SelectionBuilder buildExpandedSelection(Uri uri, int match) {
-        final SelectionBuilder builder = new SelectionBuilder();
+        SelectionBuilder builder = new SelectionBuilder();
         switch (match) {
             case BACKUPS: {
                 return builder.table(Tables.BACKUPS)
                         .groupBy(Backups.DATE + "," + Backups.HOUR + ", " + Backups.CATEGORY);
             }
             case FILE_DOWNLOADS_MEDIA: {
+                final String paramStatus = uri.getQueryParameter(FileDownloads.STATUS);
+
                 // A Left Join returns all rows from the left table even if they don't exist in the right table.
-                return builder.table(Tables.MEDIA_DOWNLOADS)
+                builder = builder.table(Tables.MEDIA_DOWNLOADS)
                         .mapToTable(FileDownloads._ID, Tables.FILE_DOWNLOADS);
+
+                if (!TextUtils.isEmpty(paramStatus)) {
+                    String[] selectionArgs = paramStatus.split("[,]");
+                    if (selectionArgs != null && selectionArgs.length > 0) {
+                        String[] parameterized = new String[selectionArgs.length];
+                        for (int i = 0; i < parameterized.length; ++i) {
+                            parameterized[i] = "?";
+                        }
+                        String prepareStatement = StringUtils.join(parameterized, ",");
+                        String selection = FileDownloads.STATUS + " IN (" + prepareStatement + ")";
+                        builder = builder.where(selection, selectionArgs);
+                    }
+                }
+
+                return builder;
             }
         }
         return null;

@@ -6,7 +6,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -14,11 +13,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 
-import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -186,8 +183,8 @@ public class FileDownloadService extends Service {
                 URL url = new URL(mRequest.mSrcUri.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
+                connection.setConnectTimeout(30000);
+                connection.setReadTimeout(30000);
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
                 connection.setRequestProperty("Range", "bytes=" + mCurrentFileSize + "-");
                 LOGI(TAG, "Original URL: " + connection.getURL());
@@ -283,7 +280,7 @@ public class FileDownloadService extends Service {
         private void updateFileName() {
             String type = mContentType.split("[/]")[1]; // Assume the content type is always correct from youtube
             String path = mRequest.mDestUri.getPath();
-            path = path.substring(0, path.lastIndexOf("/") + 1) + getTitle().replace("/", "_");
+            path = path.substring(0, path.lastIndexOf("/") + 1) + getTitle().replace(" ", "_");
             File oldFile = new File(mRequest.mDestUri.toString());
             File newFile = new File(path + "." + type);
             for (int i = 1; newFile.exists(); ++i) {

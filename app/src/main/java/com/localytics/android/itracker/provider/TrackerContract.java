@@ -136,7 +136,6 @@ public class TrackerContract {
     public enum DownloadStatus {
         INITIALIZED ("initialized"),
         PREPARING   ("preparing"),
-        PENDING     ("pending"),
         DOWNLOADING ("downloading"),
         PAUSED      ("paused"),
         COMPLETED   ("completed"),
