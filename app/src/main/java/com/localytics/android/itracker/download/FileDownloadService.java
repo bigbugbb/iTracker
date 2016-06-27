@@ -6,10 +6,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Handler;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 
@@ -48,10 +49,9 @@ public class FileDownloadService extends Service {
     private ThreadPoolExecutor mExecutor;
     private PriorityBlockingQueue<Runnable> mQueue;
 
-    private Handler mHandler;
-    private FileDownloadManager mDownloadManager;
-
     private Map<String, FileDownloadTask> mTasks;
+
+    private LocalBroadcastManager mBroadcastManager;
 
     final static String FILE_DOWNLOAD_REQUEST = "file_download_request";
 
@@ -66,9 +66,8 @@ public class FileDownloadService extends Service {
         mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
         mExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, Math.max(CORE_POOL_SIZE, availableProcessors),
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
-        mHandler = new Handler();
-        mDownloadManager = FileDownloadManager.getInstance(getApplicationContext());
         mTasks = Collections.synchronizedMap(new HashMap<String, FileDownloadTask>());
+        mBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
     }
 
     @Nullable
@@ -126,11 +125,9 @@ public class FileDownloadService extends Service {
 
         private long mCurrentFileSize;
         private long mTotalFileSize;
-        private DownloadStatus mStatus;
-
         private String mContentType;
-
-        private FileDownloadListener mListener;
+        private DownloadStatus mStatus;
+        private File mFinalFile;
 
         FileDownloadTask(Context context, FileDownloadRequest request) {
             mContext = context;
@@ -140,7 +137,6 @@ public class FileDownloadService extends Service {
             mCurrentFileSize = 0;
             mTotalFileSize = 0;
             mResolver = context.getContentResolver();
-            mListener = mDownloadManager.getFileDownloadListener();
             mStatus = DownloadStatus.INITIALIZED;
         }
 
@@ -156,7 +152,7 @@ public class FileDownloadService extends Service {
                 /***** Preparing *****/
                 updateStatus(DownloadStatus.PREPARING, true);
 
-                onPrepare();
+                onPreparing();
 
                 // Query for any existing download record for this media
                 Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
@@ -238,7 +234,7 @@ public class FileDownloadService extends Service {
                     bytesToWrite -= read;
 
                     if (SystemClock.uptimeMillis() - prevTime > DateUtils.SECOND_IN_MILLIS) {
-                        onProgress(mCurrentFileSize, mTotalFileSize);
+                        onDownloading();
                         prevTime = SystemClock.uptimeMillis();
                     }
                 }
@@ -246,10 +242,15 @@ public class FileDownloadService extends Service {
                 closeOutput(output);
 
                 /***** Completed *****/
-                updateStatus(DownloadStatus.COMPLETED, true);
-                updateFileName();
-                onCompleted();
-
+                if ((mFinalFile = updateFileName()) != null) {
+                    LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, mFinalFile));
+                    updateStatus(DownloadStatus.COMPLETED, true);
+                    onCompleted();
+                } else {
+                    LOGE(TAG, String.format("Failed to generate the final file"));
+                    updateStatus(DownloadStatus.FAILED, true);
+                    onFailed();
+                }
             } catch (DownloadInterruptedException e) {
                 if (e.getReason().equals(INTERRUPT_BY_PAUSE)) {
                     LOGD(TAG, String.format("Download %s has been paused", mRequest.mId), e);
@@ -277,7 +278,7 @@ public class FileDownloadService extends Service {
             }
         }
 
-        private void updateFileName() {
+        private File updateFileName() {
             String type = mContentType.split("[/]")[1]; // Assume the content type is always correct from youtube
             String path = mRequest.mDestUri.getPath();
             path = path.substring(0, path.lastIndexOf("/") + 1) + getTitle().replace(" ", "_");
@@ -286,7 +287,12 @@ public class FileDownloadService extends Service {
             for (int i = 1; newFile.exists(); ++i) {
                 newFile = new File(String.format("%s(%d).%s", path, i, type));
             }
-            oldFile.renameTo(newFile);
+            if (oldFile.renameTo(newFile)) {
+                return newFile;
+            } else {
+                oldFile.delete(); // Just make sure it's been deleted.
+            }
+            return null;
         }
 
         private String getTitle() {
@@ -334,70 +340,49 @@ public class FileDownloadService extends Service {
             }
         }
 
-        protected void onPrepare() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onPrepare(mRequest.mId);
-                    }
-                }
-            });
+        protected void onPreparing() {
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PREPARING);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            mBroadcastManager.sendBroadcast(intent);
         }
 
         protected void onPaused() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onPaused(mRequest.mId);
-                    }
-                }
-            });
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PAUSED);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            mBroadcastManager.sendBroadcast(intent);
         }
 
-        protected void onProgress(final long currentFileSize, final long totalFileSize) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onProgress(mRequest.mId, currentFileSize, totalFileSize);
-                    }
-                }
-            });
+        protected void onDownloading() {
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_DOWNLOADING);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_FILE_SIZE_BYTES, mCurrentFileSize);
+            intent.putExtra(FileDownloadBroadcastReceiver.TOTAL_FILE_SIZE_BYTES, mTotalFileSize);
+            mBroadcastManager.sendBroadcast(intent);
         }
 
         protected void onCanceled() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onCanceled(mRequest.mId);
-                    }
-                }
-            });
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_CANCELED);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            mBroadcastManager.sendBroadcast(intent);
         }
 
         protected void onCompleted() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onCompleted(mRequest.mId);
-                    }
-                }
-            });
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_COMPLETED);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, Uri.fromFile(mFinalFile));
+            mBroadcastManager.sendBroadcast(intent);
         }
 
         protected void onFailed() {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mListener != null) {
-                        mListener.onCanceled(mRequest.mId);
-                    }
-                }
-            });
+            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_FAILED);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            mBroadcastManager.sendBroadcast(intent);
         }
 
         private void updateStatus(DownloadStatus status, boolean syncDb) {

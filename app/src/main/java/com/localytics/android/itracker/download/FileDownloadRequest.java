@@ -8,7 +8,7 @@ import android.text.TextUtils;
 /**
  * Created by bigbug on 6/16/16.
  */
-class FileDownloadRequest implements Parcelable {
+public class FileDownloadRequest implements Parcelable {
 
     public enum RequestAction {
         START  ("start"),
@@ -36,6 +36,22 @@ class FileDownloadRequest implements Parcelable {
         mAction = builder.mAction;
         mSrcUri = builder.mSrcUri;
         mDestUri = builder.mDestUri;
+    }
+
+    public String getId() {
+        return mId;
+    }
+
+    public RequestAction getAction() {
+        return mAction;
+    }
+
+    public Uri getSrcUri() {
+        return mSrcUri;
+    }
+
+    public Uri getDestUri() {
+        return mDestUri;
     }
 
     public static class Builder {

@@ -15,8 +15,6 @@ public class FileDownloadManager extends ContentObserver {
 
     private Context mContext;
 
-    private FileDownloadListener mListener = new SimpleFileDownloadListener();
-
     private static FileDownloadManager sInstance;
 
     private final static String FILE_DOWNLOAD_INTENT_ACTION = "com.localytics.android.itracker.intent.action.FILE_DOWNLOAD";
@@ -39,14 +37,6 @@ public class FileDownloadManager extends ContentObserver {
 
         mContext = context;
         mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
-    }
-
-    public void setFileDownloadListener(FileDownloadListener listener) {
-        mListener = listener;
-    }
-
-    public FileDownloadListener getFileDownloadListener() {
-        return mListener;
     }
 
     public void startDownload(String id, Uri srcUri, Uri destUri) {
@@ -80,38 +70,5 @@ public class FileDownloadManager extends ContentObserver {
         intent.setPackage(mContext.getPackageName());
         intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
         mContext.startService(intent);
-    }
-
-    public static class SimpleFileDownloadListener implements FileDownloadListener {
-
-        @Override
-        public void onPrepare(String downloadId) {
-
-        }
-
-        @Override
-        public void onProgress(String downloadId, long currentFileSize, long totalFileSize) {
-
-        }
-
-        @Override
-        public void onPaused(String downloadId) {
-
-        }
-
-        @Override
-        public void onCanceled(String downloadId) {
-
-        }
-
-        @Override
-        public void onCompleted(String downloadId) {
-
-        }
-
-        @Override
-        public void onFailed(String downloadId, Exception e) {
-
-        }
     }
 }

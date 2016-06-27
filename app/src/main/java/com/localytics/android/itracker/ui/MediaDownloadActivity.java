@@ -90,9 +90,6 @@ public class MediaDownloadActivity extends BaseActivity {
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
                 FileDownloadManager fdm = FileDownloadManager.getInstance(context);
                 for (MediaDownload download : downloads) {
-                    fdm.setFileDownloadListener(new FileDownloadManager.SimpleFileDownloadListener() {
-
-                    });
                     Uri srcUri = Uri.parse(download.target_url);
                     Uri destUri = Uri.parse(ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/" + download.identifier);
                     fdm.startDownload(download.identifier, srcUri, destUri);
