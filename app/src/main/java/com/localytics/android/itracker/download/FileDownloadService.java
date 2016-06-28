@@ -177,7 +177,6 @@ public class FileDownloadService extends Service {
                 URL url = new URL(mRequest.mSrcUri.toString());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                connection.setConnectTimeout(30000);
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
                 connection.setRequestProperty("Range", "bytes=" + currentFileSize + "-");
                 LOGI(TAG, "Original URL: " + connection.getURL());
