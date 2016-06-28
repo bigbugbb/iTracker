@@ -105,11 +105,19 @@ public class FileDownloadService extends Service {
             } else if (request.mAction == FileDownloadRequest.RequestAction.PAUSE) {
                 if (currentTask != null) {
                     currentTask.pause();
+                    if (mQueue.remove(currentTask)) {
+                        currentTask.updateStatus(DownloadStatus.PAUSED, true);
+                    }
                 } else {
                     LOGD(TAG, "Download task " + request.mId + " doesn't exist");
                 }
             } else if (request.mAction == FileDownloadRequest.RequestAction.CANCEL) {
-                // TODO: delete all local resource and reset the db status of this file item
+                if (currentTask != null) {
+                    currentTask.cancel();
+                    if (mQueue.remove(currentTask)) {
+                        currentTask.updateStatus(DownloadStatus.CANCELED, true);
+                    }
+                }
             }
         }
     }
@@ -138,6 +146,10 @@ public class FileDownloadService extends Service {
 
         void pause() {
             mPaused.set(true);
+        }
+
+        void cancel() {
+            mCanceled.set(true);
         }
 
         @Override
@@ -262,7 +274,7 @@ public class FileDownloadService extends Service {
                     updateStatus(DownloadStatus.CANCELED, true);
                     onCanceled();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGE(TAG, String.format("Failed to download %s from %s", mRequest.mId, mRequest.mSrcUri), e);
                 updateStatus(DownloadStatus.FAILED, true);
                 onFailed();
@@ -290,8 +302,6 @@ public class FileDownloadService extends Service {
             }
             if (oldFile.renameTo(newFile)) {
                 return newFile;
-            } else {
-                oldFile.delete(); // Just make sure it's been deleted.
             }
             return null;
         }
@@ -366,6 +376,8 @@ public class FileDownloadService extends Service {
         }
 
         protected void onCanceled() {
+            File tempFile = new File(mRequest.mDestUri.toString());
+            tempFile.delete();
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_CANCELED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
@@ -387,7 +399,7 @@ public class FileDownloadService extends Service {
             mBroadcastManager.sendBroadcast(intent);
         }
 
-        private void updateStatus(DownloadStatus status, boolean syncDb) {
+        void updateStatus(DownloadStatus status, boolean syncDb) {
             synchronized (this) {
                 mStatus = status;
             }

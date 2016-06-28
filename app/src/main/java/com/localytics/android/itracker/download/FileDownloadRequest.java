@@ -95,8 +95,14 @@ public class FileDownloadRequest implements Parcelable {
                 throw new IllegalArgumentException("Request action cannot be recognized");
             }
 
-            if (mDestUri == null) {
-                throw new IllegalArgumentException("Destination file location must be specified");
+            if (mAction == RequestAction.START) {
+                if (mSrcUri == null) {
+                    throw new IllegalArgumentException("Source file location must be specified");
+                }
+
+                if (mDestUri == null) {
+                    throw new IllegalArgumentException("Destination file location must be specified");
+                }
             }
 
             return new FileDownloadRequest(this);
