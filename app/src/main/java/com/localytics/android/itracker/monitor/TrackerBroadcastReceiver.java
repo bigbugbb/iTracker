@@ -12,8 +12,6 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 
-import com.localytics.android.itracker.Config;
-
 import java.util.Date;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;

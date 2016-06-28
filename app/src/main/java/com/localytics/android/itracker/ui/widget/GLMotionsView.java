@@ -6,7 +6,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -16,7 +15,6 @@ import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.ui.gles.SummaryRenderer;

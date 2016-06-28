@@ -1,23 +1,23 @@
 package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,13 +25,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
+import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadRequest;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
+import com.localytics.android.itracker.util.ExternalStorageUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
 import java.util.ArrayList;
@@ -274,7 +275,60 @@ public class MediaDownloadFragment extends TrackerFragment {
                 }
                 downloadStatus.setText(download.status);
                 downloadProgress.setVisibility(shouldShowProgress(download.status) ? View.VISIBLE : View.INVISIBLE);
+
                 itemView.setTag(download.file_id);
+                itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        PopupMenu popupMenu = new PopupMenu(getActivity(), itemView);
+                        Menu menu = popupMenu.getMenu();
+                        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_download, menu);
+                        DownloadStatus status = DownloadStatus.valueOf(download.status.toUpperCase());
+
+                        if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
+                                status == DownloadStatus.DOWNLOADING) {
+                            menu.findItem(R.id.action_start_download).setVisible(false);
+                        } else if (status == DownloadStatus.PAUSED || status == DownloadStatus.FAILED) {
+                            menu.findItem(R.id.action_pause_download).setVisible(false);
+                        } else if (status == DownloadStatus.COMPLETED) {
+                            menu.findItem(R.id.action_start_download).setVisible(false);
+                            menu.findItem(R.id.action_pause_download).setVisible(false);
+                            menu.findItem(R.id.action_cancel_download).setVisible(false);
+                        }
+
+                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                FileDownloadManager fdm = FileDownloadManager.getInstance(getActivity());
+                                switch (item.getItemId()) {
+                                    case R.id.action_start_download: {
+                                        Uri srcUri = Uri.parse(download.target_url);
+                                        Uri destUri = Uri.parse(ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/" + download.identifier);
+                                        fdm.startDownload(download.identifier, srcUri, destUri);
+                                        break;
+                                    }
+                                    case R.id.action_pause_download: {
+                                        fdm.pauseDownload(download.identifier);
+                                        break;
+                                    }
+                                    case R.id.action_cancel_download: {
+                                        fdm.cancelDownload(download.identifier);
+                                        break;
+                                    }
+                                    case R.id.action_show_property: {
+                                        // TODO: show a fragment dialog with the download file property
+                                        break;
+                                    }
+                                }
+                                return true;
+                            }
+                        });
+
+                        popupMenu.show();
+
+                        return true;
+                    }
+                });
             }
 
             void clearCachedData() {
