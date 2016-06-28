@@ -78,7 +78,7 @@ public class MediaDownloadActivity extends BaseActivity {
 
     private void startDownloadTasks() {
         Context context = getApplicationContext();
-        String availableStatus = String.format("%s,%s", DownloadStatus.INITIALIZED.value(), DownloadStatus.PAUSED.value());
+        String availableStatus = String.format("%s,%s", DownloadStatus.PENDING.value(), DownloadStatus.PAUSED.value());
         Cursor cursor = context.getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,
@@ -121,7 +121,7 @@ public class MediaDownloadActivity extends BaseActivity {
                             .newInsert(FileDownloads.CONTENT_URI)
                             .withValue(FileDownloads.FILE_ID, video.identifier)
                             .withValue(FileDownloads.TARGET_URL, getVideoTargetUrl(video))
-                            .withValue(FileDownloads.STATUS, DownloadStatus.INITIALIZED.value())
+                            .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
                             .withValue(FileDownloads.START_TIME, DateTime.now().toString())
                             .build());
                 }

@@ -28,6 +28,7 @@ public class FileDownloadBroadcastReceiver extends BroadcastReceiver {
     public static final String CURRENT_FILE_SIZE_BYTES = "current_file_size_bytes";
     public static final String TOTAL_FILE_SIZE_BYTES = "total_file_size_bytes";
     public static final String DOWNLOADED_FILE_URI = "download_file_uri";
+    public static final String DOWNLOAD_SPEED = "download_speed";
     public static final String EXTRA_DATA_INFO = "extra_data_info";
 
     @Override
@@ -45,7 +46,8 @@ public class FileDownloadBroadcastReceiver extends BroadcastReceiver {
             case DOWNLOAD_STAGE_DOWNLOADING:
                 long currentFileSize = intent.getLongExtra(CURRENT_FILE_SIZE_BYTES, -1);
                 long totalFileSize = intent.getLongExtra(TOTAL_FILE_SIZE_BYTES, -1);
-                onDownloading(request, currentFileSize, totalFileSize, bundle);
+                long downloadSpeed = intent.getLongExtra(DOWNLOAD_SPEED, 0);
+                onDownloading(request, currentFileSize, totalFileSize, downloadSpeed, bundle);
                 break;
             case DOWNLOAD_STAGE_CANCELED:
                 onCanceled(request, bundle);
@@ -66,7 +68,7 @@ public class FileDownloadBroadcastReceiver extends BroadcastReceiver {
     protected void onPaused(FileDownloadRequest request, Bundle extra) {
     }
 
-    protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, Bundle extra) {
+    protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {
     }
 
     protected void onCanceled(FileDownloadRequest request, Bundle extra) {

@@ -145,17 +145,37 @@ public class MediaDownloadFragment extends TrackerFragment {
         protected void onPaused(FileDownloadRequest request, Bundle extra) {
         }
 
-        protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, Bundle extra) {
-            mMediaDownloadAdapter.updateDownloadProgress(request.getId(), currentFileSize, totalFileSize);
+        protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {
+            LOGI("test_speed", request.getId() + "-" + downloadSpeed);
+            MediaDownloadAdapter.ViewHolder viewHolder = findViewHolderByRequestId(request.getId());
+            if (viewHolder != null) {
+                viewHolder.updateDownloadSpeed(downloadSpeed);
+                viewHolder.updateDownloadProgress(currentFileSize, totalFileSize);
+            }
         }
 
         protected void onCanceled(FileDownloadRequest request, Bundle extra) {
         }
 
         protected void onCompleted(FileDownloadRequest request, Uri downloadedFileUri, Bundle extra) {
+            MediaDownloadAdapter.ViewHolder viewHolder = findViewHolderByRequestId(request.getId());
+            if (viewHolder != null) {
+                viewHolder.clearCachedData();
+            }
         }
 
         protected void onFailed(FileDownloadRequest request, Bundle extra) {
+        }
+
+        private MediaDownloadAdapter.ViewHolder findViewHolderByRequestId(String requestId) {
+            for (int i = 0; i < mMediaDownloadView.getChildCount(); ++i) {
+                View childView = mMediaDownloadView.getChildAt(i);
+                String fileId = (String) childView.getTag();
+                if (TextUtils.equals(fileId, requestId)) {
+                    return (MediaDownloadAdapter.ViewHolder) mMediaDownloadView.getChildViewHolder(childView);
+                }
+            }
+            return null;
         }
     }
 
@@ -164,17 +184,15 @@ public class MediaDownloadFragment extends TrackerFragment {
         private Context mContext;
         private ArrayList<MediaDownload> mDownloads;
         private Map<String, MediaDownload> mExistingDownloads;
-        private Map<String, Boolean> mDownloadUpdating;
 
         private SharedPreferences mSharedPref;
 
-        private static final String PREF_CURRENT_DOWNLOAD_PROGRESS = "_pref_current_download_progress";
+        private static final String PREF_CURRENT_FILE_SIZE = "_pref_current_file_size_";
 
         public MediaDownloadAdapter(Context context) {
             mContext = context;
             mDownloads = new ArrayList<>();
             mExistingDownloads = new HashMap<>();
-            mDownloadUpdating = new HashMap<>();
             mSharedPref = PreferenceManager.getDefaultSharedPreferences(mContext.getApplicationContext());
         }
 
@@ -196,19 +214,6 @@ public class MediaDownloadFragment extends TrackerFragment {
                 }
             }
             notifyDataSetChanged();
-        }
-
-        public void updateDownloadProgress(String fileId, long currentFileSize, long totalFileSize) {
-            for (int i = 0; i < mDownloads.size(); ++i) {
-                final MediaDownload download = mDownloads.get(i);
-                if (TextUtils.equals(download.file_id, fileId)) {
-                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
-                    sp.edit().putInt(PREF_CURRENT_DOWNLOAD_PROGRESS, (int) ((currentFileSize / (float) totalFileSize) * 100)).apply();
-                    notifyItemChanged(mDownloads.size() - 1 - i);
-                    mDownloadUpdating.put(fileId, Boolean.TRUE);
-                    break;
-                }
-            }
         }
 
         @Override
@@ -247,29 +252,74 @@ public class MediaDownloadFragment extends TrackerFragment {
             }
 
             public void bindData(final MediaDownload download) {
+                long currentFileSize = mSharedPref.getLong(PREF_CURRENT_FILE_SIZE + download.file_id, 0);
                 Glide.with(MediaDownloadFragment.this)
                         .load(download.thumbnail)
                         .centerCrop()
                         .crossFade()
                         .into(thumbnail);
                 title.setText(download.title);
-                downloadFileSize.setText(formatTotalSize(download.total_size));
-                downloadSpeed.setText(isDownloading(download.status) ? "200KB/s" : "");
-                LOGI("status_test", download.status);
-                downloadStatus.setText(download.status);
-                if (shouldShowProgress(download.status)) {
-                    downloadProgress.setVisibility(View.VISIBLE);
-                    if (isDownloading(download.status)) {
-                        int progress = mSharedPref.getInt(PREF_CURRENT_DOWNLOAD_PROGRESS, 0);
-                        downloadProgress.setIndeterminate(false);
-                        downloadProgress.setProgress(progress);
-                    }
+                if (isDownloading(download.status)) {
+                    downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, download.total_size));
                 } else {
-                    downloadProgress.setVisibility(View.INVISIBLE);
+                    downloadSpeed.setText("");
+                    if (download.total_size > 0) {
+                        if (currentFileSize > 0) {
+                            // The task has been paused previously
+                            downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, download.total_size));
+                        } else {
+                            downloadFileSize.setText(formatFileTotalSize(download.total_size));
+                        }
+                    }
                 }
+                downloadStatus.setText(download.status);
+                downloadProgress.setVisibility(shouldShowProgress(download.status) ? View.VISIBLE : View.INVISIBLE);
+                itemView.setTag(download.file_id);
             }
 
-            private String formatTotalSize(long totalSize) {
+            void clearCachedData() {
+                final String fileId = (String) itemView.getTag();
+                mSharedPref.edit().remove(PREF_CURRENT_FILE_SIZE + fileId).apply();
+            }
+
+            void updateDownloadSpeed(long bytesPerSecond) {
+                downloadSpeed.setText(formatDownloadSpeed(bytesPerSecond));
+            }
+
+            void updateDownloadProgress(long currentFileSize, long totalFileSize) {
+                final String fileId = (String) itemView.getTag();
+                final float progress = currentFileSize / (float) totalFileSize;
+                downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, totalFileSize));
+                downloadProgress.setIndeterminate(false);
+                downloadProgress.setProgress((int) (progress * 100));
+                mSharedPref.edit().putLong(PREF_CURRENT_FILE_SIZE + fileId, currentFileSize).apply();
+            }
+
+            private String formatDownloadSpeed(long bytesPerSecond) {
+                float kbPerSecond = bytesPerSecond / 1000f;
+                if (kbPerSecond < 1) {
+                    return String.format("%.1fKB/s", kbPerSecond);
+                } else if (kbPerSecond > 1000) {
+                    float mbPerSecond = kbPerSecond / 1000f;
+                    return String.format("%.1fMB/s", mbPerSecond);
+                }
+                return String.format("%dKB/s", (int) kbPerSecond);
+            }
+
+            private String formatCurrentFileSizeAndFileTotalSize(long currentSize, long totalSize) {
+                float currentSizeInMb = currentSize / 1024f / 1024f;
+                float totalSizeInMb = totalSize / 1024f / 1024f;
+                if (totalSizeInMb < 1) {
+                    return String.format("%.2f/%.2fMB", currentSizeInMb, totalSizeInMb);
+                } else if (totalSizeInMb > 1024) {
+                    float currentSizeInGb = currentSizeInMb / 1024f;
+                    float totalSizeInGb = totalSizeInMb / 1024f;
+                    return String.format("%.2f/%.2fGB", currentSizeInGb, totalSizeInGb);
+                }
+                return String.format("%.1f/%.1fMB", currentSizeInMb, totalSizeInMb);
+            }
+
+            private String formatFileTotalSize(long totalSize) {
                 float sizeInMb = totalSize / 1024f / 1024f;
                 if (sizeInMb < 1) {
                     return String.format("%.2fMB", sizeInMb);
@@ -286,7 +336,7 @@ public class MediaDownloadFragment extends TrackerFragment {
             }
 
             private boolean shouldShowProgress(String status) {
-                return status.equalsIgnoreCase(DownloadStatus.INITIALIZED.value()) ||
+                return status.equalsIgnoreCase(DownloadStatus.PENDING.value()) ||
                         status.equalsIgnoreCase(DownloadStatus.PREPARING.value()) ||
                         status.equalsIgnoreCase(DownloadStatus.DOWNLOADING.value());
             }

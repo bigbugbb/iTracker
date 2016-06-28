@@ -123,8 +123,6 @@ public class FileDownloadService extends Service {
         private AtomicBoolean mPaused;
         private AtomicBoolean mCanceled;
 
-        private long mCurrentFileSize;
-        private long mTotalFileSize;
         private String mContentType;
         private DownloadStatus mStatus;
         private File mFinalFile;
@@ -134,10 +132,8 @@ public class FileDownloadService extends Service {
             mRequest = request;
             mPaused = new AtomicBoolean();
             mCanceled = new AtomicBoolean();
-            mCurrentFileSize = 0;
-            mTotalFileSize = 0;
             mResolver = context.getContentResolver();
-            mStatus = DownloadStatus.INITIALIZED;
+            mStatus = DownloadStatus.PENDING;
         }
 
         void pause() {
@@ -154,12 +150,14 @@ public class FileDownloadService extends Service {
 
                 onPreparing();
 
+                long currentFileSize = 0, totalFileSize = 0, readBetweenInterval = 0;
+
                 // Query for any existing download record for this media
                 Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
                 if (cursor != null) {
                     try {
                         if (cursor.moveToFirst()) {
-                            mTotalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
+                            totalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
                         }
                     } finally {
                         cursor.close();
@@ -172,7 +170,7 @@ public class FileDownloadService extends Service {
                     destFile.getParentFile().mkdirs();
                     destFile.createNewFile();
                 } else {
-                    mCurrentFileSize = destFile.length();
+                    currentFileSize = destFile.length();
                 }
 
                 // Try to connect the download url (with location redirect)
@@ -180,9 +178,8 @@ public class FileDownloadService extends Service {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
                 connection.setConnectTimeout(30000);
-                connection.setReadTimeout(30000);
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
-                connection.setRequestProperty("Range", "bytes=" + mCurrentFileSize + "-");
+                connection.setRequestProperty("Range", "bytes=" + currentFileSize + "-");
                 LOGI(TAG, "Original URL: " + connection.getURL());
                 connection.connect();
                 LOGI(TAG, "Connected URL: " + connection.getURL());
@@ -194,9 +191,9 @@ public class FileDownloadService extends Service {
 
                 ContentValues values = new ContentValues();
                 values.put(FileDownloads.STATUS, mStatus.value());
-                if (mTotalFileSize == 0) {
-                    mTotalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
-                    values.put(FileDownloads.TOTAL_SIZE, mTotalFileSize);
+                if (totalFileSize == 0) {
+                    totalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
+                    values.put(FileDownloads.TOTAL_SIZE, totalFileSize);
                 }
                 mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
 
@@ -204,7 +201,7 @@ public class FileDownloadService extends Service {
 
                 // Keep downloading the file
                 output = new BufferedOutputStream(new FileOutputStream(destFile));
-                long bytesToWrite = mTotalFileSize - mCurrentFileSize;
+                long bytesToWrite = totalFileSize - currentFileSize;
                 int BUFFER_SIZE = 1024 * 32;
                 byte[] buffer = new byte[BUFFER_SIZE];
                 long prevTime = SystemClock.uptimeMillis();
@@ -216,6 +213,8 @@ public class FileDownloadService extends Service {
                         read = input.read(buffer, 0, (int) bytesToWrite);
                     }
                     output.write(buffer, 0, read);
+
+                    readBetweenInterval += read;
 
                     // Pause means cancel the download task but retain the partial downloaded file
                     if (mPaused.get()) {
@@ -230,12 +229,15 @@ public class FileDownloadService extends Service {
                                 INTERRUPT_BY_CANCEL);
                     }
 
-                    mCurrentFileSize += read;
+                    currentFileSize += read;
                     bytesToWrite -= read;
 
-                    if (SystemClock.uptimeMillis() - prevTime > DateUtils.SECOND_IN_MILLIS) {
-                        onDownloading();
+                    long timeInterval = SystemClock.uptimeMillis() - prevTime;
+                    if (timeInterval > DateUtils.SECOND_IN_MILLIS) {
+                        long downloadSpeed = (long) (readBetweenInterval / (timeInterval / (float) DateUtils.SECOND_IN_MILLIS));
+                        onDownloading(currentFileSize, totalFileSize, downloadSpeed);
                         prevTime = SystemClock.uptimeMillis();
+                        readBetweenInterval = 0;
                     }
                 }
                 output.flush();
@@ -354,12 +356,13 @@ public class FileDownloadService extends Service {
             mBroadcastManager.sendBroadcast(intent);
         }
 
-        protected void onDownloading() {
+        protected void onDownloading(long currentFileSize, long totalFileSize, long downloadSpeed) {
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_DOWNLOADING);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_FILE_SIZE_BYTES, mCurrentFileSize);
-            intent.putExtra(FileDownloadBroadcastReceiver.TOTAL_FILE_SIZE_BYTES, mTotalFileSize);
+            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_FILE_SIZE_BYTES, currentFileSize);
+            intent.putExtra(FileDownloadBroadcastReceiver.TOTAL_FILE_SIZE_BYTES, totalFileSize);
+            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_SPEED, downloadSpeed);
             mBroadcastManager.sendBroadcast(intent);
         }
 

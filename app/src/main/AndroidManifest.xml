@@ -107,6 +107,7 @@
         </activity>
         <activity
             android:name=".ui.MediaDownloadActivity"
+            android:label="@string/title_activity_downloads"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:parentActivityName=".ui.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
