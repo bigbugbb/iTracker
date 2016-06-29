@@ -147,7 +147,6 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
 
         protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {
-            LOGI("test_speed", request.getId() + "-" + downloadSpeed);
             MediaDownloadAdapter.ViewHolder viewHolder = findViewHolderByRequestId(request.getId());
             if (viewHolder != null) {
                 viewHolder.updateDownloadSpeed(downloadSpeed);

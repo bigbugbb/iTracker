@@ -24,12 +24,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -155,7 +157,7 @@ public class FileDownloadService extends Service {
         @Override
         public void run() {
             InputStream input = null;
-            OutputStream output = null;
+            RandomAccessFile output = null;
             try {
                 /***** Preparing *****/
                 updateStatus(DownloadStatus.PREPARING, true);
@@ -178,12 +180,10 @@ public class FileDownloadService extends Service {
 
                 // Retrieve existing local file size if exists, otherwise create a new file
                 File destFile = new File(mRequest.mDestUri.toString());
-                if (!destFile.exists() || destFile.isDirectory()) {
-                    destFile.getParentFile().mkdirs();
-                    destFile.createNewFile();
-                } else {
-                    currentFileSize = destFile.length();
-                }
+                destFile.getParentFile().mkdirs();
+                output = new RandomAccessFile(destFile, "rw");
+                currentFileSize = output.length();
+                output.seek(currentFileSize);
 
                 // Try to connect the download url (with location redirect)
                 URL url = new URL(mRequest.mSrcUri.toString());
@@ -211,7 +211,6 @@ public class FileDownloadService extends Service {
                 mContentType = connection.getHeaderField("Content-Type");
 
                 // Keep downloading the file
-                output = new BufferedOutputStream(new FileOutputStream(destFile));
                 long bytesToWrite = totalFileSize - currentFileSize;
                 int BUFFER_SIZE = 1024 * 32;
                 byte[] buffer = new byte[BUFFER_SIZE];
@@ -251,7 +250,6 @@ public class FileDownloadService extends Service {
                         readBetweenInterval = 0;
                     }
                 }
-                output.flush();
                 closeOutput(output);
 
                 /***** Completed *****/
@@ -341,7 +339,7 @@ public class FileDownloadService extends Service {
             }
         }
 
-        private void closeOutput(OutputStream output) {
+        private void closeOutput(RandomAccessFile output) {
             if (output != null) {
                 try {
                     output.close();
