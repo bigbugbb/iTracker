@@ -279,7 +279,7 @@ public class MediaDownloadFragment extends TrackerFragment {
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        PopupMenu popupMenu = new PopupMenu(getActivity(), itemView);
+                        PopupMenu popupMenu = new PopupMenu(getActivity(), downloadFileSize);
                         Menu menu = popupMenu.getMenu();
                         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_download, menu);
                         DownloadStatus status = DownloadStatus.valueOf(download.status.toUpperCase());
