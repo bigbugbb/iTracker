@@ -200,4 +200,6 @@
     <string name="require_photos_access_permission">The app needs the permission to read your photos.</string>
     <string name="require_get_accounts_permission">The app needs this permission to choose your google account before accessing your youtube.</string>
 
+    <string name="notification_dest_file_path">/mnt/sdcard/iTracker/Download/RX_480_Giveaway!_PLUS_WD_Giveaway_Winners_Announced.mp4</string>
+
 </resources>
