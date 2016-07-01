@@ -87,7 +87,6 @@ public class TrackerContract {
     interface FileDownloadColumns {
         String FILE_ID = "file_id";
         String TOTAL_SIZE = "total_size";
-        String TARGET_URL = "target_url";
         String STATUS = "status";
         String START_TIME = "start_time";
         String FINISH_TIME = "finish_time";
@@ -118,9 +117,9 @@ public class TrackerContract {
     };
 
     public enum SyncState {
-        PENDING ("pending"),    // data needs to be synced
-        SYNCED  ("synced"),     // data has been synced
-        SYNCING ("syncing");    // data is syncing
+        PENDING ("PENDING"),    // data needs to be synced
+        SYNCED  ("SYNCED"),     // data has been synced
+        SYNCING ("SYNCING");    // data is syncing
 
         private final String mState;
 
@@ -134,13 +133,13 @@ public class TrackerContract {
     }
 
     public enum DownloadStatus {
-        PENDING     ("pending"),
-        PREPARING   ("preparing"),
-        DOWNLOADING ("downloading"),
-        PAUSED      ("paused"),
-        COMPLETED   ("completed"),
-        FAILED      ("failed"),
-        CANCELED    ("canceled");
+        PENDING     ("PENDING"),
+        PREPARING   ("PREPARING"),
+        DOWNLOADING ("DOWNLOADING"),
+        PAUSED      ("PAUSED"),
+        COMPLETED   ("COMPLETED"),
+        FAILED      ("FAILED"),
+        CANCELED    ("CANCELED");
 
         private final String mStatus;
 

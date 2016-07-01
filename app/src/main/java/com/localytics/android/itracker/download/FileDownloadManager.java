@@ -39,6 +39,14 @@ public class FileDownloadManager extends ContentObserver {
         mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
     }
 
+    public void startDownload(String id) {
+        FileDownloadRequest request = new FileDownloadRequest.Builder()
+                .setRequestId(id)
+                .setRequestAction(FileDownloadRequest.RequestAction.START)
+                .build();
+        postRequest(request);
+    }
+
     public void startDownload(String id, Uri srcUri, Uri destUri) {
         FileDownloadRequest request = new FileDownloadRequest.Builder()
                 .setRequestId(id)

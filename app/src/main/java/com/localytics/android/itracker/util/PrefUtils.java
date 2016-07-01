@@ -50,6 +50,8 @@ public class PrefUtils {
 
     public static final String PREF_MAX_FILE_DOWNLOAD_TASKS = "_pref_max_file_download_tasks";
 
+    public static final String PREF_CURRENT_DOWNLOAD_FILE_SIZE = "_pref_current_download_file_size_";
+
     public static void init(final Context context) {}
 
     public static void markNotFirstUsage(final Context context) {
@@ -150,6 +152,16 @@ public class PrefUtils {
     public static void setMaxFileDownloadTasks(final Context context, int maxFileDownloadTasks) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putInt(PREF_MAX_FILE_DOWNLOAD_TASKS, maxFileDownloadTasks).apply();
+    }
+
+    public static long getCurrentDownloadFileSize(final Context context, final String downloadId) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getLong(PREF_CURRENT_DOWNLOAD_FILE_SIZE + downloadId, 0);
+    }
+
+    public static void setCurrentDownloadFileSize(final Context context, final String downloadId, long currentFileSize) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putLong(PREF_CURRENT_DOWNLOAD_FILE_SIZE + downloadId, currentFileSize);
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,

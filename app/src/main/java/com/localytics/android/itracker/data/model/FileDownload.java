@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
+import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 
 /**
@@ -14,7 +15,6 @@ public class FileDownload implements Parcelable {
 
     public String file_id;
     public long   total_size;
-    public String target_url;
     public String status;
     public String start_time;
     public String finish_time;
@@ -25,7 +25,6 @@ public class FileDownload implements Parcelable {
     public FileDownload(Cursor cursor) {
         file_id = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.FILE_ID));
         total_size = cursor.getLong(cursor.getColumnIndexOrThrow(FileDownloads.TOTAL_SIZE));
-        target_url = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.TARGET_URL));
         status = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.STATUS));
         start_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.START_TIME));
         finish_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.FINISH_TIME));
@@ -37,10 +36,13 @@ public class FileDownload implements Parcelable {
         }
 
         total_size = download.total_size;
-        target_url = download.target_url;
         status = download.status;
         start_time = download.start_time;
         finish_time = download.finish_time;
+    }
+
+    public TrackerContract.DownloadStatus getStatus() {
+        return TrackerContract.DownloadStatus.valueOf(status);
     }
 
     @Override
@@ -52,7 +54,6 @@ public class FileDownload implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(file_id);
         dest.writeLong(total_size);
-        dest.writeString(target_url);
         dest.writeString(status);
         dest.writeString(start_time);
         dest.writeString(finish_time);
@@ -61,7 +62,6 @@ public class FileDownload implements Parcelable {
     protected FileDownload(Parcel in) {
         file_id = in.readString();
         total_size = in.readLong();
-        target_url = in.readString();
         status = in.readString();
         start_time = in.readString();
         finish_time = in.readString();

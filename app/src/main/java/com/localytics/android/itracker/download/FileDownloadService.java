@@ -1,5 +1,8 @@
 package com.localytics.android.itracker.download;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -7,23 +10,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.widget.RemoteViews;
 
+import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.ui.MediaDownloadActivity;
+import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.util.YouTubeExtractor;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -31,7 +40,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -42,9 +50,7 @@ import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
-/**
- * Created by bigbug on 6/15/16.
- */
+
 public class FileDownloadService extends Service {
     private static final String TAG = makeLogTag(FileDownloadService.class);
 
@@ -54,6 +60,7 @@ public class FileDownloadService extends Service {
     private Map<String, FileDownloadTask> mTasks;
 
     private LocalBroadcastManager mBroadcastManager;
+    private NotificationManager mNotificationManager;
 
     final static String FILE_DOWNLOAD_REQUEST = "file_download_request";
 
@@ -70,6 +77,7 @@ public class FileDownloadService extends Service {
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
         mTasks = Collections.synchronizedMap(new HashMap<String, FileDownloadTask>());
         mBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     @Nullable
@@ -97,8 +105,7 @@ public class FileDownloadService extends Service {
             FileDownloadTask currentTask = mTasks.get(request.mId);
             if (request.mAction == FileDownloadRequest.RequestAction.START) {
                 if (currentTask == null) {
-                    Context context = getApplicationContext();
-                    FileDownloadTask task = new FileDownloadTask(context, request);
+                    FileDownloadTask task = new FileDownloadTask(getApplicationContext(), request);
                     mTasks.put(request.mId, task);
                     mExecutor.execute(task);
                 } else {
@@ -124,7 +131,7 @@ public class FileDownloadService extends Service {
         }
     }
 
-    class FileDownloadTask implements Runnable {
+    private class FileDownloadTask implements Runnable {
 
         private Context mContext;
         private ContentResolver mResolver;
@@ -136,6 +143,8 @@ public class FileDownloadService extends Service {
         private String mContentType;
         private DownloadStatus mStatus;
         private File mFinalFile;
+
+        private final static int BUFFER_SIZE = 1024 * 32;
 
         FileDownloadTask(Context context, FileDownloadRequest request) {
             mContext = context;
@@ -163,6 +172,8 @@ public class FileDownloadService extends Service {
                 updateStatus(DownloadStatus.PREPARING, true);
 
                 onPreparing();
+
+                updateUri();
 
                 long currentFileSize = 0, totalFileSize = 0, readBetweenInterval = 0;
 
@@ -212,7 +223,6 @@ public class FileDownloadService extends Service {
 
                 // Keep downloading the file
                 long bytesToWrite = totalFileSize - currentFileSize;
-                int BUFFER_SIZE = 1024 * 32;
                 byte[] buffer = new byte[BUFFER_SIZE];
                 long prevTime = SystemClock.uptimeMillis();
                 while (bytesToWrite > 0) {
@@ -289,6 +299,21 @@ public class FileDownloadService extends Service {
             }
         }
 
+        private void updateUri() throws Exception {
+            if (mRequest.mSrcUri == null) {
+                YouTubeExtractor.Result result = new YouTubeExtractor(mRequest.getId()).extract(null);
+                if (result != null) {
+                    mRequest.mSrcUri = result.getBestAvaiableQualityVideoUri();
+                    if (mRequest.mSrcUri == null) {
+                        throw new Exception("Can't get the uri for video " + mRequest.getId());
+                    }
+                }
+            }
+            if (mRequest.mDestUri == null) {
+                mRequest.mDestUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + mRequest.getId());
+            }
+        }
+
         private File updateFileName() {
             String type = mContentType.split("[/]")[1]; // Assume the content type is always correct from youtube
             String path = mRequest.mDestUri.getPath();
@@ -310,7 +335,7 @@ public class FileDownloadService extends Service {
                     FileDownloads.MEDIA_DOWNLOADS_URI,
                     null,
                     FileDownloads.FILE_ID + " = ?",
-                    new String[]{mRequest.mId},
+                    new String[] { mRequest.mId },
                     null);
             if (cursor != null) {
                 try {
@@ -364,6 +389,7 @@ public class FileDownloadService extends Service {
         }
 
         protected void onDownloading(long currentFileSize, long totalFileSize, long downloadSpeed) {
+            PrefUtils.setCurrentDownloadFileSize(mContext, mRequest.getId(), currentFileSize);
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_DOWNLOADING);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
@@ -371,6 +397,8 @@ public class FileDownloadService extends Service {
             intent.putExtra(FileDownloadBroadcastReceiver.TOTAL_FILE_SIZE_BYTES, totalFileSize);
             intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_SPEED, downloadSpeed);
             mBroadcastManager.sendBroadcast(intent);
+
+            createDownloadingNotification((int) (100 * (float) currentFileSize / totalFileSize));
         }
 
         protected void onCanceled() {
@@ -407,6 +435,60 @@ public class FileDownloadService extends Service {
                 values.put(FileDownloads.STATUS, mStatus.value());
                 mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
             }
+        }
+
+        private void createDownloadingNotification(int progress) {
+            Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+            // Build task stack so it can navigate correctly to the parent activity
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
+            stackBuilder.addParentStack(MediaDownloadActivity.class);
+            stackBuilder.addNextIntent(intent);
+            PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
+            builder.setContentIntent(pendingIntent);
+
+            final String mediaName = mRequest.mDestUri.getLastPathSegment();
+
+            // Sets the ticker text
+            builder.setTicker(String.format("Download: %s", mediaName));
+
+            // Sets the small icon for the ticker
+            builder.setSmallIcon(R.mipmap.ic_launcher);
+
+            // Cancel the notification when clicked
+            builder.setAutoCancel(true);
+
+            // Build the notification
+            Notification notification = builder.build();
+
+            // Inflate the notification layout as RemoteViews
+            RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_media_download);
+
+            // Set the content for the custom views in the RemoteViews programmatically.
+            contentView.setTextViewText(R.id.media_name, mediaName != null ? mediaName : "");
+//            contentView.setTextViewText(R.id.media_download_start_time, xxx);
+            contentView.setProgressBar(R.id.media_download_progress, 100, progress, false);
+
+            /* Workaround: Need to set the content view here directly on the notification.
+             * NotificationCompatBuilder contains a bug that prevents this from working on platform
+             * versions HoneyComb.
+             * See https://code.google.com/p/android/issues/detail?id=30495
+             */
+            notification.contentView = contentView;
+
+            // Add a big content view to the notification if supported.
+            // Support for expanded notifications was added in API level 16.
+            // (The normal contentView is shown when the notification is collapsed, when expanded the
+            // big content view set here is displayed.)
+            // Inflate and set the layout for the expanded notification view
+            RemoteViews expandedView = new RemoteViews(getPackageName(), R.layout.notification_media_download_extend);
+            notification.bigContentView = expandedView;
+
+            // Use the NotificationManager to show the notification
+            mNotificationManager.notify(mRequest.getId().hashCode(), notification);
         }
     }
 

@@ -114,6 +114,10 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.TrackerActivity"/>
+            <intent-filter>
+                <action android:name="com.localytics.android.itracker.intent.action.DOWNLOAD_MEDIA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ui.PlayerActivity"
@@ -173,6 +177,15 @@
             android:enabled="true">
         </service>
 
+        <!-- File download related service -->
+        <service
+            android:name=".download.FileDownloadService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.localytics.android.itracker.intent.action.FILE_DOWNLOAD"/>
+            </intent-filter>
+        </service>
+
         <!-- GCM related service -->
         <service
             android:name=".gcm.RegistrationIntentService"
@@ -190,14 +203,6 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID"/>
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".download.FileDownloadService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.localytics.android.itracker.intent.action.FILE_DOWNLOAD"/>
             </intent-filter>
         </service>
 

@@ -4,6 +4,7 @@ import android.os.StrictMode;
 import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.ui.TrackerActivity;
+import com.localytics.android.itracker.util.ExternalStorageUtils;
 import com.localytics.android.itracker.util.SdkVersionUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -87,6 +88,11 @@ public class Config {
 
     // Default max file download tasks
     public static final int DEFAULT_MAX_FILE_DOWNLOAD_TASKS = 3;
+
+    public static final String FILE_DOWNLOAD_DIR_PATH = ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/";
+
+    // Custom intent actions
+    public final static String ACTION_DOWNLOAD_MEDIA = "com.localytics.android.itracker.intent.action.DOWNLOAD_MEDIA";
 
     public static void enableStrictMode() {
         if (SdkVersionUtils.hasGingerbread()) {

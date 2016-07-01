@@ -127,7 +127,7 @@ public class SlideBottomPanel extends FrameLayout {
 //                if (childView instanceof ViewGroup) {
 //                    ((ViewGroup)childView).setClipChildren(false);
 //                }
-            } else if (childView.getTag() == TAG_BACKGROUND) {
+            } else if ((int) childView.getTag() == TAG_BACKGROUND) {
                 childView.layout(0, 0, childView.getMeasuredWidth(), childView.getMeasuredHeight());
                 childView.setPadding(0, 0, 0, (int) mTitleHeightNoDisplay);
             }

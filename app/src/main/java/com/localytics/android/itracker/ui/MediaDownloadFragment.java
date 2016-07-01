@@ -4,17 +4,18 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.Loader;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
@@ -32,7 +34,7 @@ import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadRequest;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
-import com.localytics.android.itracker.util.ExternalStorageUtils;
+import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
 import java.util.ArrayList;
@@ -138,44 +140,26 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
     }
 
+    private MediaDownloadAdapter.ViewHolder findViewHolderByRequestId(String requestId) {
+        for (int i = 0; i < mMediaDownloadView.getChildCount(); ++i) {
+            View childView = mMediaDownloadView.getChildAt(i);
+            String fileId = (String) childView.getTag();
+            if (TextUtils.equals(fileId, requestId)) {
+                return (MediaDownloadAdapter.ViewHolder) mMediaDownloadView.getChildViewHolder(childView);
+            }
+        }
+        return null;
+    }
+
     private class DownloadProgressBroadcastReceiver extends FileDownloadBroadcastReceiver {
 
-        protected void onPreparing(FileDownloadRequest request, Bundle extra) {
-        }
-
-        protected void onPaused(FileDownloadRequest request, Bundle extra) {
-        }
-
-        protected void onDownloading(FileDownloadRequest request, long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {
+        protected void onDownloading(FileDownloadRequest request,
+                                     long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {
             MediaDownloadAdapter.ViewHolder viewHolder = findViewHolderByRequestId(request.getId());
             if (viewHolder != null) {
                 viewHolder.updateDownloadSpeed(downloadSpeed);
                 viewHolder.updateDownloadProgress(currentFileSize, totalFileSize);
             }
-        }
-
-        protected void onCanceled(FileDownloadRequest request, Bundle extra) {
-        }
-
-        protected void onCompleted(FileDownloadRequest request, Uri downloadedFileUri, Bundle extra) {
-            MediaDownloadAdapter.ViewHolder viewHolder = findViewHolderByRequestId(request.getId());
-            if (viewHolder != null) {
-                viewHolder.clearCachedData();
-            }
-        }
-
-        protected void onFailed(FileDownloadRequest request, Bundle extra) {
-        }
-
-        private MediaDownloadAdapter.ViewHolder findViewHolderByRequestId(String requestId) {
-            for (int i = 0; i < mMediaDownloadView.getChildCount(); ++i) {
-                View childView = mMediaDownloadView.getChildAt(i);
-                String fileId = (String) childView.getTag();
-                if (TextUtils.equals(fileId, requestId)) {
-                    return (MediaDownloadAdapter.ViewHolder) mMediaDownloadView.getChildViewHolder(childView);
-                }
-            }
-            return null;
         }
     }
 
@@ -185,15 +169,10 @@ public class MediaDownloadFragment extends TrackerFragment {
         private ArrayList<MediaDownload> mDownloads;
         private Map<String, MediaDownload> mExistingDownloads;
 
-        private SharedPreferences mSharedPref;
-
-        private static final String PREF_CURRENT_FILE_SIZE = "_pref_current_file_size_";
-
         public MediaDownloadAdapter(Context context) {
             mContext = context;
             mDownloads = new ArrayList<>();
             mExistingDownloads = new HashMap<>();
-            mSharedPref = PreferenceManager.getDefaultSharedPreferences(mContext.getApplicationContext());
         }
 
         public void updateDownloads(MediaDownload[] downloads) {
@@ -252,15 +231,20 @@ public class MediaDownloadFragment extends TrackerFragment {
             }
 
             public void bindData(final MediaDownload download) {
-                long currentFileSize = mSharedPref.getLong(PREF_CURRENT_FILE_SIZE + download.file_id, 0);
+                long currentFileSize = PrefUtils.getCurrentDownloadFileSize(mContext, download.identifier);
                 Glide.with(MediaDownloadFragment.this)
                         .load(download.thumbnail)
                         .centerCrop()
                         .crossFade()
                         .into(thumbnail);
                 title.setText(download.title);
-                if (isDownloading(download.status)) {
+
+                DownloadStatus status = download.getStatus();
+                if (status == DownloadStatus.DOWNLOADING) {
                     downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, download.total_size));
+                } else if (status == DownloadStatus.COMPLETED) {
+                    downloadSpeed.setText("");
+                    downloadFileSize.setText(formatFileTotalSize(download.total_size));
                 } else {
                     downloadSpeed.setText("");
                     if (download.total_size > 0) {
@@ -272,10 +256,46 @@ public class MediaDownloadFragment extends TrackerFragment {
                         }
                     }
                 }
-                downloadStatus.setText(download.status);
-                downloadProgress.setVisibility(shouldShowProgress(download.status) ? View.VISIBLE : View.INVISIBLE);
 
-                itemView.setTag(download.file_id);
+                SpannableString statusText = new SpannableString(status.value().toLowerCase());
+                if (status == DownloadStatus.COMPLETED) {
+                    statusText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(mContext, R.color.colorAccent)), 0, statusText.length(), 0);
+                }
+                downloadStatus.setText(statusText);
+
+                if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING || status == DownloadStatus.DOWNLOADING) {
+                    downloadProgress.setVisibility(View.VISIBLE);
+                } else {
+                    downloadProgress.setVisibility(View.INVISIBLE);
+                }
+
+                final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        FileDownloadManager fdm = FileDownloadManager.getInstance(getActivity());
+                        switch (item.getItemId()) {
+                            case R.id.action_start_download: {
+                                fdm.startDownload(download.identifier);
+                                break;
+                            }
+                            case R.id.action_pause_download: {
+                                fdm.pauseDownload(download.identifier);
+                                break;
+                            }
+                            case R.id.action_cancel_download: {
+                                fdm.cancelDownload(download.identifier);
+                                break;
+                            }
+                            case R.id.action_show_property: {
+                                // TODO: show a fragment dialog with the download file property
+                                break;
+                            }
+                        }
+                        return true;
+                    }
+                };
+
+                itemView.setTag(download.identifier);
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
@@ -295,33 +315,7 @@ public class MediaDownloadFragment extends TrackerFragment {
                             menu.findItem(R.id.action_cancel_download).setVisible(false);
                         }
 
-                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                FileDownloadManager fdm = FileDownloadManager.getInstance(getActivity());
-                                switch (item.getItemId()) {
-                                    case R.id.action_start_download: {
-                                        Uri srcUri = Uri.parse(download.target_url);
-                                        Uri destUri = Uri.parse(ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/" + download.identifier);
-                                        fdm.startDownload(download.identifier, srcUri, destUri);
-                                        break;
-                                    }
-                                    case R.id.action_pause_download: {
-                                        fdm.pauseDownload(download.identifier);
-                                        break;
-                                    }
-                                    case R.id.action_cancel_download: {
-                                        fdm.cancelDownload(download.identifier);
-                                        break;
-                                    }
-                                    case R.id.action_show_property: {
-                                        // TODO: show a fragment dialog with the download file property
-                                        break;
-                                    }
-                                }
-                                return true;
-                            }
-                        });
+                        popupMenu.setOnMenuItemClickListener(menuItemClickListener);
 
                         popupMenu.show();
 
@@ -330,22 +324,15 @@ public class MediaDownloadFragment extends TrackerFragment {
                 });
             }
 
-            void clearCachedData() {
-                final String fileId = (String) itemView.getTag();
-                mSharedPref.edit().remove(PREF_CURRENT_FILE_SIZE + fileId).apply();
-            }
-
             void updateDownloadSpeed(long bytesPerSecond) {
                 downloadSpeed.setText(formatDownloadSpeed(bytesPerSecond));
             }
 
             void updateDownloadProgress(long currentFileSize, long totalFileSize) {
-                final String fileId = (String) itemView.getTag();
                 final float progress = currentFileSize / (float) totalFileSize;
                 downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, totalFileSize));
                 downloadProgress.setIndeterminate(false);
                 downloadProgress.setProgress((int) (progress * 100));
-                mSharedPref.edit().putLong(PREF_CURRENT_FILE_SIZE + fileId, currentFileSize).apply();
             }
 
             private String formatDownloadSpeed(long bytesPerSecond) {
@@ -381,17 +368,6 @@ public class MediaDownloadFragment extends TrackerFragment {
                     return String.format("%.2fGB", sizeInGb);
                 }
                 return String.format("%.1fMB", sizeInMb);
-            }
-
-            private boolean isDownloading(String status) {
-                String downloadStatus = TrackerContract.DownloadStatus.DOWNLOADING.value();
-                return TextUtils.equals(status, downloadStatus);
-            }
-
-            private boolean shouldShowProgress(String status) {
-                return status.equalsIgnoreCase(DownloadStatus.PENDING.value()) ||
-                        status.equalsIgnoreCase(DownloadStatus.PREPARING.value()) ||
-                        status.equalsIgnoreCase(DownloadStatus.DOWNLOADING.value());
             }
         }
     }

@@ -11,9 +11,9 @@ import android.text.TextUtils;
 public class FileDownloadRequest implements Parcelable {
 
     public enum RequestAction {
-        START  ("start"),
-        PAUSE  ("pause"),
-        CANCEL ("cancel");
+        START  ("START"),
+        PAUSE  ("PAUSE"),
+        CANCEL ("CANCEL");
 
         private final String mAction;
 
@@ -93,16 +93,6 @@ public class FileDownloadRequest implements Parcelable {
 
             if (mAction != RequestAction.START && mAction != RequestAction.PAUSE && mAction != RequestAction.CANCEL) {
                 throw new IllegalArgumentException("Request action cannot be recognized");
-            }
-
-            if (mAction == RequestAction.START) {
-                if (mSrcUri == null) {
-                    throw new IllegalArgumentException("Source file location must be specified");
-                }
-
-                if (mDestUri == null) {
-                    throw new IllegalArgumentException("Destination file location must be specified");
-                }
             }
 
             return new FileDownloadRequest(this);

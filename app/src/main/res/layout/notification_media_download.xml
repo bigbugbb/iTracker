@@ -23,6 +23,33 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/media_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:paddingTop="4dp"
+            android:layout_below="@id/media_title"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="8sp"
+            android:textColor="@color/data_item_lightbg_body_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="@string/notification_media_name"/>
+
+        <TextView
+            android:id="@+id/media_download_start_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/media_name"
+            android:layout_alignParentRight="true"
+            android:gravity="center_vertical|right"
+            android:singleLine="true"
+            android:textSize="10sp"
+            android:textColor="@color/data_item_lightbg_body_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="9:57 AM"/>
+
+        <TextView
             android:id="@+id/media_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,39 +62,12 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             tools:text="Download Media"/>
 
-        <TextView
-            android:id="@+id/media_download_start_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/media_dest_path"
-            android:layout_alignParentRight="true"
-            android:gravity="center_vertical|right"
-            android:singleLine="true"
-            android:textSize="10sp"
-            android:textColor="@color/data_item_lightbg_body_text"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            tools:text="9:57 AM"/>
-
-        <TextView
-            android:id="@+id/media_dest_path"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:paddingTop="4dp"
-            android:layout_below="@id/media_title"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textSize="8sp"
-            android:textColor="@color/data_item_lightbg_body_text"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            tools:text="@string/notification_dest_file_path"/>
-
         <ProgressBar
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:id="@+id/media_download_progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/media_dest_path"
+            android:layout_below="@id/media_name"
             android:indeterminate="false"/>
 
     </RelativeLayout>

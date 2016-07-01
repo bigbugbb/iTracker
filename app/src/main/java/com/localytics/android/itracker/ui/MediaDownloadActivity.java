@@ -14,6 +14,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
 
+import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
@@ -21,7 +22,6 @@ import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.util.ExternalStorageUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import org.joda.time.DateTime;
@@ -78,7 +78,8 @@ public class MediaDownloadActivity extends BaseActivity {
 
     private void startDownloadTasks() {
         Context context = getApplicationContext();
-        String availableStatus = String.format("%s,%s", DownloadStatus.PENDING.value(), DownloadStatus.PAUSED.value());
+        String availableStatus = String.format("%s,%s,%s",
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value());
         Cursor cursor = context.getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,
@@ -90,8 +91,8 @@ public class MediaDownloadActivity extends BaseActivity {
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
                 FileDownloadManager fdm = FileDownloadManager.getInstance(context);
                 for (MediaDownload download : downloads) {
-                    Uri srcUri = Uri.parse(download.target_url);
-                    Uri destUri = Uri.parse(ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/" + download.identifier);
+                    Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
+                    Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
                     fdm.startDownload(download.identifier, srcUri, destUri);
                 }
             } catch (Exception e) {
@@ -120,7 +121,6 @@ public class MediaDownloadActivity extends BaseActivity {
                     ops.add(ContentProviderOperation
                             .newInsert(FileDownloads.CONTENT_URI)
                             .withValue(FileDownloads.FILE_ID, video.identifier)
-                            .withValue(FileDownloads.TARGET_URL, getVideoTargetUrl(video))
                             .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
                             .withValue(FileDownloads.START_TIME, DateTime.now().toString())
                             .build());
@@ -137,8 +137,8 @@ public class MediaDownloadActivity extends BaseActivity {
         }
     }
 
-    private String getVideoTargetUrl(Video video) {
-        YouTubeExtractor.Result result = new YouTubeExtractor(video.identifier).extract(null);
+    private String getVideoTargetUrl(final String videoId) {
+        YouTubeExtractor.Result result = new YouTubeExtractor(videoId).extract(null);
         if (result != null) {
             Uri videoUri = result.getBestAvaiableQualityVideoUri();
             if (videoUri != null) {
