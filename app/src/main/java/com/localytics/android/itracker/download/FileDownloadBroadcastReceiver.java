@@ -29,6 +29,7 @@ public class FileDownloadBroadcastReceiver extends BroadcastReceiver {
     public static final String TOTAL_FILE_SIZE_BYTES = "total_file_size_bytes";
     public static final String DOWNLOADED_FILE_URI = "download_file_uri";
     public static final String DOWNLOAD_SPEED = "download_speed";
+    public static final String DOWNLOAD_FAILED_REASON = "download_failed_reason";
     public static final String EXTRA_DATA_INFO = "extra_data_info";
 
     @Override

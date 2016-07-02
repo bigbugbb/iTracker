@@ -17,12 +17,17 @@ public class FileDownloadManager extends ContentObserver {
 
     private static FileDownloadManager sInstance;
 
-    private final static String FILE_DOWNLOAD_INTENT_ACTION = "com.localytics.android.itracker.intent.action.FILE_DOWNLOAD";
+    public final static String ACTION_DOWNLOAD_FILE = "com.localytics.android.itracker.intent.action.DOWNLOAD_FILE";
+    public final static String ACTION_UPDATE_STATUS = "com.localytics.android.itracker.intent.action.UPDATE_STATUS";
 
     public static FileDownloadManager getInstance(final Context context) {
         synchronized (FileDownloadManager.class) {
             if (sInstance == null) {
                 sInstance = new FileDownloadManager(context);
+
+                // Update the status of the download records in case there is a force closing during the previous downloads.
+                Intent intent = new Intent(ACTION_UPDATE_STATUS);
+                intent.setPackage(context.getPackageName());
             }
         }
         return sInstance;
@@ -74,7 +79,7 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     private void postRequest(FileDownloadRequest request) {
-        Intent intent = new Intent(FILE_DOWNLOAD_INTENT_ACTION);
+        Intent intent = new Intent(ACTION_DOWNLOAD_FILE);
         intent.setPackage(mContext.getPackageName());
         intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
         mContext.startService(intent);

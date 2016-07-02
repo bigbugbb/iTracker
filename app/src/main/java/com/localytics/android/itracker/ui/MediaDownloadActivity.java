@@ -89,11 +89,13 @@ public class MediaDownloadActivity extends BaseActivity {
         if (cursor != null) {
             try {
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
-                FileDownloadManager fdm = FileDownloadManager.getInstance(context);
-                for (MediaDownload download : downloads) {
-                    Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
-                    Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
-                    fdm.startDownload(download.identifier, srcUri, destUri);
+                if (downloads != null) {
+                    FileDownloadManager fdm = FileDownloadManager.getInstance(context);
+                    for (MediaDownload download : downloads) {
+                        Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
+                        Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
+                        fdm.startDownload(download.identifier, srcUri, destUri);
+                    }
                 }
             } catch (Exception e) {
                 LOGE(TAG, "Got error when start triggering the download", e);

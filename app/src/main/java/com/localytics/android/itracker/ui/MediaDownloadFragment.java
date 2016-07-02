@@ -232,6 +232,8 @@ public class MediaDownloadFragment extends TrackerFragment {
 
             public void bindData(final MediaDownload download) {
                 long currentFileSize = PrefUtils.getCurrentDownloadFileSize(mContext, download.identifier);
+                long currentDownloadSpeed = PrefUtils.getCurrentDownloadSpeed(mContext, download.identifier);
+
                 Glide.with(MediaDownloadFragment.this)
                         .load(download.thumbnail)
                         .centerCrop()
@@ -241,6 +243,7 @@ public class MediaDownloadFragment extends TrackerFragment {
 
                 DownloadStatus status = download.getStatus();
                 if (status == DownloadStatus.DOWNLOADING) {
+                    downloadSpeed.setText(formatDownloadSpeed(currentDownloadSpeed));
                     downloadFileSize.setText(formatCurrentFileSizeAndFileTotalSize(currentFileSize, download.total_size));
                 } else if (status == DownloadStatus.COMPLETED) {
                     downloadSpeed.setText("");

@@ -2,7 +2,6 @@ package com.localytics.android.itracker.download;
 
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -10,25 +9,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.widget.RemoteViews;
 
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.ui.MediaDownloadActivity;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,13 +54,17 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 public class FileDownloadService extends Service {
     private static final String TAG = makeLogTag(FileDownloadService.class);
 
+    private Handler mHandler;
+    private HandlerThread mHandlerThread;
+
     private ThreadPoolExecutor mExecutor;
     private PriorityBlockingQueue<Runnable> mQueue;
 
     private Map<String, FileDownloadTask> mTasks;
 
     private LocalBroadcastManager mBroadcastManager;
-    private NotificationManager mNotificationManager;
+
+    private FileDownloadNotificationBuilder mNotificationBuilder;
 
     final static String FILE_DOWNLOAD_REQUEST = "file_download_request";
 
@@ -71,13 +75,18 @@ public class FileDownloadService extends Service {
     private String INTERRUPT_BY_CANCEL = "interrupt_by_cancel";
 
     public void onCreate() {
+        mHandlerThread = new HandlerThread("FileDownload");
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper());
+
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
         mExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, Math.max(CORE_POOL_SIZE, availableProcessors),
                 KEEP_ALIVE_TIME, TimeUnit.SECONDS, (PriorityBlockingQueue) mQueue);
         mTasks = Collections.synchronizedMap(new HashMap<String, FileDownloadTask>());
         mBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mNotificationBuilder = FileDownloadNotificationBuilder.getInstance(getApplicationContext());
     }
 
     @Nullable
@@ -86,18 +95,40 @@ public class FileDownloadService extends Service {
         return null;
     }
 
+    @Override
     public void onDestroy() {
         mExecutor.shutdown();
+        mHandlerThread.quitSafely();
     }
 
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    @Override
+    public int onStartCommand(final Intent intent, int flags, int startId) {
         if (intent != null) {
+            // Need this separate thread to update the download status before starting to download,
+            // and make sure it's always running before the following download tasks.
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    handleIntent(intent);
+                }
+            });
+        }
+        return START_STICKY;
+    }
+
+    private void handleIntent(final Intent intent) {
+        final String action = intent.getAction();
+        if (FileDownloadManager.ACTION_DOWNLOAD_FILE.equals(action)) {
             FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
             if (request != null) {
                 handleRequest(request);
             }
+        } else if (FileDownloadManager.ACTION_UPDATE_STATUS.equals(action)) {
+            ContentResolver resolver = getApplicationContext().getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(FileDownloads.STATUS, DownloadStatus.PENDING.value());
+            resolver.update(FileDownloads.CONTENT_URI, values, FileDownloads.STATUS + " = ?", new String[]{ DownloadStatus.DOWNLOADING.value() });
         }
-        return START_STICKY;
     }
 
     private void handleRequest(FileDownloadRequest request) {
@@ -144,6 +175,8 @@ public class FileDownloadService extends Service {
         private DownloadStatus mStatus;
         private File mFinalFile;
 
+        private Map<String, String> mDownloadInfo;
+
         private final static int BUFFER_SIZE = 1024 * 32;
 
         FileDownloadTask(Context context, FileDownloadRequest request) {
@@ -175,7 +208,7 @@ public class FileDownloadService extends Service {
 
                 updateUri();
 
-                long currentFileSize = 0, totalFileSize = 0, readBetweenInterval = 0;
+                long currentFileSize, totalFileSize = 0, readBetweenInterval = 0;
 
                 // Query for any existing download record for this media
                 Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
@@ -221,6 +254,8 @@ public class FileDownloadService extends Service {
 
                 mContentType = connection.getHeaderField("Content-Type");
 
+                mDownloadInfo = getDownloadInfo();
+
                 // Keep downloading the file
                 long bytesToWrite = totalFileSize - currentFileSize;
                 byte[] buffer = new byte[BUFFER_SIZE];
@@ -263,14 +298,14 @@ public class FileDownloadService extends Service {
                 closeOutput(output);
 
                 /***** Completed *****/
-                if ((mFinalFile = updateFileName()) != null) {
+                if ((mFinalFile = updateFileName(mDownloadInfo.get(MediaDownloads.TITLE))) != null) {
                     LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, mFinalFile));
                     updateStatus(DownloadStatus.COMPLETED, true);
                     onCompleted();
                 } else {
                     LOGE(TAG, String.format("Failed to generate the final file"));
                     updateStatus(DownloadStatus.FAILED, true);
-                    onFailed();
+                    onFailed("Can't generate the final file");
                 }
             } catch (DownloadInterruptedException e) {
                 if (e.getReason().equals(INTERRUPT_BY_PAUSE)) {
@@ -285,7 +320,7 @@ public class FileDownloadService extends Service {
             } catch (Exception e) {
                 LOGE(TAG, String.format("Failed to download %s from %s", mRequest.mId, mRequest.mSrcUri), e);
                 updateStatus(DownloadStatus.FAILED, true);
-                onFailed();
+                onFailed("Network connection error");
             } finally {
                 closeInput(input);
                 closeOutput(output);
@@ -314,10 +349,10 @@ public class FileDownloadService extends Service {
             }
         }
 
-        private File updateFileName() {
+        private File updateFileName(String fileTitle) {
             String type = mContentType.split("[/]")[1]; // Assume the content type is always correct from youtube
             String path = mRequest.mDestUri.getPath();
-            path = path.substring(0, path.lastIndexOf("/") + 1) + getTitle().replace(" ", "_");
+            path = path.substring(0, path.lastIndexOf("/") + 1) + fileTitle.replace(" ", "_");
             File oldFile = new File(mRequest.mDestUri.toString());
             File newFile = new File(path + "." + type);
             for (int i = 1; newFile.exists(); ++i) {
@@ -329,8 +364,10 @@ public class FileDownloadService extends Service {
             return null;
         }
 
-        private String getTitle() {
-            String title = null;
+        private Map<String, String> getDownloadInfo() {
+            Map<String, String> downloadInfo = new HashMap<>();
+
+            String title = null, startTime = null;
             Cursor cursor = mContext.getContentResolver().query(
                     FileDownloads.MEDIA_DOWNLOADS_URI,
                     null,
@@ -340,18 +377,26 @@ public class FileDownloadService extends Service {
             if (cursor != null) {
                 try {
                     if (cursor.moveToFirst()) {
-                        title = cursor.getString(cursor.getColumnIndex(TrackerContract.MediaDownloads.TITLE));
+                        title = cursor.getString(cursor.getColumnIndex(MediaDownloads.TITLE));
+                        startTime = cursor.getString(cursor.getColumnIndex(MediaDownloads.START_TIME));
                     }
                 } finally {
                     cursor.close();
                 }
             }
 
-            if (TextUtils.isEmpty(title)) {
-                title = mRequest.mId;
-            }
+            downloadInfo.put(MediaDownloads.TITLE, TextUtils.isEmpty(title) ? mRequest.getId() : title);
 
-            return title;
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("hh:mm a");
+            if (TextUtils.isEmpty(startTime)) {
+                startTime = DateTime.now().toString(formatter);
+            } else {
+                startTime = ISODateTimeFormat.dateTime().parseDateTime(startTime).toString(formatter);
+            }
+            startTime = startTime.startsWith("0") ? startTime.substring(1) : startTime;
+            downloadInfo.put(MediaDownloads.START_TIME, startTime);
+
+            return downloadInfo;
         }
 
         private void closeInput(InputStream input) {
@@ -389,7 +434,10 @@ public class FileDownloadService extends Service {
         }
 
         protected void onDownloading(long currentFileSize, long totalFileSize, long downloadSpeed) {
+            // Store the data so we can use them to update ui even if the download is stopped.
+            PrefUtils.setCurrentDownloadSpeed(mContext, mRequest.getId(), downloadSpeed);
             PrefUtils.setCurrentDownloadFileSize(mContext, mRequest.getId(), currentFileSize);
+
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_DOWNLOADING);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
@@ -398,7 +446,10 @@ public class FileDownloadService extends Service {
             intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_SPEED, downloadSpeed);
             mBroadcastManager.sendBroadcast(intent);
 
-            createDownloadingNotification((int) (100 * (float) currentFileSize / totalFileSize));
+            int progress = (int) (100 * (float) currentFileSize / totalFileSize);
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Notification notification = mNotificationBuilder.newDownloadingNotification(mRequest.getId(), progress, mDownloadInfo);
+            nm.notify(mRequest.getId().hashCode(), notification);
         }
 
         protected void onCanceled() {
@@ -408,21 +459,34 @@ public class FileDownloadService extends Service {
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_CANCELED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
+
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.cancel(mRequest.getId().hashCode());
         }
 
         protected void onCompleted() {
+            Uri fileUri = Uri.fromFile(mFinalFile);
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_COMPLETED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, Uri.fromFile(mFinalFile));
+            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, fileUri);
             mBroadcastManager.sendBroadcast(intent);
+
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Notification notification = mNotificationBuilder.newCompletedNotification(mRequest.getId(), fileUri, mDownloadInfo);
+            nm.notify(mRequest.getId().hashCode(), notification);
         }
 
-        protected void onFailed() {
+        protected void onFailed(String reason) {
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_FAILED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_FAILED_REASON, reason);
             mBroadcastManager.sendBroadcast(intent);
+
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Notification notification = mNotificationBuilder.newFailedNotification(mRequest.getId(), mDownloadInfo, reason);
+            nm.notify(mRequest.getId().hashCode(), notification);
         }
 
         void updateStatus(DownloadStatus status, boolean syncDb) {
@@ -435,60 +499,6 @@ public class FileDownloadService extends Service {
                 values.put(FileDownloads.STATUS, mStatus.value());
                 mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
             }
-        }
-
-        private void createDownloadingNotification(int progress) {
-            Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-            // Build task stack so it can navigate correctly to the parent activity
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
-            stackBuilder.addParentStack(MediaDownloadActivity.class);
-            stackBuilder.addNextIntent(intent);
-            PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-            builder.setContentIntent(pendingIntent);
-
-            final String mediaName = mRequest.mDestUri.getLastPathSegment();
-
-            // Sets the ticker text
-            builder.setTicker(String.format("Download: %s", mediaName));
-
-            // Sets the small icon for the ticker
-            builder.setSmallIcon(R.mipmap.ic_launcher);
-
-            // Cancel the notification when clicked
-            builder.setAutoCancel(true);
-
-            // Build the notification
-            Notification notification = builder.build();
-
-            // Inflate the notification layout as RemoteViews
-            RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_media_download);
-
-            // Set the content for the custom views in the RemoteViews programmatically.
-            contentView.setTextViewText(R.id.media_name, mediaName != null ? mediaName : "");
-//            contentView.setTextViewText(R.id.media_download_start_time, xxx);
-            contentView.setProgressBar(R.id.media_download_progress, 100, progress, false);
-
-            /* Workaround: Need to set the content view here directly on the notification.
-             * NotificationCompatBuilder contains a bug that prevents this from working on platform
-             * versions HoneyComb.
-             * See https://code.google.com/p/android/issues/detail?id=30495
-             */
-            notification.contentView = contentView;
-
-            // Add a big content view to the notification if supported.
-            // Support for expanded notifications was added in API level 16.
-            // (The normal contentView is shown when the notification is collapsed, when expanded the
-            // big content view set here is displayed.)
-            // Inflate and set the layout for the expanded notification view
-            RemoteViews expandedView = new RemoteViews(getPackageName(), R.layout.notification_media_download_extend);
-            notification.bigContentView = expandedView;
-
-            // Use the NotificationManager to show the notification
-            mNotificationManager.notify(mRequest.getId().hashCode(), notification);
         }
     }
 

@@ -52,6 +52,8 @@ public class PrefUtils {
 
     public static final String PREF_CURRENT_DOWNLOAD_FILE_SIZE = "_pref_current_download_file_size_";
 
+    public static final String PREF_CURRENT_DOWNLOAD_SPEED = "_pref_current_download_speed_";
+
     public static void init(final Context context) {}
 
     public static void markNotFirstUsage(final Context context) {
@@ -161,7 +163,17 @@ public class PrefUtils {
 
     public static void setCurrentDownloadFileSize(final Context context, final String downloadId, long currentFileSize) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(PREF_CURRENT_DOWNLOAD_FILE_SIZE + downloadId, currentFileSize);
+        sp.edit().putLong(PREF_CURRENT_DOWNLOAD_FILE_SIZE + downloadId, currentFileSize).apply();
+    }
+
+    public static long getCurrentDownloadSpeed(final Context context, final String downloadId) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getLong(PREF_CURRENT_DOWNLOAD_SPEED + downloadId, 0);
+    }
+
+    public static void setCurrentDownloadSpeed(final Context context, final String downloadId, long currentDownloadSpeed) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putLong(PREF_CURRENT_DOWNLOAD_SPEED + downloadId, currentDownloadSpeed).apply();
     }
 
     public static void registerOnSharedPreferenceChangeListener(final Context context,
