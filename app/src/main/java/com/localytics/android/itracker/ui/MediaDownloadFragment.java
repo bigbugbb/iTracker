@@ -1,11 +1,11 @@
 package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
+import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -26,7 +26,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
@@ -34,6 +33,8 @@ import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadRequest;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.util.AppQueryHandler;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
@@ -160,6 +161,11 @@ public class MediaDownloadFragment extends TrackerFragment {
                 viewHolder.updateDownloadSpeed(downloadSpeed);
                 viewHolder.updateDownloadProgress(currentFileSize, totalFileSize);
             }
+        }
+
+        protected void onCanceled(FileDownloadRequest request, Bundle extra) {
+            AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver());
+            handler.startDelete(0, null, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{ request.getId() });
         }
     }
 

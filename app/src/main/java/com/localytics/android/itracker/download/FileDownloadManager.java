@@ -28,6 +28,7 @@ public class FileDownloadManager extends ContentObserver {
                 // Update the status of the download records in case there is a force closing during the previous downloads.
                 Intent intent = new Intent(ACTION_UPDATE_STATUS);
                 intent.setPackage(context.getPackageName());
+                context.startService(intent);
             }
         }
         return sInstance;

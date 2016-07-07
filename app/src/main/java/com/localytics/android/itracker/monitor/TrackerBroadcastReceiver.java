@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -151,6 +152,8 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
             LOGD(TAG, "Got SMS_RECEIVED");
         } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
             LOGD(TAG, "Got ACTION_LOCALE_CHANGED");
+        } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                                                                                                                                                                                                                         LOGD(TAG, "Got CONNECTIVITY_ACTION");
         }
     }
 }

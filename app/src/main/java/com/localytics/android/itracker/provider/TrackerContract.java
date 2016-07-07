@@ -88,6 +88,7 @@ public class TrackerContract {
         String FILE_ID = "file_id";
         String TOTAL_SIZE = "total_size";
         String STATUS = "status";
+        String WIFI_ONLY = "wifi_only";
         String START_TIME = "start_time";
         String FINISH_TIME = "finish_time";
     }
@@ -139,6 +140,7 @@ public class TrackerContract {
         PAUSED      ("PAUSED"),
         COMPLETED   ("COMPLETED"),
         FAILED      ("FAILED"),
+        RECONNECT   ("RECONNECT"),
         CANCELED    ("CANCELED");
 
         private final String mStatus;

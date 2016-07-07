@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
@@ -44,6 +45,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.net.ssl.SSLException;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
@@ -70,6 +73,7 @@ public class FileDownloadService extends Service {
 
     private int CORE_POOL_SIZE = 2;
     private long KEEP_ALIVE_TIME = 150;
+    private int RECONNECT_COUNT = 5;
 
     private String INTERRUPT_BY_PAUSE = "interrupt_by_pause";
     private String INTERRUPT_BY_CANCEL = "interrupt_by_cancel";
@@ -78,6 +82,8 @@ public class FileDownloadService extends Service {
         mHandlerThread = new HandlerThread("FileDownload");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
+
+        FileDownloadManager.getInstance(getApplicationContext());
 
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
@@ -146,7 +152,7 @@ public class FileDownloadService extends Service {
                 if (currentTask != null) {
                     currentTask.pause();
                     if (mQueue.remove(currentTask)) {
-                        currentTask.updateStatus(DownloadStatus.PAUSED, true);
+                        currentTask.updateStatus(DownloadStatus.PAUSED);
                     }
                 } else {
                     LOGD(TAG, "Download task " + request.mId + " doesn't exist");
@@ -155,7 +161,7 @@ public class FileDownloadService extends Service {
                 if (currentTask != null) {
                     currentTask.cancel();
                     if (mQueue.remove(currentTask)) {
-                        currentTask.updateStatus(DownloadStatus.CANCELED, true);
+                        currentTask.updateStatus(DownloadStatus.CANCELED);
                     }
                 }
             }
@@ -173,7 +179,6 @@ public class FileDownloadService extends Service {
 
         private String mContentType;
         private DownloadStatus mStatus;
-        private File mFinalFile;
 
         private Map<String, String> mDownloadInfo;
 
@@ -196,18 +201,12 @@ public class FileDownloadService extends Service {
             mCanceled.set(true);
         }
 
-        @Override
-        public void run() {
+        private void download(int retries) throws Exception {
+            boolean reconnect = false;
             InputStream input = null;
             RandomAccessFile output = null;
+
             try {
-                /***** Preparing *****/
-                updateStatus(DownloadStatus.PREPARING, true);
-
-                onPreparing();
-
-                updateUri();
-
                 long currentFileSize, totalFileSize = 0, readBetweenInterval = 0;
 
                 // Query for any existing download record for this media
@@ -221,6 +220,8 @@ public class FileDownloadService extends Service {
                         cursor.close();
                     }
                 }
+
+                mDownloadInfo = getDownloadInfo();
 
                 // Retrieve existing local file size if exists, otherwise create a new file
                 File destFile = new File(mRequest.mDestUri.toString());
@@ -250,11 +251,9 @@ public class FileDownloadService extends Service {
                     totalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
                     values.put(FileDownloads.TOTAL_SIZE, totalFileSize);
                 }
-                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
+                mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{mRequest.mId});
 
                 mContentType = connection.getHeaderField("Content-Type");
-
-                mDownloadInfo = getDownloadInfo();
 
                 // Keep downloading the file
                 long bytesToWrite = totalFileSize - currentFileSize;
@@ -295,36 +294,69 @@ public class FileDownloadService extends Service {
                         readBetweenInterval = 0;
                     }
                 }
+            } catch (IOException e) {
+                LOGE(TAG, "Something wrong with the connection", e);
+                if (retries >= RECONNECT_COUNT) {
+                    throw e;
+                }
+                reconnect = true;
+            } finally {
+                closeInput(input);
                 closeOutput(output);
+            }
+
+            if (reconnect && retries < RECONNECT_COUNT) {
+                updateStatus(DownloadStatus.RECONNECT);
+                waitBeforeReconnect(retries);
+                download(retries + 1);
+            }
+        }
+
+        private void waitBeforeReconnect(int retries) {
+            try {
+                long time = DateUtils.SECOND_IN_MILLIS * (long) Math.pow(2, retries);
+                Thread.sleep(time);
+            } catch (InterruptedException e) {
+                // Nothing to do
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                /***** Preparing *****/
+                updateStatus(DownloadStatus.PREPARING);
+
+                onPreparing();
+
+                updateUri();
+
+                download(0);
 
                 /***** Completed *****/
-                if ((mFinalFile = updateFileName(mDownloadInfo.get(MediaDownloads.TITLE))) != null) {
-                    LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, mFinalFile));
-                    updateStatus(DownloadStatus.COMPLETED, true);
-                    onCompleted();
+                File finalFile;
+                if ((finalFile = updateFileName(mDownloadInfo.get(MediaDownloads.TITLE))) == null) {
+                    throw new IOException("Can't generate the final file");
                 } else {
-                    LOGE(TAG, String.format("Failed to generate the final file"));
-                    updateStatus(DownloadStatus.FAILED, true);
-                    onFailed("Can't generate the final file");
+                    LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, finalFile));
+                    updateStatus(DownloadStatus.COMPLETED);
+                    onCompleted(Uri.fromFile(finalFile));
                 }
             } catch (DownloadInterruptedException e) {
                 if (e.getReason().equals(INTERRUPT_BY_PAUSE)) {
                     LOGD(TAG, String.format("Download %s has been paused", mRequest.mId), e);
-                    updateStatus(DownloadStatus.PAUSED, true);
+                    updateStatus(DownloadStatus.PAUSED);
                     onPaused();
                 } else if (e.getReason().equals(INTERRUPT_BY_CANCEL)) {
                     LOGD(TAG, String.format("Download %s has been canceled", mRequest.mId), e);
-                    updateStatus(DownloadStatus.CANCELED, true);
+                    updateStatus(DownloadStatus.CANCELED);
                     onCanceled();
                 }
             } catch (Exception e) {
                 LOGE(TAG, String.format("Failed to download %s from %s", mRequest.mId, mRequest.mSrcUri), e);
-                updateStatus(DownloadStatus.FAILED, true);
-                onFailed("Network connection error");
+                updateStatus(DownloadStatus.FAILED);
+                onFailed(e);
             } finally {
-                closeInput(input);
-                closeOutput(output);
-
                 if (mCanceled.get()) {
                     File destFile = new File(mRequest.mDestUri.toString());
                     destFile.delete();
@@ -464,20 +496,22 @@ public class FileDownloadService extends Service {
             nm.cancel(mRequest.getId().hashCode());
         }
 
-        protected void onCompleted() {
-            Uri fileUri = Uri.fromFile(mFinalFile);
+        protected void onCompleted(Uri finalFileUri) {
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_COMPLETED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, fileUri);
+            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, finalFileUri);
             mBroadcastManager.sendBroadcast(intent);
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            Notification notification = mNotificationBuilder.newCompletedNotification(mRequest.getId(), fileUri, mDownloadInfo);
+            Notification notification = mNotificationBuilder.newCompletedNotification(mRequest.getId(), finalFileUri, mDownloadInfo);
             nm.notify(mRequest.getId().hashCode(), notification);
         }
 
-        protected void onFailed(String reason) {
+        protected void onFailed(Exception exception) {
+            String reason = exception.getMessage();
+            reason = TextUtils.isEmpty(reason) ? exception.toString() : reason;
+
             Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_FAILED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
@@ -487,6 +521,10 @@ public class FileDownloadService extends Service {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             Notification notification = mNotificationBuilder.newFailedNotification(mRequest.getId(), mDownloadInfo, reason);
             nm.notify(mRequest.getId().hashCode(), notification);
+        }
+
+        void updateStatus(DownloadStatus status) {
+            updateStatus(status, true);
         }
 
         void updateStatus(DownloadStatus status, boolean syncDb) {

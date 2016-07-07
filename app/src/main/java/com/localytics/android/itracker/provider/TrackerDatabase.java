@@ -133,6 +133,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + FileDownloads.FILE_ID + " TEXT UNIQUE NOT NULL,"
                 + FileDownloads.TOTAL_SIZE + " INTEGER,"
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
+                + FileDownloads.WIFI_ONLY + " INTEGER DEFAULT 1,"
                 + FileDownloads.START_TIME + " TEXT,"
                 + FileDownloads.FINISH_TIME + " TEXT);");
 
