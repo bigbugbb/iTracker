@@ -269,10 +269,18 @@ public class MediaDownloadFragment extends TrackerFragment {
                 SpannableString statusText = new SpannableString(status.value().toLowerCase());
                 if (status == DownloadStatus.COMPLETED) {
                     statusText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(mContext, R.color.colorAccent)), 0, statusText.length(), 0);
+                } else if (status == DownloadStatus.RECONNECT) {
+                    statusText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(mContext, android.R.color.holo_orange_dark)), 0, statusText.length(), 0);
+                } else if (status == DownloadStatus.FAILED) {
+                    statusText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(mContext, android.R.color.holo_red_light)), 0, statusText.length(), 0);
                 }
                 downloadStatus.setText(statusText);
 
-                if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING || status == DownloadStatus.DOWNLOADING) {
+                if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
+                        status == DownloadStatus.DOWNLOADING || status == DownloadStatus.RECONNECT) {
+                    if (status == DownloadStatus.RECONNECT) {
+                        downloadProgress.setIndeterminate(true);
+                    }
                     downloadProgress.setVisibility(View.VISIBLE);
                 } else {
                     downloadProgress.setVisibility(View.INVISIBLE);

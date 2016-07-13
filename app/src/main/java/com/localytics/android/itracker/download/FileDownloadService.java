@@ -217,7 +217,7 @@ public class FileDownloadService extends Service {
                 long currentFileSize, totalFileSize = 0, readBetweenInterval = 0;
 
                 // Query for any existing download record for this media
-                Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{ mRequest.mId }, null);
+                Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{mRequest.mId}, null);
                 if (cursor != null) {
                     try {
                         if (cursor.moveToFirst()) {
@@ -302,11 +302,15 @@ public class FileDownloadService extends Service {
                     }
                 }
             } catch (IOException e) {
-                LOGE(TAG, "Something wrong with the connection", e);
-                if (retries >= RECONNECT_COUNT) {
+                if (e instanceof DownloadInterruptedException) {
                     throw e;
+                } else {
+                    LOGE(TAG, "Something wrong with the connection", e);
+                    if (retries >= RECONNECT_COUNT) {
+                        throw e;
+                    }
+                    reconnect = true;
                 }
-                reconnect = true;
             } finally {
                 closeInput(input);
                 closeOutput(output);
