@@ -140,7 +140,7 @@ public class TrackerContract {
         PAUSED      ("PAUSED"),
         COMPLETED   ("COMPLETED"),
         FAILED      ("FAILED"),
-        RECONNECT   ("RECONNECT"),
+        CONNECTING  ("CONNECTING"),
         CANCELED    ("CANCELED");
 
         private final String mStatus;

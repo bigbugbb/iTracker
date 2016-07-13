@@ -61,7 +61,7 @@ public class FileDownloadManager extends ContentObserver {
         }
 
         String availableStatus = String.format("%s,%s,%s,%s",
-                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.RECONNECT.value());
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
         Cursor cursor = mContext.getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,

@@ -56,7 +56,6 @@ public class FileDownloadService extends Service {
 
     public final static String ACTION_DOWNLOAD_FILE = "com.localytics.android.itracker.intent.action.DOWNLOAD_FILE";
     public final static String ACTION_RECOVER_STATUS = "com.localytics.android.itracker.intent.action.RECOVER_STATUS";
-    public final static String ACTION_RESUME_DOWNLOADS = "com.localytics.android.itracker.intent.action.RESUME_DOWNLOADS";
 
     private Handler mHandler;
     private HandlerThread mHandlerThread;
@@ -138,9 +137,7 @@ public class FileDownloadService extends Service {
                     FileDownloads.CONTENT_URI,
                     values,
                     FileDownloads.STATUS + " = ? OR " + FileDownloads.STATUS + " = ?",
-                    new String[]{ DownloadStatus.DOWNLOADING.value(), DownloadStatus.RECONNECT.value() });
-        } else if (ACTION_RESUME_DOWNLOADS.equals(action)) {
-
+                    new String[]{ DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value() });
         }
     }
 
@@ -227,8 +224,6 @@ public class FileDownloadService extends Service {
                         cursor.close();
                     }
                 }
-
-                mDownloadInfo = getDownloadInfo();
 
                 // Retrieve existing local file size if exists, otherwise create a new file
                 File destFile = new File(mRequest.mDestUri.toString());
@@ -317,7 +312,7 @@ public class FileDownloadService extends Service {
             }
 
             if (reconnect && retries < RECONNECT_COUNT) {
-                updateStatus(DownloadStatus.RECONNECT);
+                updateStatus(DownloadStatus.CONNECTING);
                 waitBeforeReconnect(retries);
                 download(retries + 1);
             }
@@ -467,6 +462,7 @@ public class FileDownloadService extends Service {
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PREPARING);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
+            mDownloadInfo = getDownloadInfo();
         }
 
         protected void onPaused() {
