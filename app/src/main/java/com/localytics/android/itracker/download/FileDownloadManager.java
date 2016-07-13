@@ -3,32 +3,35 @@ package com.localytics.android.itracker.download;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Looper;
 
+import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.data.model.MediaDownload;
+import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.util.YouTubeExtractor;
+
+import static com.localytics.android.itracker.util.LogUtils.LOGE;
+import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
 /**
  * Provides the public api to trigger the file download actions
  */
 public class FileDownloadManager extends ContentObserver {
+    private final static String TAG = makeLogTag(FileDownloadManager.class);
 
     private Context mContext;
 
     private static FileDownloadManager sInstance;
 
-    public final static String ACTION_DOWNLOAD_FILE = "com.localytics.android.itracker.intent.action.DOWNLOAD_FILE";
-    public final static String ACTION_UPDATE_STATUS = "com.localytics.android.itracker.intent.action.UPDATE_STATUS";
-
     public static FileDownloadManager getInstance(final Context context) {
         synchronized (FileDownloadManager.class) {
             if (sInstance == null) {
                 sInstance = new FileDownloadManager(context);
-
-                // Update the status of the download records in case there is a force closing during the previous downloads.
-                Intent intent = new Intent(ACTION_UPDATE_STATUS);
-                intent.setPackage(context.getPackageName());
-                context.startService(intent);
             }
         }
         return sInstance;
@@ -43,6 +46,44 @@ public class FileDownloadManager extends ContentObserver {
 
         mContext = context;
         mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
+    }
+
+    public void recoverStatus() {
+        Intent intent = new Intent(mContext, FileDownloadService.class);
+        intent.setAction(FileDownloadService.ACTION_RECOVER_STATUS);
+        mContext.startService(intent);
+    }
+
+    public void startAvailableDownloads() {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            LOGE(TAG, "This method must be called from a non-ui thread.");
+            return;
+        }
+
+        String availableStatus = String.format("%s,%s,%s,%s",
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.RECONNECT.value());
+        Cursor cursor = mContext.getContentResolver().query(
+                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
+                null,
+                null,
+                null,
+                TrackerContract.FileDownloads.START_TIME + " DESC");
+        if (cursor != null) {
+            try {
+                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
+                if (downloads != null) {
+                    for (MediaDownload download : downloads) {
+                        Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
+                        Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
+                        startDownload(download.identifier, srcUri, destUri);
+                    }
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Got error when start triggering the download", e);
+            } finally {
+                cursor.close();
+            }
+        }
     }
 
     public void startDownload(String id) {
@@ -80,9 +121,20 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     private void postRequest(FileDownloadRequest request) {
-        Intent intent = new Intent(ACTION_DOWNLOAD_FILE);
+        Intent intent = new Intent(FileDownloadService.ACTION_DOWNLOAD_FILE);
         intent.setPackage(mContext.getPackageName());
         intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
         mContext.startService(intent);
+    }
+
+    private String getVideoTargetUrl(final String videoId) {
+        YouTubeExtractor.Result result = new YouTubeExtractor(videoId).extract(null);
+        if (result != null) {
+            Uri videoUri = result.getBestAvaiableQualityVideoUri();
+            if (videoUri != null) {
+                return videoUri.toString();
+            }
+        }
+        return "";
     }
 }

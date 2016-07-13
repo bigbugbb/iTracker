@@ -9,6 +9,7 @@ import android.content.SyncResult;
 import android.os.Bundle;
 
 import com.localytics.android.itracker.BuildConfig;
+import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.util.LogUtils;
 
 import java.util.regex.Pattern;
@@ -53,5 +54,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Sync from bootstrap and remote data, as needed
         new SyncHelper(mContext).performSync(syncResult, account, extras);
+
+        // Download available media files
+        FileDownloadManager.getInstance(mContext).startAvailableDownloads();
     }
 }

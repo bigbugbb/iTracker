@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.multidex.MultiDex;
 
+import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadService;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
 import com.localytics.android.itracker.util.LogUtils;
@@ -38,7 +39,7 @@ public class Application extends android.app.Application {
     }
 
     private void bootstrapFileDownloadService() {
-        Intent intent = new Intent(getApplicationContext(), FileDownloadService.class);
-        startService(intent);
+        FileDownloadManager fdm = FileDownloadManager.getInstance(this);
+        fdm.recoverStatus();
     }
 }

@@ -153,7 +153,7 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
         } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
             LOGD(TAG, "Got ACTION_LOCALE_CHANGED");
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                                                                                                                                                                                                                         LOGD(TAG, "Got CONNECTIVITY_ACTION");
+            LOGD(TAG, "Got CONNECTIVITY_ACTION");                                                                                                                                                                         LOGD(TAG, "Got CONNECTIVITY_ACTION");
         }
     }
 }

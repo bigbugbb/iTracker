@@ -76,35 +76,6 @@ public class MediaDownloadActivity extends BaseActivity {
         }
     }
 
-    private void startDownloadTasks() {
-        Context context = getApplicationContext();
-        String availableStatus = String.format("%s,%s,%s",
-                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value());
-        Cursor cursor = context.getContentResolver().query(
-                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
-                null,
-                null,
-                null,
-                TrackerContract.FileDownloads.START_TIME + " DESC");
-        if (cursor != null) {
-            try {
-                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
-                if (downloads != null) {
-                    FileDownloadManager fdm = FileDownloadManager.getInstance(context);
-                    for (MediaDownload download : downloads) {
-                        Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
-                        Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
-                        fdm.startDownload(download.identifier, srcUri, destUri);
-                    }
-                }
-            } catch (Exception e) {
-                LOGE(TAG, "Got error when start triggering the download", e);
-            } finally {
-                cursor.close();
-            }
-        }
-    }
-
     private static final int MESSAGE_REQUEST_DOWNLOADS = 100;
 
     private class RequestHandler extends Handler {
@@ -129,7 +100,7 @@ public class MediaDownloadActivity extends BaseActivity {
                 }
                 try {
                     context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                    startDownloadTasks();
+                    FileDownloadManager.getInstance(getApplicationContext()).startAvailableDownloads();
                 } catch (RemoteException | OperationApplicationException e) {
                     LOGE(TAG, "Fail to initialize new downloads: " + e);
                 }
@@ -137,16 +108,5 @@ public class MediaDownloadActivity extends BaseActivity {
                 LOGE(TAG, "Fail to make the download request", e);
             }
         }
-    }
-
-    private String getVideoTargetUrl(final String videoId) {
-        YouTubeExtractor.Result result = new YouTubeExtractor(videoId).extract(null);
-        if (result != null) {
-            Uri videoUri = result.getBestAvaiableQualityVideoUri();
-            if (videoUri != null) {
-                return videoUri.toString();
-            }
-        }
-        return "";
     }
 }

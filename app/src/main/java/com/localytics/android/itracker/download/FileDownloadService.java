@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
@@ -46,8 +45,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.net.ssl.SSLException;
-
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
@@ -56,6 +53,10 @@ import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 public class FileDownloadService extends Service {
     private static final String TAG = makeLogTag(FileDownloadService.class);
+
+    public final static String ACTION_DOWNLOAD_FILE = "com.localytics.android.itracker.intent.action.DOWNLOAD_FILE";
+    public final static String ACTION_RECOVER_STATUS = "com.localytics.android.itracker.intent.action.RECOVER_STATUS";
+    public final static String ACTION_RESUME_DOWNLOADS = "com.localytics.android.itracker.intent.action.RESUME_DOWNLOADS";
 
     private Handler mHandler;
     private HandlerThread mHandlerThread;
@@ -124,16 +125,22 @@ public class FileDownloadService extends Service {
 
     private void handleIntent(final Intent intent) {
         final String action = intent.getAction();
-        if (FileDownloadManager.ACTION_DOWNLOAD_FILE.equals(action)) {
+        if (ACTION_DOWNLOAD_FILE.equals(action)) {
             FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
             if (request != null) {
                 handleRequest(request);
             }
-        } else if (FileDownloadManager.ACTION_UPDATE_STATUS.equals(action)) {
+        } else if (ACTION_RECOVER_STATUS.equals(action)) {
             ContentResolver resolver = getApplicationContext().getContentResolver();
             ContentValues values = new ContentValues();
             values.put(FileDownloads.STATUS, DownloadStatus.PENDING.value());
-            resolver.update(FileDownloads.CONTENT_URI, values, FileDownloads.STATUS + " = ?", new String[]{ DownloadStatus.DOWNLOADING.value() });
+            resolver.update(
+                    FileDownloads.CONTENT_URI,
+                    values,
+                    FileDownloads.STATUS + " = ? OR " + FileDownloads.STATUS + " = ?",
+                    new String[]{ DownloadStatus.DOWNLOADING.value(), DownloadStatus.RECONNECT.value() });
+        } else if (ACTION_RESUME_DOWNLOADS.equals(action)) {
+
         }
     }
 
