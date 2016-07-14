@@ -4,11 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
@@ -64,6 +69,10 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     public void startDownload(String id, Uri srcUri, Uri destUri) {
+        if (!isWifiConnected()) {
+            return;
+        }
+
         FileDownloadRequest request = new FileDownloadRequest.Builder()
                 .setRequestId(id)
                 .setRequestAction(FileDownloadRequest.RequestAction.START)
@@ -108,6 +117,16 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     public void startAvailableDownloads() {
+        if (!isWifiConnected()) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(mContext.getApplicationContext(), R.string.download_not_allowed_wifi_disconnected, Toast.LENGTH_LONG).show();
+                }
+            });
+            return;
+        }
+
         String availableStatus = String.format("%s,%s,%s,%s,%s",
                 DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value(), DownloadStatus.PAUSED.value());
         Cursor cursor = mContext.getContentResolver().query(
@@ -177,5 +196,18 @@ public class FileDownloadManager extends ContentObserver {
                 return null;
             }
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    private boolean isWifiConnected() {
+        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

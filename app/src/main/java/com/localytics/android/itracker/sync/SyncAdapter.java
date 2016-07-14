@@ -54,8 +54,5 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Sync from bootstrap and remote data, as needed
         new SyncHelper(mContext).performSync(syncResult, account, extras);
-
-        // Download available media files
-        FileDownloadManager.getInstance(mContext).startAvailableDownloads();
     }
 }

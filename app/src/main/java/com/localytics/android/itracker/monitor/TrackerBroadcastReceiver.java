@@ -1,6 +1,8 @@
 package com.localytics.android.itracker.monitor;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -10,13 +12,19 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
+import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.download.FileDownloadManager;
+import com.localytics.android.itracker.ui.MediaDownloadActivity;
 
 import java.util.Date;
 
@@ -31,6 +39,8 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
     public static final String TAG = makeLogTag(TrackerBroadcastReceiver.class);
 
     public static final int REQUEST_CODE = 100;
+
+    private static final int NOTIFICATION_ID = 200;
 
     public static final String ACTION_START_SENSOR_MONITOR = "com.localytics.android.itracker.intent.action.START_SENSOR_MONITOR";
     public static final String ACTION_BOOTSTRAP_MONITOR_ALARM = "com.localytics.android.itracker.intent.action.BOOTSTRAP_MONITOR_ALARM";
@@ -170,15 +180,73 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
             switch (networkType) {
                 case ConnectivityManager.TYPE_WIFI: {
                     fdm.startAvailableDownloadsAsync();
+                    sendStartDownloadingNotification(context);
                     break;
                 }
                 case ConnectivityManager.TYPE_MOBILE: {
                     fdm.pauseAvailableDownloadsAsync();
+                    sendPauseDownloadingNotification(context);
                     break;
                 }
-                default:
+                default: {
                     LOGW(TAG, "network type: " + networkType);
+                }
             }
         }
+    }
+
+    private void sendStartDownloadingNotification(final Context context) {
+        String message = context.getResources().getString(R.string.file_download_wifi_connected);
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(NOTIFICATION_ID);
+            }
+        }, 5000);
+    }
+
+    private void sendPauseDownloadingNotification(final Context context) {
+        String message = context.getResources().getString(R.string.file_download_wifi_disconnected);
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(NOTIFICATION_ID);
+            }
+        }, 5000);
+    }
+
+    private Notification createDownloadPromptNotification(Context context, String message) {
+        Notification.Builder notificationBuilder = new Notification.Builder(context)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(Notification.PRIORITY_DEFAULT)
+                .setContentTitle("File downloads")
+                .setContentText(message);
+
+        Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        // Build task stack so it can navigate correctly to the parent activity
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MediaDownloadActivity.class);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            notificationBuilder
+                    .setCategory(Notification.CATEGORY_MESSAGE)
+                    .setFullScreenIntent(pendingIntent, true);
+        } else {
+            notificationBuilder.setContentIntent(pendingIntent);
+        }
+
+        return notificationBuilder.build();
     }
 }
