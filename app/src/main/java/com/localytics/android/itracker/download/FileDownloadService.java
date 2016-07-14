@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Process;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -330,6 +331,8 @@ public class FileDownloadService extends Service {
         @Override
         public void run() {
             try {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
                 /***** Preparing *****/
                 updateStatus(DownloadStatus.PREPARING);
 

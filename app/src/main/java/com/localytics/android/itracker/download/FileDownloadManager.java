@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Looper;
 
 import com.localytics.android.itracker.Config;
@@ -52,38 +53,6 @@ public class FileDownloadManager extends ContentObserver {
         Intent intent = new Intent(mContext, FileDownloadService.class);
         intent.setAction(FileDownloadService.ACTION_RECOVER_STATUS);
         mContext.startService(intent);
-    }
-
-    public void startAvailableDownloads() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            LOGE(TAG, "This method must be called from a non-ui thread.");
-            return;
-        }
-
-        String availableStatus = String.format("%s,%s,%s,%s",
-                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
-        Cursor cursor = mContext.getContentResolver().query(
-                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
-                null,
-                null,
-                null,
-                TrackerContract.FileDownloads.START_TIME + " DESC");
-        if (cursor != null) {
-            try {
-                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
-                if (downloads != null) {
-                    for (MediaDownload download : downloads) {
-                        Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
-                        Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
-                        startDownload(download.identifier, srcUri, destUri);
-                    }
-                }
-            } catch (Exception e) {
-                LOGE(TAG, "Got error when start triggering the download", e);
-            } finally {
-                cursor.close();
-            }
-        }
     }
 
     public void startDownload(String id) {
@@ -136,5 +105,77 @@ public class FileDownloadManager extends ContentObserver {
             }
         }
         return "";
+    }
+
+    public void startAvailableDownloads() {
+        String availableStatus = String.format("%s,%s,%s,%s,%s",
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value(), DownloadStatus.PAUSED.value());
+        Cursor cursor = mContext.getContentResolver().query(
+                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
+                null,
+                null,
+                null,
+                TrackerContract.FileDownloads.START_TIME + " DESC");
+        if (cursor != null) {
+            try {
+                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
+                if (downloads != null) {
+                    for (MediaDownload download : downloads) {
+                        Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
+                        Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
+                        startDownload(download.identifier, srcUri, destUri);
+                    }
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Got error when start triggering the download", e);
+            } finally {
+                cursor.close();
+            }
+        }
+    }
+
+    public void pauseAvailableDownloads() {
+        String availableStatus = String.format("%s,%s,%s,%s",
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
+        Cursor cursor = mContext.getContentResolver().query(
+                FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
+                null,
+                null,
+                null,
+                TrackerContract.FileDownloads.START_TIME + " DESC");
+        if (cursor != null) {
+            try {
+                MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
+                if (downloads != null) {
+                    for (MediaDownload download : downloads) {
+                        pauseDownload(download.identifier);
+                    }
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Got error when start triggering the download", e);
+            } finally {
+                cursor.close();
+            }
+        }
+    }
+
+    public void startAvailableDownloadsAsync() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                startAvailableDownloads();
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public void pauseAvailableDownloadsAsync() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                pauseAvailableDownloads();
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 }

@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -14,11 +16,13 @@ import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.download.FileDownloadManager;
 
 import java.util.Date;
 
 import static com.localytics.android.itracker.util.LogUtils.LOGD;
 import static com.localytics.android.itracker.util.LogUtils.LOGI;
+import static com.localytics.android.itracker.util.LogUtils.LOGW;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
@@ -153,7 +157,28 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
         } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
             LOGD(TAG, "Got ACTION_LOCALE_CHANGED");
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-            LOGD(TAG, "Got CONNECTIVITY_ACTION");                                                                                                                                                                         LOGD(TAG, "Got CONNECTIVITY_ACTION");
+            LOGD(TAG, "Got CONNECTIVITY_ACTION");
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+
+            int networkType = -1;
+            if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+                networkType = networkInfo.getType();
+            }
+
+            final FileDownloadManager fdm = FileDownloadManager.getInstance(context);
+            switch (networkType) {
+                case ConnectivityManager.TYPE_WIFI: {
+                    fdm.startAvailableDownloadsAsync();
+                    break;
+                }
+                case ConnectivityManager.TYPE_MOBILE: {
+                    fdm.pauseAvailableDownloadsAsync();
+                    break;
+                }
+                default:
+                    LOGW(TAG, "network type: " + networkType);
+            }
         }
     }
 }

@@ -2,10 +2,12 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Fragment;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -37,9 +39,6 @@ public class MediaDownloadActivity extends BaseActivity {
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
 
-    private RequestHandler mRequestHandler;
-    private HandlerThread  mRequestThread;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,59 +53,51 @@ public class MediaDownloadActivity extends BaseActivity {
                     .replace(R.id.media_download_fragment, new MediaDownloadFragment())
                     .commit();
         }
-
-        mRequestThread = new HandlerThread("DownloadRequest");
-        mRequestThread.start();
-
-        mRequestHandler = new RequestHandler(mRequestThread.getLooper());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mRequestThread.quitSafely();
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+
         final ArrayList<Video> videos = getIntent().getParcelableArrayListExtra(EXTRA_VIDEOS_TO_DOWNLOAD);
-        if (videos != null && videos.size() > 0) {
-            mRequestHandler.obtainMessage(MESSAGE_REQUEST_DOWNLOADS, videos).sendToTarget();
-        }
-    }
-
-    private static final int MESSAGE_REQUEST_DOWNLOADS = 100;
-
-    private class RequestHandler extends Handler {
-
-        public RequestHandler(Looper looper) {
-            super(looper);
+        if (videos == null || videos.size() == 0) {
+            return;
         }
 
-        @Override
-        public void handleMessage(Message msg) {
-            Context context = getApplicationContext();
-            ArrayList<Video> videos = (ArrayList<Video>) msg.obj;
-            try {
-                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                for (final Video video : videos) {
-                    ops.add(ContentProviderOperation
-                            .newInsert(FileDownloads.CONTENT_URI)
-                            .withValue(FileDownloads.FILE_ID, video.identifier)
-                            .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
-                            .withValue(FileDownloads.START_TIME, DateTime.now().toString())
-                            .build());
-                }
+        new AsyncTask<Video, Void, Void>() {
+            @Override
+            protected Void doInBackground(Video... params) {
+                Context context = getApplicationContext();
+
                 try {
-                    context.getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                    FileDownloadManager.getInstance(getApplicationContext()).startAvailableDownloads();
-                } catch (RemoteException | OperationApplicationException e) {
-                    LOGE(TAG, "Fail to initialize new downloads: " + e);
+                    ArrayList<ContentProviderOperation> ops = new ArrayList<>(params.length);
+                    for (final Video video : params) {
+                        ops.add(ContentProviderOperation
+                                .newInsert(FileDownloads.CONTENT_URI)
+                                .withValue(FileDownloads.FILE_ID, video.identifier)
+                                .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
+                                .withValue(FileDownloads.START_TIME, DateTime.now().toString())
+                                .build());
+                    }
+
+                    try {
+                        ContentResolver resolver = context.getContentResolver();
+                        resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                        FileDownloadManager.getInstance(context).startAvailableDownloads();
+                    } catch (RemoteException | OperationApplicationException e) {
+                        LOGE(TAG, "Fail to initialize new downloads: " + e);
+                    }
+                } catch (Exception e) {
+                    LOGE(TAG, "Fail to make the download request", e);
                 }
-            } catch (Exception e) {
-                LOGE(TAG, "Fail to make the download request", e);
+
+                return null;
             }
-        }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, videos.toArray(new Video[videos.size()]));
     }
 }

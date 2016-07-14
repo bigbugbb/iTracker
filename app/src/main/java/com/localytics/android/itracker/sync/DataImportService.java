@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 import android.support.annotation.NonNull;
 
 import com.localytics.android.itracker.data.model.Backup;
@@ -69,6 +70,7 @@ public class DataImportService extends Service {
 
         mHandlerThread = new HandlerThread(TAG + "DataImportService Thread");
         mHandlerThread.start();
+        mHandlerThread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
         mServiceHandler = new ServiceHandler(mHandlerThread.getLooper());
     }
 
