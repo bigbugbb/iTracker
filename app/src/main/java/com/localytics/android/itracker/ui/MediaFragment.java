@@ -520,37 +520,41 @@ public class MediaFragment extends TrackerFragment implements
                     mMediaSwipeRefresh.setRefreshing(false);
                 }
             }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
 
-            private void cacheLocalVideos(final List<Video> videos) {
-                /**
-                 *  Build and apply the operations to insert remote youtube videos as local cache.
-                 */
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                        for (Video video : videos) {
-                            ops.add(ContentProviderOperation
-                                    .newInsert(TrackerContract.Videos.CONTENT_URI)
-                                    .withValue(TrackerContract.Videos.IDENTIFIER, video.identifier)
-                                    .withValue(TrackerContract.Videos.THUMBNAIL, video.thumbnail)
-                                    .withValue(TrackerContract.Videos.DURATION, video.duration)
-                                    .withValue(TrackerContract.Videos.TITLE, video.title)
-                                    .withValue(TrackerContract.Videos.OWNER, video.owner)
-                                    .withValue(TrackerContract.Videos.PUBLISHED_AND_VIEWS, video.published_and_views)
-                                    .withValue(TrackerContract.Videos.LAST_OPENED_TIME, video.watched_time)
-                                    .build());
-                        }
-                        try {
-                            getActivity().getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                        } catch (RemoteException | OperationApplicationException e) {
-                            LOGE(TAG, "Fail to save local youtube video cache: " + e);
-                        }
+    private void cacheLocalVideos(final List<Video> videos) {
+        /**
+         *  Build and apply the operations to insert remote youtube videos as local cache.
+         */
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+                for (Video video : videos) {
+                    ops.add(ContentProviderOperation
+                            .newInsert(TrackerContract.Videos.CONTENT_URI)
+                            .withValue(TrackerContract.Videos.IDENTIFIER, video.identifier)
+                            .withValue(TrackerContract.Videos.THUMBNAIL, video.thumbnail)
+                            .withValue(TrackerContract.Videos.DURATION, video.duration)
+                            .withValue(TrackerContract.Videos.TITLE, video.title)
+                            .withValue(TrackerContract.Videos.OWNER, video.owner)
+                            .withValue(TrackerContract.Videos.PUBLISHED_AND_VIEWS, video.published_and_views)
+                            .withValue(TrackerContract.Videos.LAST_OPENED_TIME, video.watched_time)
+                            .build());
+                }
+                try {
+                    if (isAdded()) {
+                        getActivity().getContentResolver().applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
                     }
-                }).start();
-            }
+                } catch (RemoteException | OperationApplicationException e) {
+                    LOGE(TAG, "Fail to save local youtube video cache: " + e);
+                }
 
-        }.execute();
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
