@@ -16,9 +16,10 @@ public class PlayerActivity extends BaseActivity implements PlayerControllerVisi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_player);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+        setContentView(R.layout.activity_player);
 
         String title = getIntent().getStringExtra(MEDIA_PLAYER_TITLE);
 
@@ -46,6 +47,11 @@ public class PlayerActivity extends BaseActivity implements PlayerControllerVisi
         }
     }
 
+    @Override
+    protected boolean isOrientationIgnored() {
+        return true;
+    }
+
 //    @Override
 //    public boolean dispatchKeyEvent(KeyEvent event) {
 //        // We first dispatch keys to the transport controller -- we want it
@@ -61,18 +67,18 @@ public class PlayerActivity extends BaseActivity implements PlayerControllerVisi
 
     @Override
     public void onControlsVisibilityChange(boolean visible) {
-        int newVis = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        int newVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 
         if (!visible) {
-            newVis |= View.SYSTEM_UI_FLAG_LOW_PROFILE
+            newVisibility |= View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
         }
 
         final View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(newVis);
+        decorView.setSystemUiVisibility(newVisibility);
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(final int visibility) {

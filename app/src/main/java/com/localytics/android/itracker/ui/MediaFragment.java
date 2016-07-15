@@ -881,7 +881,6 @@ public class MediaFragment extends TrackerFragment implements
                             return;
                         }
 
-                        // TODO: play the media in another activity or the floating view
                         YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
                         extractor.extractAsync(new YouTubeExtractor.Callback() {
                             @Override
