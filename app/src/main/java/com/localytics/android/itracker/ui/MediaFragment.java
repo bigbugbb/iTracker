@@ -68,6 +68,7 @@ import com.google.api.services.youtube.model.VideoListResponse;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.util.ConnectivityUtils;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 import com.localytics.android.itracker.util.YouTubeExtractor;
@@ -891,10 +892,8 @@ public class MediaFragment extends TrackerFragment implements
                         extractor.extractAsync(new YouTubeExtractor.Callback() {
                             @Override
                             public void onSuccess(YouTubeExtractor.Result result) {
-                                ConnectivityManager manager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-                                NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-                                if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-                                    final int type = networkInfo.getType();
+                                if (ConnectivityUtils.isOnline(mContext)) {
+                                    final int type = ConnectivityUtils.getNetworkType(mContext);
                                     if (type == ConnectivityManager.TYPE_WIFI) {
                                         Uri uri = result.getBestAvaiableQualityVideoUri();
                                         if (uri != null) {

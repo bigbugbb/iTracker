@@ -15,6 +15,7 @@ public class FileDownload implements Parcelable {
 
     public String file_id;
     public long   total_size;
+    public String local_location;
     public String status;
     public String start_time;
     public String finish_time;
@@ -25,6 +26,7 @@ public class FileDownload implements Parcelable {
     public FileDownload(Cursor cursor) {
         file_id = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.FILE_ID));
         total_size = cursor.getLong(cursor.getColumnIndexOrThrow(FileDownloads.TOTAL_SIZE));
+        local_location = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.LOCAL_LOCATION));
         status = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.STATUS));
         start_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.START_TIME));
         finish_time = cursor.getString(cursor.getColumnIndexOrThrow(FileDownloads.FINISH_TIME));
@@ -34,8 +36,8 @@ public class FileDownload implements Parcelable {
         if (!TextUtils.equals(file_id, download.file_id)) {
             return;
         }
-
         total_size = download.total_size;
+        local_location = download.local_location;
         status = download.status;
         start_time = download.start_time;
         finish_time = download.finish_time;
@@ -54,6 +56,7 @@ public class FileDownload implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(file_id);
         dest.writeLong(total_size);
+        dest.writeString(local_location);
         dest.writeString(status);
         dest.writeString(start_time);
         dest.writeString(finish_time);
@@ -62,6 +65,7 @@ public class FileDownload implements Parcelable {
     protected FileDownload(Parcel in) {
         file_id = in.readString();
         total_size = in.readLong();
+        local_location = in.readString();
         status = in.readString();
         start_time = in.readString();
         finish_time = in.readString();

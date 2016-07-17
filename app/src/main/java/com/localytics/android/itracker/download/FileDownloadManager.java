@@ -1,5 +1,8 @@
 package com.localytics.android.itracker.download;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -8,8 +11,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.TaskStackBuilder;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
@@ -18,6 +23,7 @@ import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.ui.MediaDownloadActivity;
 import com.localytics.android.itracker.util.ConnectivityUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
@@ -34,6 +40,7 @@ public class FileDownloadManager extends ContentObserver {
     private Context mContext;
 
     private static FileDownloadManager sInstance;
+    private static final int NOTIFICATION_ID = 8888;
 
     public static FileDownloadManager getInstance(final Context context) {
         synchronized (FileDownloadManager.class) {
@@ -61,17 +68,23 @@ public class FileDownloadManager extends ContentObserver {
         mContext.startService(intent);
     }
 
-    public void startDownload(String id) {
+    public boolean startDownload(String id) {
+        if (!ConnectivityUtils.isWifiConnected(mContext)) {
+            return false;
+        }
+
         FileDownloadRequest request = new FileDownloadRequest.Builder()
                 .setRequestId(id)
                 .setRequestAction(FileDownloadRequest.RequestAction.START)
                 .build();
         postRequest(request);
+
+        return true;
     }
 
-    public void startDownload(String id, Uri srcUri, Uri destUri) {
+    public boolean startDownload(String id, Uri srcUri, Uri destUri) {
         if (!ConnectivityUtils.isWifiConnected(mContext)) {
-            return;
+            return false;
         }
 
         FileDownloadRequest request = new FileDownloadRequest.Builder()
@@ -81,6 +94,8 @@ public class FileDownloadManager extends ContentObserver {
                 .setDestinationUri(destUri)
                 .build();
         postRequest(request);
+
+        return true;
     }
 
     public void pauseDownload(String id) {
@@ -117,7 +132,7 @@ public class FileDownloadManager extends ContentObserver {
         return "";
     }
 
-    public void startAvailableDownloads() {
+    public boolean startAvailableDownloads() {
         String availableStatus = String.format("%s,%s,%s,%s,%s",
                 DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value(), DownloadStatus.PAUSED.value());
         Cursor cursor = mContext.getContentResolver().query(
@@ -130,11 +145,15 @@ public class FileDownloadManager extends ContentObserver {
             try {
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
                 if (downloads != null) {
+                    boolean hasDownloadRequest = false;
                     for (MediaDownload download : downloads) {
                         Uri srcUri = Uri.parse(getVideoTargetUrl(download.identifier));
                         Uri destUri = Uri.parse(Config.FILE_DOWNLOAD_DIR_PATH + download.identifier);
-                        startDownload(download.identifier, srcUri, destUri);
+                        if (startDownload(download.identifier, srcUri, destUri)) {
+                            hasDownloadRequest = true;
+                        }
                     }
+                    return hasDownloadRequest;
                 }
             } catch (Exception e) {
                 LOGE(TAG, "Got error when start triggering the download", e);
@@ -142,9 +161,11 @@ public class FileDownloadManager extends ContentObserver {
                 cursor.close();
             }
         }
+
+        return false;
     }
 
-    public void pauseAvailableDownloads() {
+    public boolean pauseAvailableDownloads() {
         String availableStatus = String.format("%s,%s,%s,%s",
                 DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
         Cursor cursor = mContext.getContentResolver().query(
@@ -157,9 +178,12 @@ public class FileDownloadManager extends ContentObserver {
             try {
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(cursor);
                 if (downloads != null) {
+                    boolean hasPausedDownload = false;
                     for (MediaDownload download : downloads) {
                         pauseDownload(download.identifier);
+                        hasPausedDownload = true;
                     }
+                    return hasPausedDownload;
                 }
             } catch (Exception e) {
                 LOGE(TAG, "Got error when start triggering the download", e);
@@ -167,25 +191,86 @@ public class FileDownloadManager extends ContentObserver {
                 cursor.close();
             }
         }
+
+        return false;
     }
 
-    public void startAvailableDownloadsAsync() {
+    public void startAvailableDownloadsAsync(final boolean withNotification) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                startAvailableDownloads();
+                if (startAvailableDownloads() && withNotification) {
+                    sendStartDownloadingNotification(mContext);
+                }
                 return null;
             }
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
-    public void pauseAvailableDownloadsAsync() {
+    public void pauseAvailableDownloadsAsync(final boolean withNotification) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                pauseAvailableDownloads();
+                if (pauseAvailableDownloads() && withNotification) {
+                    sendPauseDownloadingNotification(mContext);
+                }
                 return null;
             }
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    private void sendStartDownloadingNotification(final Context context) {
+        String message = context.getResources().getString(R.string.file_download_wifi_connected);
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(NOTIFICATION_ID);
+            }
+        }, 5000);
+    }
+
+    private void sendPauseDownloadingNotification(final Context context) {
+        String message = context.getResources().getString(R.string.file_download_wifi_disconnected);
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(NOTIFICATION_ID);
+            }
+        }, 5000);
+    }
+
+    private Notification createDownloadPromptNotification(Context context, String message) {
+        Notification.Builder notificationBuilder = new Notification.Builder(context)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(Notification.PRIORITY_DEFAULT)
+                .setContentTitle("File downloads")
+                .setContentText(message);
+
+        Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        // Build task stack so it can navigate correctly to the parent activity
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MediaDownloadActivity.class);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            notificationBuilder
+                    .setCategory(Notification.CATEGORY_MESSAGE)
+                    .setFullScreenIntent(pendingIntent, true);
+        } else {
+            notificationBuilder.setContentIntent(pendingIntent);
+        }
+
+        return notificationBuilder.build();
     }
 }

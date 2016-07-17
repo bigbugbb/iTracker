@@ -87,6 +87,7 @@ public class TrackerContract {
     interface FileDownloadColumns {
         String FILE_ID = "file_id";
         String TOTAL_SIZE = "total_size";
+        String LOCAL_LOCATION = "local_location";
         String STATUS = "status";
         String WIFI_ONLY = "wifi_only";
         String START_TIME = "start_time";

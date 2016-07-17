@@ -348,6 +348,7 @@ public class FileDownloadService extends Service {
                     throw new IOException("Can't generate the final file");
                 } else {
                     LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, finalFile));
+                    updateLocalLocation(finalFile);
                     updateStatus(DownloadStatus.COMPLETED);
                     onCompleted(Uri.fromFile(finalFile));
                 }
@@ -473,6 +474,9 @@ public class FileDownloadService extends Service {
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PAUSED);
             intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
+
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.cancel(mRequest.getId().hashCode());
         }
 
         protected void onDownloading(long currentFileSize, long totalFileSize, long downloadSpeed) {
@@ -531,6 +535,12 @@ public class FileDownloadService extends Service {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             Notification notification = mNotificationBuilder.newFailedNotification(mRequest.getId(), mDownloadInfo, reason);
             nm.notify(mRequest.getId().hashCode(), notification);
+        }
+
+        void updateLocalLocation(File downloadedFile) {
+            ContentValues values = new ContentValues();
+            values.put(FileDownloads.LOCAL_LOCATION, downloadedFile.toString());
+            mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{mRequest.mId});
         }
 
         void updateStatus(DownloadStatus status) {

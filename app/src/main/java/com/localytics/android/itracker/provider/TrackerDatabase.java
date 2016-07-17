@@ -132,6 +132,7 @@ public class TrackerDatabase extends SQLiteOpenHelper {
                 + FileDownloads._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + FileDownloads.FILE_ID + " TEXT UNIQUE NOT NULL,"
                 + FileDownloads.TOTAL_SIZE + " INTEGER,"
+                + FileDownloads.LOCAL_LOCATION + " TEXT,"
                 + FileDownloads.STATUS + " TEXT NOT NULL,"
                 + FileDownloads.WIFI_ONLY + " INTEGER DEFAULT 1,"
                 + FileDownloads.START_TIME + " TEXT,"

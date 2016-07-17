@@ -3,9 +3,11 @@ package com.localytics.android.itracker.ui;
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -24,10 +26,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
+import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
 import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadRequest;
@@ -38,6 +42,7 @@ import com.localytics.android.itracker.util.AppQueryHandler;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -313,6 +318,19 @@ public class MediaDownloadFragment extends TrackerFragment {
                 };
 
                 itemView.setTag(download.identifier);
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (download.getStatus() == DownloadStatus.COMPLETED) {
+                            File downloadedFile = new File(download.local_location);
+                            if (downloadedFile.exists() && downloadedFile.isFile()) {
+                                startMediaPlayback(Uri.fromFile(downloadedFile), download.title);
+                            } else {
+                                Toast.makeText(mContext, R.string.playback_downloaded_file_failed, Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                });
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
@@ -385,6 +403,13 @@ public class MediaDownloadFragment extends TrackerFragment {
                     return String.format("%.2fGB", sizeInGb);
                 }
                 return String.format("%.1fMB", sizeInMb);
+            }
+
+            private void startMediaPlayback(Uri uri, String title) {
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                intent.setData(uri);
+                intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, title);
+                startActivity(intent);
             }
         }
     }
