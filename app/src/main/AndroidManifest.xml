@@ -128,6 +128,11 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.TrackerActivity"/>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <!-- http://blog.csdn.net/jason0539/article/details/10049899 -->
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ui.AuthenticatorActivity"
