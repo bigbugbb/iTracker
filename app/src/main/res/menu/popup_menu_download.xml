@@ -15,12 +15,12 @@
         android:visible="true"/>
     <item
         android:id="@+id/action_open_file"
-        android:title="Cancel"
-        android:visible="false"/>
+        android:title="Open"
+        android:visible="true"/>
     <item
         android:id="@+id/action_delete_file"
-        android:title="Cancel"
-        android:visible="false"/>
+        android:title="Delete"
+        android:visible="true"/>
     <item
         android:id="@+id/action_show_property"
         android:title="Property"

@@ -1,14 +1,17 @@
 package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -39,6 +42,7 @@ import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.util.AppQueryHandler;
+import com.localytics.android.itracker.util.ConnectivityUtils;
 import com.localytics.android.itracker.util.PrefUtils;
 import com.localytics.android.itracker.util.ThrottledContentObserver;
 
@@ -46,6 +50,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -65,6 +70,12 @@ public class MediaDownloadFragment extends TrackerFragment {
 
     private LocalBroadcastManager mBroadcastManager;
     private DownloadProgressBroadcastReceiver mDownloadProgressBroadcastReceiver;
+
+    private OnStartMediaPlaybackListener mMediaPlaybackListener;
+
+    interface OnStartMediaPlaybackListener {
+        void onStartMediaPlayback(Uri uri, MediaDownload download);
+    }
 
     public MediaDownloadFragment() {
         // Required empty public constructor
@@ -95,6 +106,8 @@ public class MediaDownloadFragment extends TrackerFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
+        mMediaPlaybackListener = (OnStartMediaPlaybackListener) activity;
+
         mMediaDownloadsObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
             @Override
             public void onThrottledContentObserverFired() {
@@ -121,6 +134,7 @@ public class MediaDownloadFragment extends TrackerFragment {
         super.onDetach();
         getActivity().getContentResolver().unregisterContentObserver(mMediaDownloadsObserver);
         mBroadcastManager.unregisterReceiver(mDownloadProgressBroadcastReceiver);
+        mMediaPlaybackListener = null;
     }
 
     @Override
@@ -170,7 +184,150 @@ public class MediaDownloadFragment extends TrackerFragment {
 
         protected void onCanceled(FileDownloadRequest request, Bundle extra) {
             AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver());
-            handler.startDelete(0, null, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{ request.getId() });
+            handler.startDelete(0, null, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{request.getId()});
+        }
+    }
+
+    private void onDownloadItemClicked(MediaDownload download) {
+        if (download.getStatus() == DownloadStatus.COMPLETED) {
+            File downloadedFile = new File(download.local_location);
+            if (downloadedFile.exists() && downloadedFile.isFile()) {
+                if (mMediaPlaybackListener != null) {
+                    mMediaPlaybackListener.onStartMediaPlayback(Uri.fromFile(downloadedFile), download);
+                }
+            } else {
+                Toast.makeText(getActivity(), R.string.playback_downloaded_file_failed, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void onDownloadItemLongClicked(final MediaDownload download, PopupMenu popupMenu) {;
+        Menu menu = popupMenu.getMenu();
+        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_download, menu);
+        DownloadStatus status = DownloadStatus.valueOf(download.status.toUpperCase());
+
+        if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
+                status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING) {
+            menu.findItem(R.id.action_start_download).setVisible(false);
+            menu.findItem(R.id.action_open_file).setVisible(false);
+            menu.findItem(R.id.action_delete_file).setVisible(false);
+            menu.findItem(R.id.action_show_property).setVisible(false);
+        } else if (status == DownloadStatus.PAUSED || status == DownloadStatus.FAILED) {
+            menu.findItem(R.id.action_pause_download).setVisible(false);
+            menu.findItem(R.id.action_open_file).setVisible(false);
+            menu.findItem(R.id.action_delete_file).setVisible(false);
+            menu.findItem(R.id.action_show_property).setVisible(false);
+        } else if (status == DownloadStatus.COMPLETED) {
+            menu.findItem(R.id.action_start_download).setVisible(false);
+            menu.findItem(R.id.action_pause_download).setVisible(false);
+            menu.findItem(R.id.action_cancel_download).setVisible(false);
+        }
+
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+             @Override
+             public boolean onMenuItemClick(MenuItem item) {
+                 switch (item.getItemId()) {
+                     case R.id.action_open_file: {
+                         onActionOpenFile(download);
+                         break;
+                     }
+                     case R.id.action_delete_file: {
+                         onActionDeleteFile(download);
+                         break;
+                     }
+                     case R.id.action_start_download: {
+                         onActionStartDownload(download);
+                         break;
+                     }
+                     case R.id.action_pause_download: {
+                         onActionPauseDownload(download);
+                         break;
+                     }
+                     case R.id.action_cancel_download: {
+                         onActionCancelDownload(download);
+                         break;
+                     }
+                     case R.id.action_show_property: {
+                         onActionShowProperty(download);
+                         break;
+                     }
+                 }
+                 return true;
+             }
+         });
+
+        popupMenu.show();
+    }
+
+    private void onActionOpenFile(MediaDownload download) {
+        if (!TextUtils.isEmpty(download.local_location)) {
+            if (mMediaPlaybackListener != null) {
+                mMediaPlaybackListener.onStartMediaPlayback(Uri.fromFile(new File(download.local_location)), download);
+            }
+        }
+    }
+
+    private void onActionDeleteFile(final MediaDownload download) {
+        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                // Set Dialog Icon
+                .setIcon(R.mipmap.ic_launcher)
+                // Set Dialog Title
+                .setTitle("Delete this download")
+                // Set Dialog Message
+                .setMessage("Are you sure you want to delete the downloaded file?")
+
+                // Positive button
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
+                            @Override
+                            protected void onDeleteComplete(int token, Object cookie, int result) {
+                                deleteDownloadedFile((String) cookie);
+                            }
+                        };
+                        handler.startDelete(0, download.local_location, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
+                    }
+                })
+
+                // Negative Button
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,	int which) {
+                        // Do nothing
+                    }
+                }).create();
+
+        dialog.show();
+    }
+
+    private void onActionShowProperty(MediaDownload download) {
+
+    }
+
+    private void onActionStartDownload(MediaDownload download) {
+        Context context = getActivity().getApplicationContext();
+        if (!ConnectivityUtils.isWifiConnected(context)) {
+            Toast.makeText(getActivity(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
+        } else {
+            FileDownloadManager.getInstance(context).startDownload(download.identifier);
+        }
+    }
+
+    private void onActionPauseDownload(MediaDownload download) {
+        Context context = getActivity().getApplicationContext();
+        FileDownloadManager.getInstance(context).pauseDownload(download.identifier);
+    }
+
+    private void onActionCancelDownload(MediaDownload download) {
+        Context context = getActivity().getApplicationContext();
+        FileDownloadManager.getInstance(context).cancelDownload(download.identifier);
+    }
+
+    private void deleteDownloadedFile(String fileLocation) {
+        if (!TextUtils.isEmpty(fileLocation)) {
+            File downloadedFile = new File(fileLocation);
+            if (downloadedFile.exists() && downloadedFile.isFile()) {
+                downloadedFile.delete();
+            }
         }
     }
 
@@ -191,6 +348,23 @@ public class MediaDownloadFragment extends TrackerFragment {
         }
 
         public void updateDownloads(List<MediaDownload> downloads) {
+            // remove outdated downloads
+            HashSet<String> oldDownloads = new HashSet<>();
+            HashSet<String> newDownloads = new HashSet<>();
+            for (MediaDownload download : mDownloads) {
+                oldDownloads.add(download.identifier);
+            }
+            for (MediaDownload download : downloads) {
+                newDownloads.add(download.identifier);
+            }
+            if (oldDownloads.removeAll(newDownloads)) {
+                for (String identifier : oldDownloads) {
+                    MediaDownload outdatedDownload = mExistingDownloads.put(identifier, null);
+                    mDownloads.remove(outdatedDownload);
+                }
+            }
+
+            // add new downloads
             final int size = downloads.size();
             for (int i = size - 1; i >= 0; --i) {
                 MediaDownload newDownload = downloads.get(i);
@@ -291,69 +465,20 @@ public class MediaDownloadFragment extends TrackerFragment {
                     downloadProgress.setVisibility(View.INVISIBLE);
                 }
 
-                final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        FileDownloadManager fdm = FileDownloadManager.getInstance(getActivity());
-                        switch (item.getItemId()) {
-                            case R.id.action_start_download: {
-                                fdm.startDownload(download.identifier);
-                                break;
-                            }
-                            case R.id.action_pause_download: {
-                                fdm.pauseDownload(download.identifier);
-                                break;
-                            }
-                            case R.id.action_cancel_download: {
-                                fdm.cancelDownload(download.identifier);
-                                break;
-                            }
-                            case R.id.action_show_property: {
-                                // TODO: show a fragment dialog with the download file property
-                                break;
-                            }
-                        }
-                        return true;
-                    }
-                };
-
                 itemView.setTag(download.identifier);
+
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (download.getStatus() == DownloadStatus.COMPLETED) {
-                            File downloadedFile = new File(download.local_location);
-                            if (downloadedFile.exists() && downloadedFile.isFile()) {
-                                startMediaPlayback(Uri.fromFile(downloadedFile), download.title);
-                            } else {
-                                Toast.makeText(mContext, R.string.playback_downloaded_file_failed, Toast.LENGTH_LONG).show();
-                            }
-                        }
+                        onDownloadItemClicked(download);
                     }
                 });
+
                 itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
                         PopupMenu popupMenu = new PopupMenu(getActivity(), downloadFileSize);
-                        Menu menu = popupMenu.getMenu();
-                        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_download, menu);
-                        DownloadStatus status = DownloadStatus.valueOf(download.status.toUpperCase());
-
-                        if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
-                                status == DownloadStatus.DOWNLOADING) {
-                            menu.findItem(R.id.action_start_download).setVisible(false);
-                        } else if (status == DownloadStatus.PAUSED || status == DownloadStatus.FAILED) {
-                            menu.findItem(R.id.action_pause_download).setVisible(false);
-                        } else if (status == DownloadStatus.COMPLETED) {
-                            menu.findItem(R.id.action_start_download).setVisible(false);
-                            menu.findItem(R.id.action_pause_download).setVisible(false);
-                            menu.findItem(R.id.action_cancel_download).setVisible(false);
-                        }
-
-                        popupMenu.setOnMenuItemClickListener(menuItemClickListener);
-
-                        popupMenu.show();
-
+                        onDownloadItemLongClicked(download, popupMenu);
                         return true;
                     }
                 });
@@ -403,13 +528,6 @@ public class MediaDownloadFragment extends TrackerFragment {
                     return String.format("%.2fGB", sizeInGb);
                 }
                 return String.format("%.1fMB", sizeInMb);
-            }
-
-            private void startMediaPlayback(Uri uri, String title) {
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.setData(uri);
-                intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, title);
-                startActivity(intent);
             }
         }
     }

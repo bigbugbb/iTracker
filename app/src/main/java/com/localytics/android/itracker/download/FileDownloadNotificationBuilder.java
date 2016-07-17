@@ -104,6 +104,7 @@ class FileDownloadNotificationBuilder {
 
         Intent intent = new Intent(mContext, PlayerActivity.class);
         intent.setDataAndType(fileUri, getMimeType(fileUri));
+        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, downloadInfo.get(TrackerContract.MediaDownloads.TITLE));
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         // Inflate the notification layout as RemoteViews

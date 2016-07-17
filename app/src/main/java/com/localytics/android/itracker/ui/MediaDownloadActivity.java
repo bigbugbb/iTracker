@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
@@ -36,7 +37,7 @@ import static com.localytics.android.itracker.util.LogUtils.LOGE;
 import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
 
 
-public class MediaDownloadActivity extends BaseActivity {
+public class MediaDownloadActivity extends BaseActivity implements MediaDownloadFragment.OnStartMediaPlaybackListener {
     private final static String TAG = makeLogTag(MediaDownloadActivity.class);
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
@@ -110,5 +111,13 @@ public class MediaDownloadActivity extends BaseActivity {
                 return null;
             }
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, videos.toArray(new Video[videos.size()]));
+    }
+
+    @Override
+    public void onStartMediaPlayback(Uri uri, MediaDownload download) {
+        Intent intent = new Intent(this, PlayerActivity.class);
+        intent.setData(uri);
+        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, download.title);
+        startActivity(intent);
     }
 }
