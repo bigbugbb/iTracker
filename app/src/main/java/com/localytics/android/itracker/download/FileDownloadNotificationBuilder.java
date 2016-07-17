@@ -16,6 +16,7 @@ import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.ui.MediaDownloadActivity;
+import com.localytics.android.itracker.ui.PlayerActivity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -101,7 +102,7 @@ class FileDownloadNotificationBuilder {
     public Notification newCompletedNotification(String id, Uri fileUri, Map<String, String> downloadInfo) {
         final String sortKey = retrieveSortKey(id);
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
+        Intent intent = new Intent(mContext, PlayerActivity.class);
         intent.setDataAndType(fileUri, getMimeType(fileUri));
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 

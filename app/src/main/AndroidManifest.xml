@@ -124,7 +124,8 @@
             android:label="PlayerActivity"
             android:theme="@style/TranslucentSystemBar"
             android:parentActivityName=".ui.TrackerActivity"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="sensorLandscape"
+            android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.TrackerActivity"/>
@@ -132,6 +133,10 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <!-- http://blog.csdn.net/jason0539/article/details/10049899 -->
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="http" />
             </intent-filter>
         </activity>
         <activity
