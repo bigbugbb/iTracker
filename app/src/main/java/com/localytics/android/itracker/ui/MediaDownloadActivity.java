@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
+import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
@@ -24,6 +25,7 @@ import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.util.ConnectivityUtils;
 import com.localytics.android.itracker.util.YouTubeExtractor;
 
 import org.joda.time.DateTime;
@@ -69,11 +71,10 @@ public class MediaDownloadActivity extends BaseActivity {
             return;
         }
 
+        final Context context = getApplicationContext();
         new AsyncTask<Video, Void, Void>() {
             @Override
             protected Void doInBackground(Video... params) {
-                Context context = getApplicationContext();
-
                 try {
                     ArrayList<ContentProviderOperation> ops = new ArrayList<>(params.length);
                     for (final Video video : params) {
@@ -88,9 +89,19 @@ public class MediaDownloadActivity extends BaseActivity {
                     try {
                         ContentResolver resolver = context.getContentResolver();
                         resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                        FileDownloadManager.getInstance(context).startAvailableDownloads();
                     } catch (RemoteException | OperationApplicationException e) {
                         LOGE(TAG, "Fail to initialize new downloads: " + e);
+                    }
+
+                    if (!ConnectivityUtils.isWifiConnected(context)) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else {
+                        FileDownloadManager.getInstance(context).startAvailableDownloads();
                     }
                 } catch (Exception e) {
                     LOGE(TAG, "Fail to make the download request", e);

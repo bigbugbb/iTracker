@@ -286,6 +286,12 @@ public class MediaFragment extends TrackerFragment implements
                 Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
                 intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
                 startActivity(intent);
+
+                if (mSelectMode) {
+                    mSelectMode = false;
+                    getActivity().invalidateOptionsMenu();
+                    mMediaAdapter.clearSelectedVideos();
+                }
                 return true;
             }
             case R.id.action_share: {

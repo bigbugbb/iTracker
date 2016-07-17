@@ -25,6 +25,7 @@ import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.ui.MediaDownloadActivity;
+import com.localytics.android.itracker.util.ConnectivityUtils;
 
 import java.util.Date;
 
@@ -168,16 +169,9 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
             LOGD(TAG, "Got ACTION_LOCALE_CHANGED");
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             LOGD(TAG, "Got CONNECTIVITY_ACTION");
-            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-
-            int networkType = -1;
-            if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-                networkType = networkInfo.getType();
-            }
 
             final FileDownloadManager fdm = FileDownloadManager.getInstance(context);
-            switch (networkType) {
+            switch (ConnectivityUtils.getNetworkType(context)) {
                 case ConnectivityManager.TYPE_WIFI: {
                     fdm.startAvailableDownloadsAsync();
                     sendStartDownloadingNotification(context);
@@ -189,7 +183,7 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
                     break;
                 }
                 default: {
-                    LOGW(TAG, "network type: " + networkType);
+                    LOGW(TAG, "Unknown network type");
                 }
             }
         }

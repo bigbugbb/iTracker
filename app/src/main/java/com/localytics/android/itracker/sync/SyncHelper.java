@@ -44,6 +44,7 @@ import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.SyncState;
 import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.util.ConnectivityUtils;
 import com.localytics.android.itracker.util.DataFileUtils;
 import com.localytics.android.itracker.util.LogUtils;
 import com.localytics.android.itracker.util.PrefUtils;
@@ -175,7 +176,7 @@ public class SyncHelper {
         }
 
         // Download available media files
-        if (isUsingWifi()) {
+        if (ConnectivityUtils.isOnline(mContext)) {
             FileDownloadManager.getInstance(mContext).startAvailableDownloads();
         }
 
@@ -292,12 +293,12 @@ public class SyncHelper {
      * @throws IOException if there is a problem downloading or importing the data.
      */
     private void doTrackerDataSync(final Bundle extras) throws IOException, InterruptedException {
-        if (!isOnline()) {
+        if (!ConnectivityUtils.isOnline(mContext)) {
             LOGD(TAG, "Not attempting remote sync because device is OFFLINE");
             return;
         }
 
-        if (Config.WIFI_ONLY_SYNC_ENABLED && !isUsingWifi()) {
+        if (Config.WIFI_ONLY_SYNC_ENABLED && !ConnectivityUtils.isOnline(mContext)) {
             LOGD(TAG, "Not attempting remote sync because wifi-only sync is enabled but the device is not connected to WIFI");
             return;
         }
@@ -651,23 +652,6 @@ public class SyncHelper {
                 .append(category)
                 .append(".csv.zip")
                 .toString();
-    }
-
-    // Returns whether we are connected to the internet.
-    private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
-    }
-
-    private boolean isUsingWifi() {
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void increaseIoExceptions(SyncResult syncResult) {
