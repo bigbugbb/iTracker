@@ -42,6 +42,9 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
 
+    private RequestHandler mRequestHandler;
+    private HandlerThread  mRequestThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,11 +59,17 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
                     .replace(R.id.media_download_fragment, new MediaDownloadFragment())
                     .commit();
         }
+
+        mRequestThread = new HandlerThread("DownloadRequest");
+        mRequestThread.start();
+
+        mRequestHandler = new RequestHandler(getApplicationContext(), mRequestThread.getLooper());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mRequestThread.quitSafely();
     }
 
     @Override
@@ -71,46 +80,55 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
         if (videos == null || videos.size() == 0) {
             return;
         }
+        mRequestHandler.obtainMessage(MESSAGE_REQUEST_DOWNLOADS, videos).sendToTarget(); // AsyncTask leads to bad response time in this case
+    }
 
-        final Context context = getApplicationContext();
-        new AsyncTask<Video, Void, Void>() {
-            @Override
-            protected Void doInBackground(Video... params) {
-                try {
-                    ArrayList<ContentProviderOperation> ops = new ArrayList<>(params.length);
-                    for (final Video video : params) {
-                        ops.add(ContentProviderOperation
-                                .newInsert(FileDownloads.CONTENT_URI)
-                                .withValue(FileDownloads.FILE_ID, video.identifier)
-                                .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
-                                .withValue(FileDownloads.START_TIME, DateTime.now().toString())
-                                .build());
-                    }
+    private static final int MESSAGE_REQUEST_DOWNLOADS = 100;
 
-                    try {
-                        ContentResolver resolver = context.getContentResolver();
-                        resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                    } catch (RemoteException | OperationApplicationException e) {
-                        LOGE(TAG, "Fail to initialize new downloads: " + e);
-                    }
+    private class RequestHandler extends Handler {
 
-                    if (!ConnectivityUtils.isWifiConnected(context)) {
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    } else {
-                        FileDownloadManager.getInstance(context).startAvailableDownloads();
-                    }
-                } catch (Exception e) {
-                    LOGE(TAG, "Fail to make the download request", e);
+        private Context mContext;
+
+        public RequestHandler(Context context, Looper looper) {
+            super(looper);
+            mContext = context;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            try {
+                ArrayList<Video> videos = (ArrayList) msg.obj;
+                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+                for (final Video video : videos) {
+                    ops.add(ContentProviderOperation
+                            .newInsert(FileDownloads.CONTENT_URI)
+                            .withValue(FileDownloads.FILE_ID, video.identifier)
+                            .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
+                            .withValue(FileDownloads.START_TIME, DateTime.now().toString())
+                            .build());
                 }
 
-                return null;
+                try {
+                    ContentResolver resolver = mContext.getContentResolver();
+                    resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+                } catch (RemoteException | OperationApplicationException e) {
+                    LOGE(TAG, "Fail to initialize new downloads: " + e);
+                }
+
+                if (!ConnectivityUtils.isWifiConnected(mContext)) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    FileDownloadManager.getInstance(mContext).startAvailableDownloads();
+                }
+            } catch (Exception e) {
+                LOGE(TAG, "Fail to make the download request", e);
             }
-        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, videos.toArray(new Video[videos.size()]));
+        }
     }
 
     @Override

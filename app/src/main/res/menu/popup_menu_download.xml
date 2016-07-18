@@ -4,26 +4,26 @@
     <item
         android:id="@+id/action_start_download"
         android:title="Start"
-        android:visible="true"/>
+        android:visible="false"/>
     <item
         android:id="@+id/action_pause_download"
         android:title="Pause"
-        android:visible="true"/>
+        android:visible="false"/>
     <item
         android:id="@+id/action_cancel_download"
         android:title="Cancel"
-        android:visible="true"/>
+        android:visible="false"/>
     <item
         android:id="@+id/action_open_file"
         android:title="Open"
-        android:visible="true"/>
+        android:visible="false"/>
     <item
         android:id="@+id/action_delete_file"
         android:title="Delete"
-        android:visible="true"/>
+        android:visible="false"/>
     <item
         android:id="@+id/action_show_property"
         android:title="Property"
-        android:visible="true"/>
+        android:visible="false"/>
 
 </menu>

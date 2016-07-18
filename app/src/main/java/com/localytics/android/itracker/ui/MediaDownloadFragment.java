@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,6 +22,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
@@ -208,19 +211,15 @@ public class MediaDownloadFragment extends TrackerFragment {
 
         if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
                 status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING) {
-            menu.findItem(R.id.action_start_download).setVisible(false);
-            menu.findItem(R.id.action_open_file).setVisible(false);
-            menu.findItem(R.id.action_delete_file).setVisible(false);
-            menu.findItem(R.id.action_show_property).setVisible(false);
+            menu.findItem(R.id.action_pause_download).setVisible(true);
+            menu.findItem(R.id.action_cancel_download).setVisible(true);
         } else if (status == DownloadStatus.PAUSED || status == DownloadStatus.FAILED) {
-            menu.findItem(R.id.action_pause_download).setVisible(false);
-            menu.findItem(R.id.action_open_file).setVisible(false);
-            menu.findItem(R.id.action_delete_file).setVisible(false);
-            menu.findItem(R.id.action_show_property).setVisible(false);
+            menu.findItem(R.id.action_start_download).setVisible(true);
+            menu.findItem(R.id.action_cancel_download).setVisible(true);
         } else if (status == DownloadStatus.COMPLETED) {
-            menu.findItem(R.id.action_start_download).setVisible(false);
-            menu.findItem(R.id.action_pause_download).setVisible(false);
-            menu.findItem(R.id.action_cancel_download).setVisible(false);
+            menu.findItem(R.id.action_open_file).setVisible(true);
+            menu.findItem(R.id.action_delete_file).setVisible(true);
+            menu.findItem(R.id.action_show_property).setVisible(true);
         }
 
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -272,9 +271,9 @@ public class MediaDownloadFragment extends TrackerFragment {
                 // Set Dialog Icon
                 .setIcon(R.mipmap.ic_launcher)
                 // Set Dialog Title
-                .setTitle("Delete this download")
+                .setTitle("Delete file")
                 // Set Dialog Message
-                .setMessage("Are you sure you want to delete the downloaded file?")
+                .setMessage(R.string.delete_file_prompt)
 
                 // Positive button
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -317,9 +316,65 @@ public class MediaDownloadFragment extends TrackerFragment {
         FileDownloadManager.getInstance(context).pauseDownload(download.identifier);
     }
 
-    private void onActionCancelDownload(MediaDownload download) {
+    private void onActionCancelDownload(final MediaDownload download) {
         Context context = getActivity().getApplicationContext();
-        FileDownloadManager.getInstance(context).cancelDownload(download.identifier);
+        final String tmpFileLocation = Config.FILE_DOWNLOAD_DIR_PATH + download.identifier; // In the future if no default location is used, the download object should also contain the destination location
+
+        SpannableString statusText = new SpannableString(
+                getString(R.string.cancel_download_prompt) + "\n" + getString(R.string.remove_downloaded_data_warning));
+        statusText.setSpan(new ForegroundColorSpan(
+                ContextCompat.getColor(context, android.R.color.holo_red_light)),
+                getString(R.string.cancel_download_prompt).length(),
+                statusText.length(),
+                0);
+        statusText.setSpan(new StyleSpan(
+                Typeface.ITALIC),
+                getString(R.string.cancel_download_prompt).length(),
+                statusText.length(),
+                0);
+
+        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                // Set Dialog Icon
+                .setIcon(R.mipmap.ic_launcher)
+                // Set Dialog Title
+                .setTitle("Cancel download")
+                // Set Dialog Message
+                .setMessage(statusText)
+
+                // Positive button
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
+                            @Override
+                            protected void onDeleteComplete(int token, Object cookie, int result) {
+                                deleteDownloadedFile((String) cookie);
+                            }
+                        };
+                        handler.startDelete(0, tmpFileLocation, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
+                    }
+                })
+
+                // Negative Button
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,	int which) {
+                        // Do nothing
+                    }
+                }).create();
+
+        DownloadStatus status = download.getStatus();
+        if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
+                status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING ||
+                status == DownloadStatus.PAUSED) {
+            dialog.show();
+        } else if (status == DownloadStatus.FAILED) {
+            AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
+                @Override
+                protected void onDeleteComplete(int token, Object cookie, int result) {
+                    deleteDownloadedFile((String) cookie);
+                }
+            };
+            handler.startDelete(0, tmpFileLocation, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
+        }
     }
 
     private void deleteDownloadedFile(String fileLocation) {

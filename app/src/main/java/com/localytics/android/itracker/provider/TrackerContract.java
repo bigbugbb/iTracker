@@ -138,10 +138,10 @@ public class TrackerContract {
         PENDING     ("PENDING"),
         PREPARING   ("PREPARING"),
         DOWNLOADING ("DOWNLOADING"),
+        CONNECTING  ("CONNECTING"),
         PAUSED      ("PAUSED"),
         COMPLETED   ("COMPLETED"),
         FAILED      ("FAILED"),
-        CONNECTING  ("CONNECTING"),
         CANCELED    ("CANCELED");
 
         private final String mStatus;

@@ -206,5 +206,8 @@
     <string name="playback_downloaded_file_failed">Failed to open the file, it might be removed or renamed.</string>
     <string name="file_download_wifi_connected">Start file downloading when WIFI is connected</string>
     <string name="file_download_wifi_disconnected">Pause file downloading until WIFI is disconnected again</string>
+    <string name="cancel_download_prompt">Are you sure you want to cancel this download?</string>
+    <string name="remove_downloaded_data_warning">data downloaded so far will also be removed"</string>
+    <string name="delete_file_prompt">Are you sure you want to delete it?</string>
 
 </resources>
