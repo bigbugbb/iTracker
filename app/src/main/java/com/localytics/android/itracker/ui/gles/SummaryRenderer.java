@@ -37,7 +37,7 @@ import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glDisable;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glViewport;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Almost all methods of this class is called by the GLThread

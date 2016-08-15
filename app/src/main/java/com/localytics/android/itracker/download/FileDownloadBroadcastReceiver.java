@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class FileDownloadBroadcastReceiver extends BroadcastReceiver {

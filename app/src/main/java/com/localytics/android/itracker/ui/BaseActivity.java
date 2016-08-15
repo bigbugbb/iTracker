@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.content.SyncStatusObserver;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -35,15 +34,15 @@ import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.gcm.RegistrationIntentService;
 import com.localytics.android.itracker.im.ChatService;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.LogUtils;
-import com.localytics.android.itracker.util.PlayServicesUtils;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.RequestUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.LogUtils;
+import com.localytics.android.itracker.utils.PlayServicesUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.RequestUtils;
 
 import java.util.ArrayList;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 
 public class BaseActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,

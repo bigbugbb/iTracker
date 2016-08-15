@@ -28,13 +28,13 @@ import android.widget.Toast;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.widget.FragmentPagerAdapter;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 
 
 public class TrackerActivity extends BaseActivity implements

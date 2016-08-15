@@ -1,38 +1,29 @@
 package com.localytics.android.itracker.monitor;
 
 import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
-import android.widget.Toast;
 
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.download.FileDownloadManager;
-import com.localytics.android.itracker.ui.MediaDownloadActivity;
-import com.localytics.android.itracker.util.ConnectivityUtils;
+import com.localytics.android.itracker.utils.ConnectivityUtils;
 
 import java.util.Date;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {

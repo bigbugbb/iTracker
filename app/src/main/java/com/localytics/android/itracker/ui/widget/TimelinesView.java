@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 import java.util.ArrayList;
 

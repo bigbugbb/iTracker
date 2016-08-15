@@ -27,7 +27,7 @@ import com.localytics.android.itracker.data.model.Motion;
 
 import org.joda.time.DateTime;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bbo on 1/15/16.

@@ -8,9 +8,9 @@ import android.view.SurfaceHolder;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class TrackerNativeMediaPlayer implements ITrackerMediaPlayer {

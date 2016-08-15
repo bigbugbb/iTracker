@@ -12,7 +12,7 @@ import com.localytics.android.itracker.monitor.SensorDataProcessException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * The base generic data processor class for any specific implementation of sensor data processor.

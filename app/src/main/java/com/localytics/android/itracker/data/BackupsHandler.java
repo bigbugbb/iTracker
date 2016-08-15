@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class BackupsHandler extends JSONHandler {

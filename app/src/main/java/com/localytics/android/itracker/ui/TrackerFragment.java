@@ -17,8 +17,8 @@ import android.view.View;
 import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.provider.TrackerContract;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * The base class for other fragment.

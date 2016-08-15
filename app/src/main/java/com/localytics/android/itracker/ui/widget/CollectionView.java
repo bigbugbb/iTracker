@@ -21,10 +21,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 /**

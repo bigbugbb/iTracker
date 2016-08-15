@@ -6,7 +6,7 @@ import com.localytics.android.itracker.Config;
 
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class EventFeedbackApi {

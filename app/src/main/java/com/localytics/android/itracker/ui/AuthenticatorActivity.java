@@ -14,8 +14,8 @@ import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 
 public class AuthenticatorActivity extends AccountAuthenticatorActivity

@@ -12,9 +12,9 @@ import android.support.v4.app.NotificationCompat;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.TrackerActivity;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class GcmListenerService extends com.google.android.gms.gcm.GcmListenerService {
 

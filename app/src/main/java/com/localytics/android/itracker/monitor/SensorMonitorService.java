@@ -41,7 +41,7 @@ import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.ui.TrackerActivity;
-import com.localytics.android.itracker.util.PlayServicesUtils;
+import com.localytics.android.itracker.utils.PlayServicesUtils;
 
 import org.joda.time.DateTime;
 
@@ -51,10 +51,10 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class SensorMonitorService extends IntentService
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {

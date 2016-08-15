@@ -14,11 +14,11 @@ import android.text.TextUtils;
 
 import com.localytics.android.itracker.data.model.User;
 import com.localytics.android.itracker.ui.AuthenticatorActivity;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 import static android.accounts.AccountManager.KEY_BOOLEAN_RESULT;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
 
 public class AuthenticateService extends Service {
 

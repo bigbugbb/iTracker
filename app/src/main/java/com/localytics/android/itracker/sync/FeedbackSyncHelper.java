@@ -2,7 +2,7 @@ package com.localytics.android.itracker.sync;
 
 import android.content.Context;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bigbug on 5/9/15.

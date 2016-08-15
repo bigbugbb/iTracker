@@ -17,7 +17,7 @@ import com.localytics.android.itracker.ui.widget.player.controller.PlayerControl
 import com.localytics.android.itracker.ui.widget.player.controller.PlayerControllerVisibilityListener;
 import com.localytics.android.itracker.ui.widget.player.controller.SimpleMediaPlayerController;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class PlayerFragment extends Fragment implements VideoStateListener {

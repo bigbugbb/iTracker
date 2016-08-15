@@ -23,8 +23,8 @@ import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.YouTubeExtractor;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.YouTubeExtractor;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -46,10 +46,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class FileDownloadService extends Service {

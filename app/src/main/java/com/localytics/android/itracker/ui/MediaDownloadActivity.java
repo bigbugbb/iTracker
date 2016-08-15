@@ -6,9 +6,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,7 +16,6 @@ import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
 import android.widget.Toast;
 
-import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
@@ -26,15 +23,14 @@ import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.util.ConnectivityUtils;
-import com.localytics.android.itracker.util.YouTubeExtractor;
+import com.localytics.android.itracker.utils.ConnectivityUtils;
 
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class MediaDownloadActivity extends BaseActivity implements MediaDownloadFragment.OnStartMediaPlaybackListener {

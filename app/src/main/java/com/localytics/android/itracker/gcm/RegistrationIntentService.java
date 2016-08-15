@@ -8,14 +8,14 @@ import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.ServerUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.ServerUtils;
 
 import java.io.IOException;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class RegistrationIntentService extends IntentService {
 

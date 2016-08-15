@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bigbug on 10/10/15.

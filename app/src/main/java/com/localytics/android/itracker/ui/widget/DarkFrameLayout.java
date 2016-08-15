@@ -8,7 +8,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class DarkFrameLayout extends FrameLayout {
     private static final String TAG = makeLogTag(DarkFrameLayout.class);

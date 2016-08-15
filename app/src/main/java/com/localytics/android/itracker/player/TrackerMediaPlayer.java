@@ -5,9 +5,9 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class TrackerMediaPlayer implements ITrackerMediaPlayer,
         MediaPlayer.OnBufferingUpdateListener,

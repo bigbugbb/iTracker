@@ -20,10 +20,10 @@ import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.User;
-import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * A simple {@link Fragment} subclass.

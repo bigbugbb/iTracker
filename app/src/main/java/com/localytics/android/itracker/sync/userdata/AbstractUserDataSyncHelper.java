@@ -28,9 +28,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 /**

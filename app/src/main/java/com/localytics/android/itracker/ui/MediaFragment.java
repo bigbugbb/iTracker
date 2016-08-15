@@ -15,7 +15,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -68,10 +67,10 @@ import com.google.api.services.youtube.model.VideoListResponse;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.ConnectivityUtils;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.ThrottledContentObserver;
-import com.localytics.android.itracker.util.YouTubeExtractor;
+import com.localytics.android.itracker.utils.ConnectivityUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.ThrottledContentObserver;
+import com.localytics.android.itracker.utils.YouTubeExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,10 +84,10 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class MediaFragment extends TrackerFragment implements
         GoogleApiClient.ConnectionCallbacks,

@@ -38,7 +38,7 @@ import com.localytics.android.itracker.data.model.Photo;
 import com.localytics.android.itracker.ui.widget.CollectionView;
 import com.localytics.android.itracker.ui.widget.CollectionViewCallbacks;
 import com.localytics.android.itracker.ui.widget.PhotoCoordinatorLayout;
-import com.localytics.android.itracker.util.ThrottledContentObserver;
+import com.localytics.android.itracker.utils.ThrottledContentObserver;
 
 import org.joda.time.DateTime;
 
@@ -48,9 +48,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class PhotoFragment extends TrackerFragment {

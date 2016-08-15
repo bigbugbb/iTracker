@@ -19,7 +19,7 @@ import com.localytics.android.itracker.ui.widget.DividerItemDecoration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class FriendFragment extends TrackerFragment {

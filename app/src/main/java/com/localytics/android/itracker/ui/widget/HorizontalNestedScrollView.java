@@ -11,7 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.HorizontalScrollView;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bigbug on 11/7/15.

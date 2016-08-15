@@ -29,8 +29,8 @@ import com.localytics.android.itracker.ui.OnTrackItemSelectedListener;
 
 import org.joda.time.DateTime;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bbo on 1/15/16.

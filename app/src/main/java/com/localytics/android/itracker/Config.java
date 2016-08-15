@@ -4,8 +4,8 @@ import android.os.StrictMode;
 import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.ui.TrackerActivity;
-import com.localytics.android.itracker.util.ExternalStorageUtils;
-import com.localytics.android.itracker.util.SdkVersionUtils;
+import com.localytics.android.itracker.utils.ExternalStorageUtils;
+import com.localytics.android.itracker.utils.SdkVersionUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.format.DateTimeFormat;

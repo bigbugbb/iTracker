@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
 
 /**
  * A simple {@link BroadcastReceiver} that triggers a sync. This is used by the GCM code to trigger

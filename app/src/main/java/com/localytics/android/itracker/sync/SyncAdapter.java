@@ -9,12 +9,11 @@ import android.content.SyncResult;
 import android.os.Bundle;
 
 import com.localytics.android.itracker.BuildConfig;
-import com.localytics.android.itracker.download.FileDownloadManager;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 import java.util.regex.Pattern;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String TAG = LogUtils.makeLogTag(SyncAdapter.class);

@@ -18,8 +18,8 @@ import android.util.Log;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class MediaPlayerService extends Service {
     private static final String TAG = makeLogTag(MediaPlayerService.class);

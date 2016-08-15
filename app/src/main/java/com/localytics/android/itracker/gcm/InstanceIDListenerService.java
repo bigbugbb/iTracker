@@ -2,7 +2,7 @@ package com.localytics.android.itracker.gcm;
 
 import android.content.Intent;
 
-import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
 
 public class InstanceIDListenerService extends com.google.android.gms.iid.InstanceIDListenerService {
 

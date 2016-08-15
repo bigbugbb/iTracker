@@ -5,14 +5,12 @@ import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -37,17 +35,16 @@ import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
-import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
 import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.download.FileDownloadRequest;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
-import com.localytics.android.itracker.util.AppQueryHandler;
-import com.localytics.android.itracker.util.ConnectivityUtils;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.ThrottledContentObserver;
+import com.localytics.android.itracker.utils.AppQueryHandler;
+import com.localytics.android.itracker.utils.ConnectivityUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.ThrottledContentObserver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -57,9 +54,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class MediaDownloadFragment extends TrackerFragment {

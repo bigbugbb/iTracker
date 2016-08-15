@@ -15,7 +15,7 @@ import com.localytics.android.itracker.data.model.Photo;
 
 import java.util.ArrayList;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.

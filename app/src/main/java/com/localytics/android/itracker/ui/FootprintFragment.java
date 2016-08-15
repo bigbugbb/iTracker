@@ -46,7 +46,7 @@ import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.ui.widget.GLMotionsView;
 import com.localytics.android.itracker.ui.widget.GLMotionsView.OnViewportChangedListener;
-import com.localytics.android.itracker.util.LogUtils;
+import com.localytics.android.itracker.utils.LogUtils;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 

@@ -33,7 +33,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class UserActionHelper {
     private static final String TAG = makeLogTag(UserActionHelper.class);

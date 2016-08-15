@@ -33,10 +33,10 @@ import com.localytics.android.itracker.ui.widget.MotionsView;
 import com.localytics.android.itracker.ui.widget.TimelineItem;
 import com.localytics.android.itracker.ui.widget.TimelinesView;
 import com.localytics.android.itracker.ui.widget.TrackItemAdapter;
-import com.localytics.android.itracker.util.ThrottledContentObserver;
+import com.localytics.android.itracker.utils.ThrottledContentObserver;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class ActionFragment extends TrackerFragment implements
         OnTrackItemSelectedListener {

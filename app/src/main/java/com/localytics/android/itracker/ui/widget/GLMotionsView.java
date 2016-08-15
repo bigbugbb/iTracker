@@ -22,8 +22,8 @@ import com.localytics.android.itracker.data.model.Motion;
 import com.localytics.android.itracker.ui.gles.SummaryRenderer;
 import com.localytics.android.itracker.ui.gles.util.Geometry;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bbo on 12/21/15.

@@ -6,13 +6,13 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
 
 import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class ChatService extends Service {

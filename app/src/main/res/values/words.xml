@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="in10m">In 10 minutes</string>
+    <string name="in15m">In 15 minutes</string>
+    <string name="in1h">In an hour</string>
+    <string name="in1m">In a minute</string>
+    <string name="in2m">In 2 minutes</string>
+    <string name="in30m">In 30 minutes</string>
+    <string name="in5m">In 5 minutes</string>
+    <string name="always">Always</string>
+    <string name="disabled">Disabled</string>
+    <string name="manual">Manual</string>
+    <string name="never">Never</string>
+    <string name="required">Required</string>
+    <string name="auto">Automatically</string>
+
+    <string name="save">Save</string>
+</resources>

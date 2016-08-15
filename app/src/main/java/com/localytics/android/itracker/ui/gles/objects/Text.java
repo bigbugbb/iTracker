@@ -19,7 +19,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class Text {
     private static final String TAG = makeLogTag(Text.class);

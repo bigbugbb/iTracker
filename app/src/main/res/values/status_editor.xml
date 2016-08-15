@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="available">Available</string>
+    <string name="away">Away</string>
+    <string name="chat">Ready for chat!</string>
+    <string name="dnd">Do not disturb</string>
+    <string name="edit_status">Edit status</string>
+    <string name="empty_status">&lt;Empty status&gt;</string>
+    <string name="invisible">Invisible</string>
+    <string name="remove_status">Delete status</string>
+    <string name="status_editor">Set status</string>
+    <string name="status_text_hint">Enter status message</string>
+    <string name="unavailable">Offline</string>
+    <string name="unsubscribed">Not authorized</string>
+    <string name="xa">Away for a long time</string>
+    <string name="new_status">New status</string>
+    <string name="saved_statuses">Saved statuses</string>
+    <string name="clear_status_history">Clear status history</string>
+    <string name="status_message">Status message</string>
+</resources>

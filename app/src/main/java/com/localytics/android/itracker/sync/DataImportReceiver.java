@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class DataImportReceiver extends WakefulBroadcastReceiver {

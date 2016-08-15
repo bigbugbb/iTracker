@@ -49,8 +49,8 @@
     <string name="running">Running</string>
     <string name="still">Still</string>
     <string name="tilting">Tilting</string>
-    <string name="unknown">Unknown activity</string>
     <string name="walking">Walking</string>
+    <string name="unknown_activity">Unknown activity</string>
     <string name="unidentifiable_activity">Unidentifiable activity: %1$d</string>
 
     <string name="request_camera_permission">The app needs camera permission to take the photo.</string>

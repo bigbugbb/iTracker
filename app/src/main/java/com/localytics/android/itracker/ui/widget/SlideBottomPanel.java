@@ -21,8 +21,8 @@ import android.widget.ScrollView;
 
 import com.localytics.android.itracker.R;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class SlideBottomPanel extends FrameLayout {
     private static final String TAG = makeLogTag(SlideBottomPanel.class);

@@ -16,7 +16,7 @@ import android.support.annotation.NonNull;
 
 import com.localytics.android.itracker.data.model.Backup;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.util.DataFileUtils;
+import com.localytics.android.itracker.utils.DataFileUtils;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVReader;
 
@@ -31,10 +31,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class DataImportService extends Service {
 

@@ -20,8 +20,8 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bigbug on 10/8/15.

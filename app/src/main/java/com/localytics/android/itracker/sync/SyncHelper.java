@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -43,12 +41,12 @@ import com.localytics.android.itracker.provider.TrackerContract.Backups;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
 import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.SyncState;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.ConnectivityUtils;
-import com.localytics.android.itracker.util.DataFileUtils;
-import com.localytics.android.itracker.util.LogUtils;
-import com.localytics.android.itracker.util.PrefUtils;
-import com.localytics.android.itracker.util.RequestUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.ConnectivityUtils;
+import com.localytics.android.itracker.utils.DataFileUtils;
+import com.localytics.android.itracker.utils.LogUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
+import com.localytics.android.itracker.utils.RequestUtils;
 import com.opencsv.CSVWriter;
 
 import org.apache.commons.io.FileUtils;
@@ -68,9 +66,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
 
 /**
  * A helper class for dealing with conference data synchronization.

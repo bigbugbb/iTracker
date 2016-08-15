@@ -15,11 +15,11 @@ import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Videos;
 import com.localytics.android.itracker.sync.SyncHelper;
 import com.localytics.android.itracker.sync.TrackerDataHandler;
-import com.localytics.android.itracker.util.AccountUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGI;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGI;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Helper for managing {@link SQLiteDatabase} that stores data for

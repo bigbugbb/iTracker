@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Photo;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * A simple {@link Fragment} subclass.

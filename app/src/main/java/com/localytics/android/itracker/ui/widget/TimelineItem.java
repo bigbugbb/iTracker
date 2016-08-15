@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.localytics.android.itracker.data.model.Activity.activitiesFromCursor;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class TimelineItem extends LinearLayout {
     private static final String TAG = makeLogTag(TimelineItem.class);

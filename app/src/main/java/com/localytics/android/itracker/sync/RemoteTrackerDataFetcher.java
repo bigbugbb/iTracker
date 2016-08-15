@@ -6,8 +6,8 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.DataManifest;
-import com.localytics.android.itracker.util.DataFileUtils;
-import com.localytics.android.itracker.util.HashUtils;
+import com.localytics.android.itracker.utils.DataFileUtils;
+import com.localytics.android.itracker.utils.HashUtils;
 
 import org.apache.http.HttpResponse;
 
@@ -15,10 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Created by bigbug on 5/9/15.

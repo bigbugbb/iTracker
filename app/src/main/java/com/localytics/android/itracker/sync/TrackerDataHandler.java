@@ -19,10 +19,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGW;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGW;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Helper class that parses company data and imports them into the app's

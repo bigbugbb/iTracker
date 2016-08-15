@@ -23,18 +23,18 @@ import com.localytics.android.itracker.provider.TrackerContract.Motions;
 import com.localytics.android.itracker.provider.TrackerContract.Tracks;
 import com.localytics.android.itracker.provider.TrackerContract.Videos;
 import com.localytics.android.itracker.provider.TrackerDatabase.Tables;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.SelectionBuilder;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.SelectionBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.LOGV;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.LOGV;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 /**
  * Provider that stores {@link TrackerContract} data. Data is usually inserted

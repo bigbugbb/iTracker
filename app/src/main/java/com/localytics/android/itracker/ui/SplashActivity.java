@@ -14,12 +14,12 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.util.AccountUtils;
-import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.utils.AccountUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
 
-import static com.localytics.android.itracker.util.LogUtils.LOGD;
-import static com.localytics.android.itracker.util.LogUtils.LOGE;
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.LOGE;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class SplashActivity extends AppCompatActivity {
     private final static String TAG = makeLogTag(SplashActivity.class);

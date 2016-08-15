@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public abstract class BaseRecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = makeLogTag(BaseRecyclerAdapter.class);

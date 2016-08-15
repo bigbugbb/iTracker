@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2013, Redsolution LTD. All rights reserved.
+
+     This file is part of Xabber project; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License, Version 3.
+
+     Xabber is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License,
+     along with this program. If not, see http://www.gnu.org/licenses/.
+-->
+<resources>
+    <array name="default_avatars_icons">
+        <!--<item>@drawable/ic_avatar_1_72dp</item>-->
+        <!--<item>@drawable/ic_avatar_2_72dp</item>-->
+        <!--<item>@drawable/ic_avatar_5_72dp</item>-->
+        <!--<item>@drawable/ic_avatar_3_72dp</item>-->
+        <!--<item>@drawable/ic_avatar_4_72dp</item>-->
+    </array>
+
+    <array name="default_avatars_colors">
+        <item>@color/light_green_500</item>
+        <item>@color/light_blue_500</item>
+        <item>@color/indigo_500</item>
+        <item>@color/purple_500</item>
+        <item>@color/red_900</item>
+        <item>@color/orange_700</item>
+        <item>@color/amber_500</item>
+        <item>@color/grey_500</item>
+    </array>
+
+    <array name="muc_avatars">
+        <!--<item>@drawable/ic_avatar_muc_72dp</item>-->
+    </array>
+</resources>

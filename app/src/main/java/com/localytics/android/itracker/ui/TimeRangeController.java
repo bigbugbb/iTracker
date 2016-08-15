@@ -16,11 +16,11 @@ import android.widget.TextView;
 
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.util.PrefUtils;
+import com.localytics.android.itracker.utils.PrefUtils;
 
 import org.joda.time.DateTime;
 
-import static com.localytics.android.itracker.util.LogUtils.makeLogTag;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 class TimeRangeController {
