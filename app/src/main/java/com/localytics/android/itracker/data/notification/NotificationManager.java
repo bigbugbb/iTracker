@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.OnCloseListener;
@@ -43,11 +44,11 @@ import com.localytics.android.itracker.data.message.MessageManager;
 import com.localytics.android.itracker.data.message.chat.ChatManager;
 import com.localytics.android.itracker.data.message.phrase.PhraseManager;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.ClearNotifications;
-import com.localytics.android.ui.activity.ContactList;
-import com.localytics.android.ui.activity.ReconnectionActivity;
-import com.localytics.android.ui.color.ColorManager;
-import com.localytics.android.utils.StringUtils;
+//import com.localytics.android.ui.activity.ClearNotifications;
+//import com.localytics.android.ui.activity.ContactList;
+//import com.localytics.android.ui.activity.ReconnectionActivity;
+//import com.localytics.android.ui.color.ColorManager;
+import com.localytics.android.itracker.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -115,7 +116,7 @@ public class NotificationManager implements OnInitializedListener, OnAccountChan
         providers = new ArrayList<>();
         messageNotifications = new ArrayList<>();
         clearNotifications = PendingIntent.getActivity(
-                application, 0, ClearNotifications.createIntent(application), 0);
+                application, 0, /*ClearNotifications.createIntent(application)*/new Intent(), 0);
 
         stopVibration = new Runnable() {
             @Override
@@ -288,7 +289,7 @@ public class NotificationManager implements OnInitializedListener, OnAccountChan
 
         notificationBuilder.setDeleteIntent(clearNotifications);
 
-        notificationBuilder.setColor(ColorManager.getInstance().getAccountPainter().getDefaultMainColor());
+//        notificationBuilder.setColor(ColorManager.getInstance().getAccountPainter().getDefaultMainColor());
 
         notify(id, notificationBuilder.build());
     }
@@ -374,11 +375,12 @@ public class NotificationManager implements OnInitializedListener, OnAccountChan
 
         final Intent persistentIntent;
 
-        if (waiting > 0 && application.isInitialized()) {
-            persistentIntent = ReconnectionActivity.createIntent(application);
-        } else {
-            persistentIntent = ContactList.createPersistentIntent(application);
-        }
+//        if (waiting > 0 && application.isInitialized()) {
+//            persistentIntent = ReconnectionActivity.createIntent(application);
+//        } else {
+//            persistentIntent = ContactList.createPersistentIntent(application);
+//        }
+        persistentIntent = new Intent();
 
         if (connected > 0) {
             persistentNotificationBuilder.setColor(persistentNotificationColor);

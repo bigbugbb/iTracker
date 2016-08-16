@@ -17,6 +17,7 @@ package com.localytics.android.itracker.data.message.chat;
 import android.database.Cursor;
 import android.net.Uri;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.OnLoadListener;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.account.AccountItem;

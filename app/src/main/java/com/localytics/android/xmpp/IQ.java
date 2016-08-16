@@ -14,7 +14,7 @@
  */
 package com.localytics.android.xmpp;
 
-import com.localytics.android.data.LogManager;
+import com.localytics.android.itracker.data.LogManager;
 
 import java.io.IOException;
 

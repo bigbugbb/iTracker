@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.NetworkException;

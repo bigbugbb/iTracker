@@ -16,11 +16,12 @@ package com.localytics.android.itracker.data.roster;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.account.AccountManager;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
-import com.localytics.android.ui.activity.ContactList;
+//import com.localytics.android.ui.activity.ContactList;
 
 public class SubscriptionRequest extends BaseEntity implements EntityNotificationItem {
 
@@ -30,7 +31,8 @@ public class SubscriptionRequest extends BaseEntity implements EntityNotificatio
 
     @Override
     public Intent getIntent() {
-        return ContactList.createContactSubscriptionIntent(Application.getInstance(), account, user);
+//        return ContactList.createContactSubscriptionIntent(Application.getInstance(), account, user);
+        return new Intent();
     }
 
     @Override

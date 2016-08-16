@@ -14,6 +14,7 @@
  */
 package com.localytics.android.itracker.data.extension.archive;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.NetworkException;

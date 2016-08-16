@@ -25,6 +25,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.OnLoadListener;
 import com.localytics.android.itracker.data.OnLowMemoryListener;
@@ -34,7 +35,7 @@ import com.localytics.android.itracker.data.account.OAuthManager;
 import com.localytics.android.itracker.data.connection.ConnectionItem;
 import com.localytics.android.itracker.data.connection.OnPacketListener;
 import com.localytics.android.itracker.data.extension.vcard.VCardManager;
-import com.localytics.android.ui.color.ColorManager;
+//import com.localytics.android.ui.color.ColorManager;
 import com.localytics.android.xmpp.address.Jid;
 import com.localytics.android.xmpp.avatar.VCardUpdate;
 
@@ -297,7 +298,7 @@ public class AvatarManager implements OnLoadListener, OnLowMemoryListener, OnPac
     @NonNull
     public Drawable getDefaultAccountAvatar(String account) {
         Drawable[] layers = new Drawable[2];
-        layers[0] = new ColorDrawable(ColorManager.getInstance().getAccountPainter().getAccountMainColor(account));
+//        layers[0] = new ColorDrawable(ColorManager.getInstance().getAccountPainter().getAccountMainColor(account));
         layers[1] = application.getResources().getDrawable(R.drawable.ic_avatar_1);
         return new LayerDrawable(layers);
     }

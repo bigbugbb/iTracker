@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.connection;
 
 import android.widget.Toast;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.NetworkException;

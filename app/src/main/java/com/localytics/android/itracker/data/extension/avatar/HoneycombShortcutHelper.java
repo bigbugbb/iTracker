@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 
 import android.content.Context;
 
+import com.localytics.android.itracker.Application;
+
 /**
  * Helper class to create shortcuts under Android >= 3.
  *

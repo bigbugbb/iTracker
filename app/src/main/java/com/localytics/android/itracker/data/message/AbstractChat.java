@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.message;
 
 import android.database.Cursor;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.account.AccountManager;

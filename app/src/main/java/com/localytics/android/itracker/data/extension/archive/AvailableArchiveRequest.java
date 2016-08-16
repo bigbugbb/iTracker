@@ -16,11 +16,12 @@ package com.localytics.android.itracker.data.extension.archive;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.account.AccountManager;
 import com.localytics.android.itracker.data.entity.AccountRelated;
 import com.localytics.android.itracker.data.notification.AccountNotificationItem;
-import com.localytics.android.ui.activity.ArchiveRequest;
+//import com.localytics.android.ui.activity.ArchiveRequest;
 
 public class AvailableArchiveRequest extends AccountRelated implements
         AccountNotificationItem {
@@ -31,14 +32,13 @@ public class AvailableArchiveRequest extends AccountRelated implements
 
     @Override
     public Intent getIntent() {
-        return ArchiveRequest.createIntent(
-                Application.getInstance(), account);
+//        return ArchiveRequest.createIntent(Application.getInstance(), account);
+        return new Intent();
     }
 
     @Override
     public String getTitle() {
-        return Application.getInstance().getString(
-                R.string.archive_available_request_title);
+        return Application.getInstance().getString(R.string.archive_available_request_title);
     }
 
     @Override

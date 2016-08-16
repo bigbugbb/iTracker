@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import com.localytics.android.data.extension.avatar.AvatarManager;
+import com.localytics.android.itracker.data.extension.avatar.AvatarManager;
 import com.localytics.android.xmpp.PacketExtension;
 import com.localytics.android.xmpp.SerializerUtils;
 

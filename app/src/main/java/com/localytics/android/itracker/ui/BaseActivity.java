@@ -32,7 +32,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.gcm.RegistrationIntentService;
-import com.localytics.android.itracker.im.ChatService;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.utils.AccountUtils;
 import com.localytics.android.itracker.utils.LogUtils;
@@ -91,9 +90,9 @@ public class BaseActivity extends AppCompatActivity implements
             startService(intent);
         }
 
-        Intent intent = new Intent(this, ChatService.class);
-        startService(intent); // Need this call so the service can still run in background after the unbinding
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+//        Intent intent = new Intent(this, ChatService.class);
+//        startService(intent); // Need this call so the service can still run in background after the unbinding
+//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         // The player activity needs the landscape orientation, otherwise if the orientation changes,
         // from portrait to landscape, there will be a terrible lagging before opening the video.

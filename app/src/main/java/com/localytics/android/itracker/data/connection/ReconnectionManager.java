@@ -17,6 +17,7 @@ package com.localytics.android.itracker.data.connection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.OnTimerListener;
 import com.localytics.android.itracker.data.account.AccountItem;
 import com.localytics.android.itracker.data.account.AccountManager;

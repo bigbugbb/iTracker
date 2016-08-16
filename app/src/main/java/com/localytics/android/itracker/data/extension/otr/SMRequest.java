@@ -16,11 +16,12 @@ package com.localytics.android.itracker.data.extension.otr;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.QuestionViewer;
+//import com.localytics.android.ui.activity.QuestionViewer;
 
 public class SMRequest extends BaseEntity implements EntityNotificationItem {
 
@@ -33,8 +34,9 @@ public class SMRequest extends BaseEntity implements EntityNotificationItem {
 
     @Override
     public Intent getIntent() {
-        return QuestionViewer.createIntent(
-                Application.getInstance(), account, user, question != null, true, question);
+//        return QuestionViewer.createIntent(
+//                Application.getInstance(), account, user, question != null, true, question);
+        return new Intent();
     }
 
     @Override

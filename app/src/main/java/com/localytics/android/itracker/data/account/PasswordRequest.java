@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.account;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.AccountRelated;
 import com.localytics.android.itracker.data.notification.AccountNotificationItem;
@@ -29,8 +30,9 @@ public class PasswordRequest extends AccountRelated implements
 
     @Override
     public Intent getIntent() {
-        return com.localytics.android.ui.activity.PasswordRequest.createIntent(
-                Application.getInstance(), account);
+//        return com.localytics.android.ui.activity.PasswordRequest.createIntent(
+//                Application.getInstance(), account);
+        return new Intent();
     }
 
     @Override

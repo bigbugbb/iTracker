@@ -1,171 +1,73 @@
-apply plugin: 'com.android.model.application'
+apply plugin: 'com.android.application'
 
-def platform = "armeabi"
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
-model {
-    repositories {
-        // TODO: rebuild ffmpeg with swscale
-        libs(PrebuiltLibraries) {
-            avcodec {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libavcodec.a")
-                }
-            }
-            avformat {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libavformat.a")
-                }
-            }
-            avutil {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libavutil.a")
-                }
-            }
-//            swscale {
-//                binaries.withType(SharedLibraryBinary) {
-//                    sharedLibraryFile = file("src/ffmpeg/${platform}/lib/libswscale.so")
-//                }
-//            }
-            swresample {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libswresample.a")
-                }
-            }
-            ffmpeg {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libffmpeg.a")
-                }
-            }
-            crypto {
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("src/ffmpeg/${platform}/lib/libcrypto.a")
-                }
-            }
-            ssl {
-                binaries.withType(SharedLibraryBinary) {
-                    sharedLibraryFile = file("src/ffmpeg/${platform}/lib/libssl.so")
-                }
-            }
-        }
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 100
+        versionName '1.0.0'
     }
 
-    android {
-        compileSdkVersion 23
-        buildToolsVersion "23.0.2"
-
-        defaultConfig.with {
-            applicationId "com.localytics.android.itracker"
-            minSdkVersion.apiLevel = 18
-            targetSdkVersion.apiLevel = 23
-            versionCode 1
-            versionName "1.0"
-            multiDexEnabled = true
-        }
-
-//        buildTypes {
-//            release {
-//                shrinkResources true
-//                minifyEnabled true
-//                proguardFiles getDefaultProguardFile('proguard-android.txt'),
-//                        'proguard-rules.pro'
-//            }
-//        }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
 
-//    android.ndk {
-//        moduleName = "media_player"
-////        toolchain "clang"
-////        toolchainVersion "3.5"
-//        // CFlags is configured in similar way as cppFlags
-//        CFlags.add("-I${file("src/main/jni/native_app_glue")}".toString())
-//        cppFlags.add("-I${file("src/ffmpeg/${platform}/include")}".toString())
-//        cppFlags.addAll(["-fno-exceptions", "-frtti", "-fno-permissive"])
-//        // -fno-permissive seems not working
-//        ldFlags.add("-I${file("ffmpeg/${platform}/lib")}".toString())
-//        ldLibs.addAll(["android", "EGL", "GLESv1_CM", "dl", "log", "z"])
-//        stl = "stlport_static"
-//    }
-
-    android.sources {
-        main {
-            jni {
-                dependencies {
-                    library "avcodec" linkage "static"
-                    library "avformat" linkage "static"
-                    library "avutil" linkage "static"
-                    library "swresample" linkage "static"
-                    library "ffmpeg" linkage "static"
-                    library "crypto" linkage "static"
-                    library "ssl"
-//                    library "swscale"
-                }
-            }
-        }
+    lintOptions {
+        // problems with generated "applicationId" string resource
+        disable 'MissingTranslation'
     }
 
-    android.productFlavors {
-        // for detailed abiFilter descriptions, refer to "Supported ABIs" @
-        // https://developer.android.com/ndk/guides/abis.html#sa
-        create("armeabi") {
-            ndk.abiFilters.add("armeabi")
-        }
-        create("armeabi-v7a") {
-            ndk.abiFilters.add("armeabi-v7a")
-        }
-        create("arm64-v8a") {
-            ndk.abiFilters.add("arm64-v8a")
-        }
-        create("x86") {
-            ndk.abiFilters.add("x86")
-        }
-        create("x86_64") {
-            ndk.abiFilters.add("x86_64")
-        }
-        // To include all cpu architectures, leaves abiFilters empty
-        create("fat")
-    }
-
-    android.dexOptions {
+    dexOptions {
         incremental true
-        javaMaxHeapSize "4g"
     }
 
-    android.packagingOptions {
-        exclude 'META-INF/DEPENDENCIES.txt'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/dependencies.txt'
-        exclude 'META-INF/LGPL2.1'
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
+}
+
+ext {
+    smackVersion = '4.1.5'
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.google.api-client:google-api-client-android:1.19.0' exclude module: 'httpclient'
-    compile 'com.android.support:support-v4:24.0.0-alpha2'
-    compile 'com.android.support:cardview-v7:24.0.0-alpha2'
-    compile 'com.android.support:recyclerview-v7:24.0.0-alpha2'
-    compile 'com.android.support:appcompat-v7:24.0.0-alpha2'
-    compile 'com.android.support:design:24.0.0-alpha2'
+
+    compile "org.igniterealtime.smack:smack-android-extensions:$smackVersion"
+    compile "org.igniterealtime.smack:smack-experimental:$smackVersion"
+    compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+
+    compile project('otr4j')
+    compile project('MemorizingTrustManager')
+    compile project('emojicon')
+    compile 'com.android.support:support-v4:24.0.0-beta1'
+    compile 'com.android.support:cardview-v7:24.0.0-beta1'
+    compile 'com.android.support:recyclerview-v7:24.0.0-beta1'
+    compile 'com.android.support:appcompat-v7:24.0.0-beta1'
+    compile 'com.android.support:design:24.0.0-beta1'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.apache.directory.studio:org.apache.commons.io:2.4'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'com.opencsv:opencsv:3.5'
     compile 'joda-time:joda-time:2.9.1'
-    compile 'com.google.android.gms:play-services-base:8.4.0'
-    compile 'com.google.android.gms:play-services-gcm:8.4.0'
-    compile 'com.google.android.gms:play-services-auth:8.4.0'
-    compile 'com.google.android.gms:play-services-plus:8.4.0'
-    compile 'com.google.android.gms:play-services-maps:8.4.0'
-    compile 'com.google.android.gms:play-services-location:8.4.0'
+    compile 'com.loopj.android:android-async-http:1.4.9'
+    compile 'com.google.android.gms:play-services-base:9.0.0'
+    compile 'com.google.android.gms:play-services-gcm:9.0.0'
+    compile 'com.google.android.gms:play-services-auth:9.0.0'
+    compile 'com.google.android.gms:play-services-plus:9.0.0'
+    compile 'com.google.android.gms:play-services-maps:9.0.0'
+    compile 'com.google.android.gms:play-services-location:9.0.0'
     compile 'com.google.apis:google-api-services-youtube:v3-rev164-1.21.0'
-    compile 'com.android.support:support-v13:24.0.0-alpha2'
+    compile 'com.android.support:support-v13:24.0.0-beta1'
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.amazonaws:aws-android-sdk-core:2.+'
@@ -174,12 +76,5 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-ddb:2.+'
     compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
     compile 'com.android.support:multidex:1.0.1'
-    compile 'org.igniterealtime.smack:smack-android:4.2.0-beta1'
-    compile 'org.igniterealtime.smack:smack-tcp:4.2.0-beta1'
-    compile 'org.igniterealtime.smack:smack-extensions:4.2.0-beta1'
     compile 'io.realm:realm-android:0.85.0'
-
-    compile project('otr4j')
-    compile project('MemorizingTrustManager')
-    compile project('emojicon')
 }

@@ -22,14 +22,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.OnCloseListener;
 import com.localytics.android.itracker.data.OnInitializedListener;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.connection.ConnectionManager;
 import com.localytics.android.itracker.data.extension.csi.ClientStateManager;
-import com.localytics.android.receiver.GoAwayReceiver;
-import com.localytics.android.receiver.GoXaReceiver;
-import com.localytics.android.receiver.ScreenReceiver;
+import com.localytics.android.itracker.receiver.GoAwayReceiver;
+import com.localytics.android.itracker.receiver.GoXaReceiver;
+import com.localytics.android.itracker.receiver.ScreenReceiver;
 
 /**
  * Manage screen on / off.

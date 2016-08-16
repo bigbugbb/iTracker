@@ -14,7 +14,7 @@
  */
 package com.localytics.android.xmpp;
 
-import com.localytics.android.data.LogManager;
+import com.localytics.android.itracker.data.LogManager;
 
 import org.jxmpp.util.XmppDateTime;
 import org.xmlpull.v1.XmlPullParser;

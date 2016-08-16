@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.extension.avatar;
 
 import android.content.res.TypedArray;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.OnLowMemoryListener;
 
 import java.util.HashMap;

@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.OnClearListener;
 import com.localytics.android.itracker.data.OnLoadListener;

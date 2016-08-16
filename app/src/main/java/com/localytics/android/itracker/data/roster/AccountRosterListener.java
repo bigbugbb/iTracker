@@ -1,5 +1,6 @@
 package com.localytics.android.itracker.data.roster;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.account.AccountItem;
 import com.localytics.android.itracker.data.account.AccountManager;

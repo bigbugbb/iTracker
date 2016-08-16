@@ -14,6 +14,7 @@
  */
 package com.localytics.android.itracker.data.extension.muc;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.SettingsManager.ChatsShowStatusChange;

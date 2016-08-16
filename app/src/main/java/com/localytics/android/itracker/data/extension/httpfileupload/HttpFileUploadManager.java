@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.data.extension.httpfileupload;
 
 
+import com.localytics.android.itracker.Application;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;

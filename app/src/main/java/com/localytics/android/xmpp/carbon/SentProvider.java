@@ -3,7 +3,7 @@ package com.localytics.android.xmpp.carbon;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.xmlpull.v1.XmlPullParser;
 
-import com.localytics.android.data.LogManager;
+import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.xmpp.AbstractExtensionProvider;
 
 /**

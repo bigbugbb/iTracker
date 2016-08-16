@@ -17,6 +17,7 @@ package com.localytics.android.itracker.data.extension.attention;
 import android.media.AudioManager;
 import android.net.Uri;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.OnLoadListener;

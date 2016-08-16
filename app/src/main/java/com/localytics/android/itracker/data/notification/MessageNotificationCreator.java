@@ -7,16 +7,17 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.extension.avatar.AvatarManager;
 import com.localytics.android.itracker.data.extension.muc.MUCManager;
 import com.localytics.android.itracker.data.message.MessageItem;
 import com.localytics.android.itracker.data.message.chat.ChatManager;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.ChatViewer;
-import com.localytics.android.ui.activity.ContactList;
-import com.localytics.android.ui.color.ColorManager;
-import com.localytics.android.utils.StringUtils;
+//import com.localytics.android.ui.activity.ChatViewer;
+//import com.localytics.android.ui.activity.ContactList;
+//import com.localytics.android.ui.color.ColorManager;
+import com.localytics.android.itracker.utils.StringUtils;
 
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class MessageNotificationCreator {
         notificationBuilder.setLargeIcon(getLargeIcon(message));
 
         notificationBuilder.setWhen(message.getTimestamp().getTime());
-        notificationBuilder.setColor(ColorManager.getInstance().getAccountPainter().getAccountMainColor(message.getAccount()));
+//        notificationBuilder.setColor(ColorManager.getInstance().getAccountPainter().getAccountMainColor(message.getAccount()));
         notificationBuilder.setStyle(getStyle(message, messageCount, showText));
 
         notificationBuilder.setContentIntent(getIntent(message));
@@ -192,10 +193,10 @@ public class MessageNotificationCreator {
     }
 
     private PendingIntent getIntent(MessageNotification message) {
-        Intent backIntent = ContactList.createIntent(application);
+        Intent backIntent = new Intent();//ContactList.createIntent(application);
         backIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        Intent intent = ChatViewer.createClearTopIntent(application, message.getAccount(), message.getUser());
+        Intent intent = new Intent();//ChatViewer.createClearTopIntent(application, message.getAccount(), message.getUser());
         return PendingIntent.getActivities(application, UNIQUE_REQUEST_CODE++,
                 new Intent[]{backIntent, intent}, PendingIntent.FLAG_ONE_SHOT);
     }

@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.extension.capability;
 
 import android.database.Cursor;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.OnLoadListener;

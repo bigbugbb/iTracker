@@ -2,11 +2,12 @@ package com.localytics.android.itracker.data.message.chat;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.ContactList;
+//import com.localytics.android.ui.activity.ContactList;
 
 public class MucPrivateChatNotification extends BaseEntity implements EntityNotificationItem {
 
@@ -16,7 +17,8 @@ public class MucPrivateChatNotification extends BaseEntity implements EntityNoti
 
     @Override
     public Intent getIntent() {
-        return ContactList.createMucPrivateChatInviteIntent(Application.getInstance(), account, user);
+//        return ContactList.createMucPrivateChatInviteIntent(Application.getInstance(), account, user);
+        return new Intent();
     }
 
     @Override

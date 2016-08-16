@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.roster;
 
 import android.support.annotation.Nullable;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.OnLoadListener;

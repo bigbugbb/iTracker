@@ -1,19 +1,19 @@
 package com.localytics.android.xmpp.carbon;
 
-import com.localytics.android.data.Application;
-import com.localytics.android.data.LogManager;
-import com.localytics.android.data.SettingsManager;
-import com.localytics.android.data.SettingsManager.SecurityOtrMode;
-import com.localytics.android.data.account.AccountItem;
-import com.localytics.android.data.connection.ConnectionItem;
-import com.localytics.android.data.connection.OnPacketListener;
-import com.localytics.android.data.extension.capability.OnServerInfoReceivedListener;
-import com.localytics.android.data.extension.capability.ServerInfoManager;
-import com.localytics.android.data.extension.otr.OTRManager;
-import com.localytics.android.data.extension.otr.SecurityLevel;
-import com.localytics.android.data.message.AbstractChat;
-import com.localytics.android.data.message.MessageItem;
-import com.localytics.android.data.message.MessageManager;
+import com.localytics.android.itracker.Application;
+import com.localytics.android.itracker.data.LogManager;
+import com.localytics.android.itracker.data.SettingsManager;
+import com.localytics.android.itracker.data.SettingsManager.SecurityOtrMode;
+import com.localytics.android.itracker.data.account.AccountItem;
+import com.localytics.android.itracker.data.connection.ConnectionItem;
+import com.localytics.android.itracker.data.connection.OnPacketListener;
+import com.localytics.android.itracker.data.extension.capability.OnServerInfoReceivedListener;
+import com.localytics.android.itracker.data.extension.capability.ServerInfoManager;
+import com.localytics.android.itracker.data.extension.otr.OTRManager;
+import com.localytics.android.itracker.data.extension.otr.SecurityLevel;
+import com.localytics.android.itracker.data.message.AbstractChat;
+import com.localytics.android.itracker.data.message.MessageItem;
+import com.localytics.android.itracker.data.message.MessageManager;
 
 import org.jivesoftware.smack.ConnectionCreationListener;
 import org.jivesoftware.smack.XMPPConnection;

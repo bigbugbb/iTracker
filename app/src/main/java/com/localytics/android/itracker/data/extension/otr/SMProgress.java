@@ -16,11 +16,12 @@ package com.localytics.android.itracker.data.extension.otr;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.QuestionViewer;
+//import com.localytics.android.ui.activity.QuestionViewer;
 
 public class SMProgress extends BaseEntity implements EntityNotificationItem {
 
@@ -30,7 +31,8 @@ public class SMProgress extends BaseEntity implements EntityNotificationItem {
 
     @Override
     public Intent getIntent() {
-        return QuestionViewer.createCancelIntent(Application.getInstance(), account, user);
+//        return QuestionViewer.createCancelIntent(Application.getInstance(), account, user);
+        return new Intent();
     }
 
     @Override

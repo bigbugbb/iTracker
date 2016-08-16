@@ -16,10 +16,11 @@ package com.localytics.android.itracker.data.extension.muc;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
-import com.localytics.android.ui.activity.ConferenceAdd;
+//import com.localytics.android.ui.activity.ConferenceAdd;
 
 public class RoomAuthorizationError extends BaseEntity implements EntityNotificationItem {
 
@@ -29,7 +30,8 @@ public class RoomAuthorizationError extends BaseEntity implements EntityNotifica
 
     @Override
     public Intent getIntent() {
-        return ConferenceAdd.createIntent(Application.getInstance(), account, user);
+//        return ConferenceAdd.createIntent(Application.getInstance(), account, user);
+        return new Intent();
     }
 
     @Override

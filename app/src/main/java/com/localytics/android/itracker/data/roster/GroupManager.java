@@ -16,6 +16,7 @@ package com.localytics.android.itracker.data.roster;
 
 import android.database.Cursor;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.OnLoadListener;
 import com.localytics.android.itracker.data.account.AccountItem;

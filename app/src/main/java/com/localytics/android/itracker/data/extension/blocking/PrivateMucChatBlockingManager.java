@@ -1,5 +1,6 @@
 package com.localytics.android.itracker.data.extension.blocking;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.message.MessageManager;
 import com.localytics.android.itracker.data.notification.NotificationManager;

@@ -19,6 +19,7 @@ import java.util.Map;
 
 import android.net.Uri;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.connection.ConnectionItem;
 import com.localytics.android.itracker.data.connection.OnAuthorizedListener;

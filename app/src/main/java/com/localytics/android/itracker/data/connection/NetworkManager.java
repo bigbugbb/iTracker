@@ -24,11 +24,12 @@ import android.net.wifi.WifiManager.WifiLock;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.OnCloseListener;
 import com.localytics.android.itracker.data.OnInitializedListener;
 import com.localytics.android.itracker.data.SettingsManager;
-import com.localytics.android.receiver.ConnectivityReceiver;
+import com.localytics.android.itracker.receiver.ConnectivityReceiver;
 
 /**
  * Manage network connectivity.

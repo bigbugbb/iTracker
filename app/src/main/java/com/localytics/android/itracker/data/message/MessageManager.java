@@ -17,6 +17,7 @@ package com.localytics.android.itracker.data.message;
 import android.database.Cursor;
 import android.os.Environment;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.OnLoadListener;
@@ -46,7 +47,7 @@ import com.localytics.android.itracker.data.notification.NotificationManager;
 import com.localytics.android.itracker.data.roster.OnRosterReceivedListener;
 import com.localytics.android.itracker.data.roster.OnStatusChangeListener;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.utils.StringUtils;
+import com.localytics.android.itracker.utils.StringUtils;
 import com.localytics.android.xmpp.address.Jid;
 import com.localytics.android.xmpp.carbon.CarbonManager.Direction;
 import com.localytics.android.xmpp.delay.Delay;

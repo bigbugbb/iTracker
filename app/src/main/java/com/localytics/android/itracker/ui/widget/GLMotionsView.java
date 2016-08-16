@@ -6,7 +6,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
-import android.support.v13.view.ViewCompat;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;

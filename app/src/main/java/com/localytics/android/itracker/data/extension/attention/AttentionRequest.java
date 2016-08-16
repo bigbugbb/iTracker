@@ -16,11 +16,12 @@ package com.localytics.android.itracker.data.extension.attention;
 
 import android.content.Intent;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.notification.EntityNotificationItem;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.ui.activity.ChatViewer;
+//import com.localytics.android.ui.activity.ChatViewer;
 
 public class AttentionRequest extends BaseEntity implements
         EntityNotificationItem {
@@ -31,8 +32,8 @@ public class AttentionRequest extends BaseEntity implements
 
     @Override
     public Intent getIntent() {
-        return ChatViewer.createAttentionRequestIntent(
-                Application.getInstance(), account, user);
+//        return ChatViewer.createAttentionRequestIntent(Application.getInstance(), account, user);
+        return new Intent();
     }
 
     @Override

@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.NetworkException;
 import com.localytics.android.itracker.data.OnCloseListener;
 import com.localytics.android.itracker.data.SettingsManager;
@@ -34,7 +35,7 @@ import com.localytics.android.itracker.data.extension.muc.RoomChat;
 import com.localytics.android.itracker.data.message.AbstractChat;
 import com.localytics.android.itracker.data.message.MessageManager;
 import com.localytics.android.itracker.data.roster.RosterManager;
-import com.localytics.android.receiver.ComposingPausedReceiver;
+import com.localytics.android.itracker.receiver.ComposingPausedReceiver;
 import com.localytics.android.xmpp.address.Jid;
 
 import org.jivesoftware.smack.ConnectionCreationListener;

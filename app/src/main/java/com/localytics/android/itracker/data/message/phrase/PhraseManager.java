@@ -21,6 +21,7 @@ import java.util.List;
 import android.database.Cursor;
 import android.net.Uri;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.data.OnLoadListener;
 import com.localytics.android.itracker.data.message.chat.ChatManager;
 import com.localytics.android.itracker.data.roster.RosterManager;

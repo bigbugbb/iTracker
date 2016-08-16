@@ -2,6 +2,8 @@ package com.localytics.android.itracker.data.extension.avatar;
 
 import android.content.res.Resources;
 
+import com.localytics.android.itracker.Application;
+
 /**
  * Helper class to create shortcuts under Android < 2.3.
  *

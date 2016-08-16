@@ -6,6 +6,8 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
+import com.localytics.android.itracker.Application;
+
 /**
  * Helper class to create shortcuts under Android >= 2.3.
  *
