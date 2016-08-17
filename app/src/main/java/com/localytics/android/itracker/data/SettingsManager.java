@@ -33,7 +33,7 @@ import com.localytics.android.itracker.data.extension.otr.OTRManager;
 import com.localytics.android.itracker.data.message.MessageManager;
 import com.localytics.android.itracker.data.notification.NotificationManager;
 import com.localytics.android.itracker.data.roster.AbstractContact;
-//import com.localytics.android.service.XabberService;
+//import com.localytics.android.service.ImService;
 //import com.localytics.android.ui.adapter.ComparatorByName;
 //import com.localytics.android.ui.adapter.ComparatorByStatus;
 //import com.localytics.android.ui.color.ColorManager;
@@ -652,7 +652,7 @@ public class SettingsManager implements OnInitializedListener,
         } else if (key.equals(Application.getInstance().getString(
                 R.string.events_persistent_key))) {
             NotificationManager.getInstance().onMessageNotification();
-//            XabberService.getInstance().changeForeground();
+//            ImService.getInstance().changeForeground();
         } else if (key.equals(Application.getInstance().getString(
                 R.string.connection_wake_lock_key))) {
             NetworkManager.getInstance().onWakeLockSettingsChanged();

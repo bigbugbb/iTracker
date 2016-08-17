@@ -21,7 +21,7 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 import static com.localytics.android.itracker.utils.LogUtils.LOGE;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
-public class SplashActivity extends AppCompatActivity {
+public class SplashActivity extends ManagedActivity {
     private final static String TAG = makeLogTag(SplashActivity.class);
 
     @Override

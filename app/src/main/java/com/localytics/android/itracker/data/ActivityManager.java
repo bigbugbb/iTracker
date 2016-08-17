@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.Application;
+import com.localytics.android.itracker.ui.LoadActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,11 +38,11 @@ public class ActivityManager implements OnUnloadListener {
     private static final String EXTRA_TASK_INDEX = "com.localytics.android.itracker.data.ActivityManager.EXTRA_TASK_INDEX";
 
     private static final boolean LOG = true;
-    private final static ActivityManager instance;
+    private final static ActivityManager sInstance;
 
     static {
-        instance = new ActivityManager();
-        Application.getInstance().addManager(instance);
+        sInstance = new ActivityManager();
+        Application.getInstance().addManager(sInstance);
     }
 
     private final Application application;
@@ -70,7 +71,7 @@ public class ActivityManager implements OnUnloadListener {
     }
 
     public static ActivityManager getInstance() {
-        return instance;
+        return sInstance;
     }
 
     /**
@@ -134,19 +135,19 @@ public class ActivityManager implements OnUnloadListener {
      * @param activity
      */
     public void onCreate(Activity activity) {
-//        if (LOG) {
-//            LogManager.i(activity, "onCreate: " + activity.getIntent());
-//        }
+        if (LOG) {
+            LogManager.i(activity, "onCreate: " + activity.getIntent());
+        }
 //        if (!activity.getClass().getSimpleName().equals("AboutViewer")) {
 //            applyTheme(activity);
 //        }
-//        if (application.isClosing() && !(activity instanceof LoadActivity)) {
-//            activity.startActivity(LoadActivity.createIntent(activity));
-//            activity.finish();
-//        }
-//        activities.add(activity);
-//        rebuildStack();
-//        fetchTaskIndex(activity, activity.getIntent());
+        if (application.isClosing() && !(activity instanceof LoadActivity)) {
+            activity.startActivity(LoadActivity.createIntent(activity));
+            activity.finish();
+        }
+        activities.add(activity);
+        rebuildStack();
+        fetchTaskIndex(activity, activity.getIntent());
     }
 
     /**
@@ -173,8 +174,7 @@ public class ActivityManager implements OnUnloadListener {
         if (LOG)
             LogManager.i(activity, "onPause");
         if (onErrorListener != null)
-            application
-                    .removeUIListener(OnErrorListener.class, onErrorListener);
+            application.removeUIListener(OnErrorListener.class, onErrorListener);
         onErrorListener = null;
     }
 
@@ -188,11 +188,11 @@ public class ActivityManager implements OnUnloadListener {
     public void onResume(final Activity activity) {
         if (LOG)
             LogManager.i(activity, "onResume");
-//        if (!application.isInitialized() && !(activity instanceof LoadActivity)) {
-//            if (LOG)
-//                LogManager.i(this, "Wait for loading");
-//            activity.startActivity(LoadActivity.createIntent(activity));
-//        }
+        if (!application.isInitialized() && !(activity instanceof LoadActivity)) {
+            if (LOG)
+                LogManager.i(this, "Wait for loading");
+            activity.startActivity(LoadActivity.createIntent(activity));
+        }
         if (onErrorListener != null) {
             application.removeUIListener(OnErrorListener.class, onErrorListener);
         }

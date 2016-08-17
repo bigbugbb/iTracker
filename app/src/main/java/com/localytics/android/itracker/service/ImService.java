@@ -10,23 +10,18 @@ import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.notification.NotificationManager;
 
-/**
- * Basic service to work in background.
- *
- * @author alexander.ivanov
- */
-public class XabberService extends Service {
+public class ImService extends Service {
 
-    private static XabberService instance;
+    private static ImService sInstance;
 
-    public static XabberService getInstance() {
-        return instance;
+    public static ImService getInstance() {
+        return sInstance;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        instance = this;
+        sInstance = this;
         LogManager.i(this, "onCreate");
         changeForeground();
     }
@@ -35,8 +30,7 @@ public class XabberService extends Service {
         if (SettingsManager.eventsPersistent()
                 && Application.getInstance().isInitialized())
             startForeground(NotificationManager.PERSISTENT_NOTIFICATION_ID,
-                    NotificationManager.getInstance()
-                            .getPersistentNotification());
+                    NotificationManager.getInstance().getPersistentNotification());
         else
             stopForeground(true);
     }
@@ -61,7 +55,7 @@ public class XabberService extends Service {
     }
 
     public static Intent createIntent(Context context) {
-        return new Intent(context, XabberService.class);
+        return new Intent(context, ImService.class);
     }
 
 }

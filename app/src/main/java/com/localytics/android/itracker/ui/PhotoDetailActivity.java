@@ -21,7 +21,7 @@ import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class PhotoDetailActivity extends Activity implements OnContentClickListener {
+public class PhotoDetailActivity extends ManagedActivity implements OnContentClickListener {
     private final static String TAG = makeLogTag(PhotoDetailActivity.class);
 
     public static final String EXTRA_SELECTED_PHOTO = "extra_selected_photo";

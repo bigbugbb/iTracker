@@ -5,10 +5,12 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
+        applicationId "com.localytics.android.itracker"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 100
         versionName '1.0.0'
+        multiDexEnabled true
     }
 
     compileOptions {

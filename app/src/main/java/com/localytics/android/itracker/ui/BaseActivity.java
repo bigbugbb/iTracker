@@ -43,7 +43,7 @@ import java.util.ArrayList;
 
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 
-public class BaseActivity extends AppCompatActivity implements
+public class BaseActivity extends ManagedActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
 

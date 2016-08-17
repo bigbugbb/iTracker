@@ -20,7 +20,7 @@ import com.localytics.android.itracker.data.OnTimerListener;
 import com.localytics.android.itracker.data.OnUnloadListener;
 import com.localytics.android.itracker.download.FileDownloadManager;
 import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
-import com.localytics.android.itracker.service.XabberService;
+import com.localytics.android.itracker.service.ImService;
 import com.localytics.android.itracker.utils.LogUtils;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;
@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-public class Application extends android.app.Application {
+public class Application extends android.support.multidex.MultiDexApplication {
 
     private final static String TAG = LogUtils.makeLogTag(Application.class);
 
@@ -49,12 +49,12 @@ public class Application extends android.app.Application {
     /**
      * Thread to execute tasks in background..
      */
-    private final ExecutorService backgroundExecutor;
+    private final ExecutorService mBackgroundExecutor;
 
     /**
      * Handler to execute runnable in UI thread.
      */
-    private final Handler handler;
+    private final Handler mHandler;
 
     /**
      * Unmodifiable collections of managers that implement some common
@@ -66,12 +66,12 @@ public class Application extends android.app.Application {
     /**
      * Where data load was requested.
      */
-    private boolean serviceStarted;
+    private boolean mServiceStarted;
 
     /**
      * Whether application was initialized.
      */
-    private boolean initialized;
+    private boolean mInitialized;
 
     /**
      * Whether user was notified about some action in contact list activity
@@ -108,8 +108,8 @@ public class Application extends android.app.Application {
 
     public Application() {
         sInstance = this;
-        serviceStarted = false;
-        initialized = false;
+        mServiceStarted = false;
+        mInitialized = false;
         notified = false;
         closing = false;
         closed = false;
@@ -117,8 +117,8 @@ public class Application extends android.app.Application {
         mManagerInterfaces = new HashMap<>();
         mRegisteredManagers = new ArrayList<>();
 
-        handler = new Handler();
-        backgroundExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        mHandler = new Handler();
+        mBackgroundExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
             @Override
             public Thread newThread(Runnable runnable) {
                 Thread thread = new Thread(runnable, "Background executor service");
@@ -161,10 +161,6 @@ public class Application extends android.app.Application {
         bootstrapBackgroundMonitor();
 
         bootstrapFileDownloadService();
-
-        if (BuildConfig.DEBUG) {
-//            Config.enableStrictMode();
-        }
 
         ArrayList<String> contactManager = new ArrayList<>();
         TypedArray contactManagerClasses = getResources().obtainTypedArray(R.array.contact_managers);
@@ -230,7 +226,7 @@ public class Application extends android.app.Application {
      * Whether application is initialized.
      */
     public boolean isInitialized() {
-        return initialized;
+        return mInitialized;
     }
 
     private void onLoad() {
@@ -247,8 +243,8 @@ public class Application extends android.app.Application {
             LogManager.i(listener, "onInitialized");
             listener.onInitialized();
         }
-        initialized = true;
-        XabberService.getInstance().changeForeground();
+        mInitialized = true;
+        ImService.getInstance().changeForeground();
         startTimer();
     }
 
@@ -290,12 +286,12 @@ public class Application extends android.app.Application {
      * @return
      */
     public void onServiceStarted() {
-        if (serviceStarted) {
+        if (mServiceStarted) {
             return;
         }
-        serviceStarted = true;
+        mServiceStarted = true;
         LogManager.i(this, "onStart");
-        loadFuture = backgroundExecutor.submit(new Callable<Void>() {
+        loadFuture = mBackgroundExecutor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 try {
@@ -324,7 +320,7 @@ public class Application extends android.app.Application {
      */
     public void requestToClose() {
         closing = true;
-        stopService(XabberService.createIntent(this));
+        stopService(ImService.createIntent(this));
     }
 
     /**
@@ -452,7 +448,7 @@ public class Application extends android.app.Application {
      * Submits request to be executed in background.
      */
     public void runInBackground(final Runnable runnable) {
-        backgroundExecutor.submit(new Runnable() {
+        mBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -468,13 +464,13 @@ public class Application extends android.app.Application {
      * Submits request to be executed in UI thread.
      */
     public void runOnUiThread(final Runnable runnable) {
-        handler.post(runnable);
+        mHandler.post(runnable);
     }
 
     /**
      * Submits request to be executed in UI thread.
      */
     public void runOnUiThreadDelay(final Runnable runnable, long delayMillis) {
-        handler.postDelayed(runnable, delayMillis);
+        mHandler.postDelayed(runnable, delayMillis);
     }
 }
