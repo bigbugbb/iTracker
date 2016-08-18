@@ -19,7 +19,7 @@ import android.widget.Toast;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.data.model.Video;
-import com.localytics.android.itracker.download.FileDownloadManager;
+import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;

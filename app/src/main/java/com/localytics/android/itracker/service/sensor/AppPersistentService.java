@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.service;
+package com.localytics.android.itracker.service.sensor;
 
 import android.app.Service;
 import android.content.Context;

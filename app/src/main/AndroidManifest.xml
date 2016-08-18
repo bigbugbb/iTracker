@@ -155,7 +155,7 @@
             android:label="@string/provider_name">
         </provider>
 
-        <service android:name=".service.AppPersistentService" />
+        <service android:name=".service.sensor.AppPersistentService" />
 
         <!-- Authenticator related service -->
         <service android:name=".auth.AuthenticateService">
@@ -194,7 +194,7 @@
 
         <!-- File download related service -->
         <service
-            android:name=".download.FileDownloadService"
+            android:name=".service.download.FileDownloadService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.localytics.android.itracker.intent.action.DOWNLOAD_FILE"/>
@@ -204,18 +204,18 @@
 
         <!-- GCM related service -->
         <service
-            android:name=".gcm.RegistrationIntentService"
+            android:name=".service.gcm.RegistrationIntentService"
             android:exported="false">
         </service>
         <service
-            android:name=".gcm.GcmListenerService"
+            android:name=".service.gcm.GcmListenerService"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </service>
         <service
-            android:name=".gcm.InstanceIDListenerService"
+            android:name=".service.gcm.InstanceIDListenerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID"/>
@@ -234,7 +234,7 @@
 
         <!-- Sensor data related service -->
         <service
-            android:name=".service.SensorMonitorService"
+            android:name=".service.sensor.SensorMonitorService"
             android:exported="false">
         </service>
 

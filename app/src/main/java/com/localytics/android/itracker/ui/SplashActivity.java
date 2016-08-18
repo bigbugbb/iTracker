@@ -18,7 +18,7 @@ import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.ActivityManager;
 import com.localytics.android.itracker.data.LogManager;
-import com.localytics.android.itracker.service.AppPersistentService;
+import com.localytics.android.itracker.service.sensor.AppPersistentService;
 import com.localytics.android.itracker.ui.helper.SingleActivity;
 import com.localytics.android.itracker.utils.AccountUtils;
 import com.localytics.android.itracker.utils.PrefUtils;

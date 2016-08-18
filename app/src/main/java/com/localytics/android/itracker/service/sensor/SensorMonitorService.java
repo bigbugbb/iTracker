@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.service;
+package com.localytics.android.itracker.service.sensor;
 
 import android.Manifest;
 import android.app.IntentService;
@@ -36,8 +36,8 @@ import com.google.android.gms.location.LocationServices;
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.service.processor.SensorDataProcessor;
-import com.localytics.android.itracker.service.processor.SensorDataProcessorFactory;
+import com.localytics.android.itracker.service.sensor.processor.SensorDataProcessor;
+import com.localytics.android.itracker.service.sensor.processor.SensorDataProcessorFactory;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;

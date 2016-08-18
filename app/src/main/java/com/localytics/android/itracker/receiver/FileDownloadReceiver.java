@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.download;
+package com.localytics.android.itracker.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.localytics.android.itracker.service.download.FileDownloadRequest;
+
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
-public class FileDownloadBroadcastReceiver extends BroadcastReceiver {
-    private static final String TAG = makeLogTag(FileDownloadBroadcastReceiver.class);
+public class FileDownloadReceiver extends BroadcastReceiver {
+    private static final String TAG = makeLogTag(FileDownloadReceiver.class);
 
     public static final String ACTION_FILE_DOWNLOAD_PROGRESS = "com.localytics.android.itracker.intent.action.FILE_DOWNLOAD_PROGRESS";
 

@@ -19,7 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.localytics.android.itracker.data.SettingsManager;
-import com.localytics.android.itracker.service.AppPersistentService;
+import com.localytics.android.itracker.service.sensor.AppPersistentService;
 
 /**
  * Android boot receiver.

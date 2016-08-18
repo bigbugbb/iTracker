@@ -17,9 +17,9 @@ import com.localytics.android.itracker.data.OnLoadListener;
 import com.localytics.android.itracker.data.OnLowMemoryListener;
 import com.localytics.android.itracker.data.OnTimerListener;
 import com.localytics.android.itracker.data.OnUnloadListener;
-import com.localytics.android.itracker.download.FileDownloadManager;
+import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
-import com.localytics.android.itracker.service.AppPersistentService;
+import com.localytics.android.itracker.service.sensor.AppPersistentService;
 import com.localytics.android.itracker.utils.LogUtils;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;

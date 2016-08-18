@@ -13,8 +13,8 @@ import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.download.FileDownloadManager;
-import com.localytics.android.itracker.service.SensorMonitorService;
+import com.localytics.android.itracker.data.FileDownloadManager;
+import com.localytics.android.itracker.service.sensor.SensorMonitorService;
 import com.localytics.android.itracker.utils.ConnectivityUtils;
 
 import java.util.Date;

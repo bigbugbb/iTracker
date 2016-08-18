@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.gcm;
+package com.localytics.android.itracker.service.gcm;
 
 
 import android.app.Notification;

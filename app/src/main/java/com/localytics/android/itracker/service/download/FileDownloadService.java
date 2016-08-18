@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.download;
+package com.localytics.android.itracker.service.download;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -20,6 +20,8 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.receiver.FileDownloadReceiver;
+import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
@@ -480,17 +482,17 @@ public class FileDownloadService extends Service {
         }
 
         protected void onPreparing() {
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PREPARING);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_PREPARING);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
             mDownloadInfo = getDownloadInfo();
         }
 
         protected void onPaused() {
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_PAUSED);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_PAUSED);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -502,12 +504,12 @@ public class FileDownloadService extends Service {
             PrefUtils.setCurrentDownloadSpeed(mContext, mRequest.getId(), downloadSpeed);
             PrefUtils.setCurrentDownloadFileSize(mContext, mRequest.getId(), currentFileSize);
 
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_DOWNLOADING);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_FILE_SIZE_BYTES, currentFileSize);
-            intent.putExtra(FileDownloadBroadcastReceiver.TOTAL_FILE_SIZE_BYTES, totalFileSize);
-            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_SPEED, downloadSpeed);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_DOWNLOADING);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadReceiver.CURRENT_FILE_SIZE_BYTES, currentFileSize);
+            intent.putExtra(FileDownloadReceiver.TOTAL_FILE_SIZE_BYTES, totalFileSize);
+            intent.putExtra(FileDownloadReceiver.DOWNLOAD_SPEED, downloadSpeed);
             mBroadcastManager.sendBroadcast(intent);
 
             int progress = (int) (100 * (float) currentFileSize / totalFileSize);
@@ -519,9 +521,9 @@ public class FileDownloadService extends Service {
         protected void onCanceled() {
             File tempFile = new File(mRequest.mDestUri.toString());
             tempFile.delete();
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_CANCELED);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_CANCELED);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
             mBroadcastManager.sendBroadcast(intent);
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -529,10 +531,10 @@ public class FileDownloadService extends Service {
         }
 
         protected void onCompleted(Uri finalFileUri) {
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_COMPLETED);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOADED_FILE_URI, finalFileUri);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_COMPLETED);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadReceiver.DOWNLOADED_FILE_URI, finalFileUri);
             mBroadcastManager.sendBroadcast(intent);
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -544,10 +546,10 @@ public class FileDownloadService extends Service {
             String reason = exception.getMessage();
             reason = TextUtils.isEmpty(reason) ? exception.toString() : reason;
 
-            Intent intent = new Intent(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadBroadcastReceiver.DOWNLOAD_STAGE_FAILED);
-            intent.putExtra(FileDownloadBroadcastReceiver.CURRENT_REQUEST, mRequest);
-            intent.putExtra(FileDownloadBroadcastReceiver.DOWNLOAD_FAILED_REASON, reason);
+            Intent intent = new Intent(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+            intent.putExtra(FileDownloadReceiver.CURRENT_DOWNLOAD_STAGE, FileDownloadReceiver.DOWNLOAD_STAGE_FAILED);
+            intent.putExtra(FileDownloadReceiver.CURRENT_REQUEST, mRequest);
+            intent.putExtra(FileDownloadReceiver.DOWNLOAD_FAILED_REASON, reason);
             mBroadcastManager.sendBroadcast(intent);
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

@@ -35,9 +35,9 @@ import com.bumptech.glide.Glide;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.MediaDownload;
-import com.localytics.android.itracker.download.FileDownloadBroadcastReceiver;
-import com.localytics.android.itracker.download.FileDownloadManager;
-import com.localytics.android.itracker.download.FileDownloadRequest;
+import com.localytics.android.itracker.receiver.FileDownloadReceiver;
+import com.localytics.android.itracker.data.FileDownloadManager;
+import com.localytics.android.itracker.service.download.FileDownloadRequest;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
@@ -69,7 +69,7 @@ public class MediaDownloadFragment extends TrackerFragment {
     private ThrottledContentObserver mMediaDownloadsObserver;
 
     private LocalBroadcastManager mBroadcastManager;
-    private DownloadProgressBroadcastReceiver mDownloadProgressBroadcastReceiver;
+    private DownloadProgressReceiver mDownloadProgressBroadcastReceiver;
 
     private OnStartMediaPlaybackListener mMediaPlaybackListener;
 
@@ -121,9 +121,9 @@ public class MediaDownloadFragment extends TrackerFragment {
         mMediaDownloadsObserver.setThrottleDelay(100);
         activity.getContentResolver().registerContentObserver(TrackerContract.FileDownloads.CONTENT_URI, true, mMediaDownloadsObserver);
 
-        mDownloadProgressBroadcastReceiver = new DownloadProgressBroadcastReceiver();
+        mDownloadProgressBroadcastReceiver = new DownloadProgressReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(FileDownloadBroadcastReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
+        filter.addAction(FileDownloadReceiver.ACTION_FILE_DOWNLOAD_PROGRESS);
 
         mBroadcastManager = LocalBroadcastManager.getInstance(activity);
         mBroadcastManager.registerReceiver(mDownloadProgressBroadcastReceiver, filter);
@@ -171,7 +171,7 @@ public class MediaDownloadFragment extends TrackerFragment {
         return null;
     }
 
-    private class DownloadProgressBroadcastReceiver extends FileDownloadBroadcastReceiver {
+    private class DownloadProgressReceiver extends FileDownloadReceiver {
 
         protected void onDownloading(FileDownloadRequest request,
                                      long currentFileSize, long totalFileSize, long downloadSpeed, Bundle extra) {

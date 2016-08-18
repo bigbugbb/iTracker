@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.download;
+package com.localytics.android.itracker.data;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -17,11 +17,12 @@ import android.support.v4.app.TaskStackBuilder;
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.data.OnInitializedListener;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.service.download.FileDownloadRequest;
+import com.localytics.android.itracker.service.download.FileDownloadService;
 import com.localytics.android.itracker.ui.MediaDownloadActivity;
 import com.localytics.android.itracker.utils.ConnectivityUtils;
 import com.localytics.android.itracker.utils.YouTubeExtractor;

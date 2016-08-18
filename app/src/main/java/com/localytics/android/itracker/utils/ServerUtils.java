@@ -59,7 +59,7 @@ import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 public final class ServerUtils {
     private static final String TAG = makeLogTag(ServerUtils.class);
 
-    private static final String PREFERENCES = "com.localytics.android.itracker.gcm";
+    private static final String PREFERENCES = "com.localytics.android.itracker.service.gcm";
     private static final String PROPERTY_REGISTERED_TS = "registered_ts";
     private static final String PROPERTY_SENDER_ID = "sender_id";
     private static final String PROPERTY_PUSH_TOKEN = "push_token";

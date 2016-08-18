@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.download;
+package com.localytics.android.itracker.service.download;
 
 import android.net.Uri;
 import android.os.Parcel;
