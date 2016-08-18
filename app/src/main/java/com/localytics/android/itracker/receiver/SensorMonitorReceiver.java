@@ -1,21 +1,20 @@
-package com.localytics.android.itracker.monitor;
+package com.localytics.android.itracker.receiver;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
 import android.net.ConnectivityManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.download.FileDownloadManager;
+import com.localytics.android.itracker.service.SensorMonitorService;
 import com.localytics.android.itracker.utils.ConnectivityUtils;
 
 import java.util.Date;
@@ -26,18 +25,27 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGW;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
-public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
+public class SensorMonitorReceiver extends WakefulBroadcastReceiver {
 
-    public static final String TAG = makeLogTag(TrackerBroadcastReceiver.class);
+    public static final String TAG = makeLogTag(SensorMonitorReceiver.class);
 
     public static final int REQUEST_CODE = 100;
 
-    public static final String ACTION_START_SENSOR_MONITOR = "com.localytics.android.itracker.intent.action.START_SENSOR_MONITOR";
-    public static final String ACTION_BOOTSTRAP_MONITOR_ALARM = "com.localytics.android.itracker.intent.action.BOOTSTRAP_MONITOR_ALARM";
+    private static final String ACTION_START_SENSOR_MONITOR = "com.localytics.android.itracker.intent.action.START_SENSOR_MONITOR";
+    private static final String ACTION_BOOTSTRAP_MONITOR_ALARM = "com.localytics.android.itracker.intent.action.BOOTSTRAP_MONITOR_ALARM";
+
+    public static Intent createBootstrapIntent(Context context) {
+        return new Intent(ACTION_BOOTSTRAP_MONITOR_ALARM);
+    }
+
+    public static Intent createStartMonitorIntent(Context context) {
+        Intent intent = new Intent(context, SensorMonitorReceiver.class);
+        intent.setAction(ACTION_START_SENSOR_MONITOR);
+        return intent;
+    }
 
     public void setAlarm(Context context, long delayTimeMills) {
-        Intent contentIntent = new Intent(context, TrackerBroadcastReceiver.class);
-        contentIntent.setAction(ACTION_START_SENSOR_MONITOR);
+        Intent contentIntent = createStartMonitorIntent(Application.getInstance());
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE, contentIntent, 0);
 
@@ -105,10 +113,7 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 setAlarm(context, DateUtils.MINUTE_IN_MILLIS);
             }
-            Intent serviceIntent = new Intent(context, SensorMonitorService.class);
-            serviceIntent.putExtra(SensorMonitorService.MONITORED_SENSORS, new int[]{ Sensor.TYPE_ACCELEROMETER });
-            serviceIntent.putExtra(SensorMonitorService.MONITORED_SENSOR_ARGS + Sensor.TYPE_ACCELEROMETER, new Bundle());
-            startWakefulService(context, serviceIntent);
+            startWakefulService(context, SensorMonitorService.createIntent(context));
         } else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
             String phoneState = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             String incomingNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
@@ -159,7 +164,7 @@ public class TrackerBroadcastReceiver extends WakefulBroadcastReceiver {
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             LOGD(TAG, "Got CONNECTIVITY_ACTION");
 
-            final FileDownloadManager fdm = FileDownloadManager.getInstance(context);
+            final FileDownloadManager fdm = FileDownloadManager.getInstance();
             switch (ConnectivityUtils.getNetworkType(context)) {
                 case ConnectivityManager.TYPE_WIFI: {
                     fdm.startAvailableDownloadsAsync(true);

@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.monitor;
+package com.localytics.android.itracker.service;
 
 import android.Manifest;
 import android.app.IntentService;
@@ -33,13 +33,15 @@ import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.monitor.processor.SensorDataProcessor;
-import com.localytics.android.itracker.monitor.processor.SensorDataProcessorFactory;
+import com.localytics.android.itracker.service.processor.SensorDataProcessor;
+import com.localytics.android.itracker.service.processor.SensorDataProcessorFactory;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.Activities;
 import com.localytics.android.itracker.provider.TrackerContract.Locations;
+import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
 import com.localytics.android.itracker.ui.TrackerActivity;
 import com.localytics.android.itracker.utils.PlayServicesUtils;
 
@@ -63,14 +65,10 @@ public class SensorMonitorService extends IntentService
 
     private static final int NOTIFICATION_ID = 123;
 
-    public static final String MONITORED_SENSORS = "monitored_sensors";
-    public static final String MONITORED_SENSOR_ARGS = "monitored_sensor_args";
-
     private static final String INTENT_ACTION_PREFIX = "com.localytics.android.itracker.intent.action";
     public static final String ACTION_LOCATION_UPDATED = INTENT_ACTION_PREFIX + ".LOCATION_UPDATED";
     public static final String ACTION_ACTIVITIES_UPDATED = INTENT_ACTION_PREFIX + ".ACTIVITIES_UPDATED";
 
-    private Context mContext;
     private Intent mIntent;
 
     private SensorManager mSensorManager;
@@ -93,6 +91,10 @@ public class SensorMonitorService extends IntentService
     private static long sLastLocationUpdateTime;
     private static long sLastActivityUpdateTime;
 
+    public static Intent createIntent(Context context) {
+        return new Intent(context, SensorMonitorService.class);
+    }
+
     public SensorMonitorService() {
         super("SensorMonitorService");
     }
@@ -110,7 +112,6 @@ public class SensorMonitorService extends IntentService
     public void onCreate() {
         super.onCreate();
 
-        mContext = getApplicationContext();
         mProcessors = new HashMap<>();
 
         HandlerThread sensorEventThread = new HandlerThread("SensorEventThread");
@@ -147,7 +148,7 @@ public class SensorMonitorService extends IntentService
         unregisterReceiver(mDataUpdatedReceiver);
 
         // Release the wake lock provided by the BroadcastReceiver.
-        TrackerBroadcastReceiver.completeWakefulIntent(mIntent);
+        SensorMonitorReceiver.completeWakefulIntent(mIntent);
     }
 
     /**
@@ -172,16 +173,13 @@ public class SensorMonitorService extends IntentService
 
             // Get sensor data processor for each sensor
             mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            final int[] sensorTypes = intent.getIntArrayExtra(MONITORED_SENSORS);
-            for (int sensorType : sensorTypes) {
-                List<Sensor> sensors = mSensorManager.getSensorList(sensorType);
-                if (sensors != null && sensors.size() > 0) {
-                    Sensor sensor = sensors.get(0);
-                    Bundle args = intent.getBundleExtra(MONITORED_SENSOR_ARGS + sensor.getType());
-                    SensorDataProcessor processor = SensorDataProcessorFactory.getSensorDataProcessor(mContext, mRecordHandler, sensor, args);
-                    if (processor != null) {
-                        mProcessors.put(sensor.toString(), processor);
-                    }
+            List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+            if (sensors != null && sensors.size() > 0) {
+                Sensor sensor = sensors.get(0);
+                SensorDataProcessor processor = SensorDataProcessorFactory.getSensorDataProcessor(
+                        Application.getInstance(), mRecordHandler, sensor, null);
+                if (processor != null) {
+                    mProcessors.put(sensor.toString(), processor);
                 }
             }
             mLatch = new CountDownLatch(mProcessors.size());
@@ -230,9 +228,9 @@ public class SensorMonitorService extends IntentService
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         PendingIntent contentIntent = PendingIntent.getActivity(
-                mContext, 0, new Intent(this, TrackerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                Application.getInstance(), 0, TrackerActivity.createIntent(Application.getInstance()), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification notification = new NotificationCompat.Builder(mContext)
+        Notification notification = new NotificationCompat.Builder(Application.getInstance())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(getString(R.string.tracker_alert))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
@@ -257,7 +255,7 @@ public class SensorMonitorService extends IntentService
             if (state < SensorDataProcessor.PROCESSOR_STATE_PROCESSED) {
                 try {
                     processor.process(event);
-                } catch (SensorDataProcessException e) {
+                } catch (SensorDataProcessor.SensorDataProcessException e) {
                     LOGE(TAG, "SensorDataProcessException - " + e);
                 } finally {
                     state = processor.getState();
@@ -336,8 +334,8 @@ public class SensorMonitorService extends IntentService
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            final long trackId = TrackerContract.Tracks.getTrackIdOfDateTime(mContext, DateTime.now());
-            ContentResolver resolver = mContext.getContentResolver();
+            final long trackId = TrackerContract.Tracks.getTrackIdOfDateTime(Application.getInstance(), DateTime.now());
+            ContentResolver resolver = Application.getInstance().getContentResolver();
 
             // Insert, insert...
             if (action.equals(ACTION_LOCATION_UPDATED)) {

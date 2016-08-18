@@ -21,7 +21,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.Application;
-import com.localytics.android.itracker.ui.LoadActivity;
+import com.localytics.android.itracker.ui.SplashActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -141,8 +141,8 @@ public class ActivityManager implements OnUnloadListener {
 //        if (!activity.getClass().getSimpleName().equals("AboutViewer")) {
 //            applyTheme(activity);
 //        }
-        if (application.isClosing() && !(activity instanceof LoadActivity)) {
-            activity.startActivity(LoadActivity.createIntent(activity));
+        if (application.isClosing() && !(activity instanceof SplashActivity)) {
+            activity.startActivity(SplashActivity.createIntent(activity));
             activity.finish();
         }
         activities.add(activity);
@@ -188,10 +188,10 @@ public class ActivityManager implements OnUnloadListener {
     public void onResume(final Activity activity) {
         if (LOG)
             LogManager.i(activity, "onResume");
-        if (!application.isInitialized() && !(activity instanceof LoadActivity)) {
+        if (!application.isInitialized() && !(activity instanceof SplashActivity)) {
             if (LOG)
                 LogManager.i(this, "Wait for loading");
-            activity.startActivity(LoadActivity.createIntent(activity));
+            activity.startActivity(SplashActivity.createIntent(activity));
         }
         if (onErrorListener != null) {
             application.removeUIListener(OnErrorListener.class, onErrorListener);

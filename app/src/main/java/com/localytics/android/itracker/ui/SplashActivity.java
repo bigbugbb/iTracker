@@ -4,16 +4,22 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.ActivityManager;
+import com.localytics.android.itracker.data.LogManager;
+import com.localytics.android.itracker.service.AppPersistentService;
+import com.localytics.android.itracker.ui.helper.SingleActivity;
 import com.localytics.android.itracker.utils.AccountUtils;
 import com.localytics.android.itracker.utils.PrefUtils;
 
@@ -21,8 +27,12 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 import static com.localytics.android.itracker.utils.LogUtils.LOGE;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
-public class SplashActivity extends ManagedActivity {
+public class SplashActivity extends SingleActivity {
     private final static String TAG = makeLogTag(SplashActivity.class);
+
+    public static Intent createIntent(Context context) {
+        return new Intent(context, SplashActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,5 +100,37 @@ public class SplashActivity extends ManagedActivity {
                 LOGE(TAG, "Can't get result from future", e);
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!Application.getInstance().isClosing()) {
+            startService(AppPersistentService.createIntent(this));
+            update();
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                cancel();
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void update() {
+        if (Application.getInstance().isInitialized()
+                && !Application.getInstance().isClosing() && !isFinishing()) {
+            LogManager.i(this, "Initialized");
+            finish();
+        }
+    }
+
+    private void cancel() {
+        finish();
+        ActivityManager.getInstance().cancelTask(this);
     }
 }

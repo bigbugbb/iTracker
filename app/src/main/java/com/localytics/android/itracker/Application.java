@@ -2,7 +2,6 @@ package com.localytics.android.itracker;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -19,8 +18,8 @@ import com.localytics.android.itracker.data.OnLowMemoryListener;
 import com.localytics.android.itracker.data.OnTimerListener;
 import com.localytics.android.itracker.data.OnUnloadListener;
 import com.localytics.android.itracker.download.FileDownloadManager;
-import com.localytics.android.itracker.monitor.TrackerBroadcastReceiver;
-import com.localytics.android.itracker.service.ImService;
+import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
+import com.localytics.android.itracker.service.AppPersistentService;
 import com.localytics.android.itracker.utils.LogUtils;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;
@@ -74,29 +73,25 @@ public class Application extends android.support.multidex.MultiDexApplication {
     private boolean mInitialized;
 
     /**
-     * Whether user was notified about some action in contact list activity
-     * after application initialization.
-     */
-    private boolean notified;
-
-    /**
      * Whether application is to be closed.
      */
-    private boolean closing;
+    private boolean mClosing;
 
     /**
      * Whether {@link #onServiceDestroy()} has been called.
      */
-    private boolean closed;
+    private boolean mClosed;
 
     private final Runnable mTimerRunnable = new Runnable() {
 
         @Override
         public void run() {
-            for (OnTimerListener listener : getManagers(OnTimerListener.class))
+            for (OnTimerListener listener : getManagers(OnTimerListener.class)) {
                 listener.onTimer();
-            if (!closing)
+            }
+            if (!mClosing) {
                 startTimer();
+            }
         }
 
     };
@@ -104,15 +99,14 @@ public class Application extends android.support.multidex.MultiDexApplication {
     /**
      * Future for loading process.
      */
-    private Future<Void> loadFuture;
+    private Future<Void> mLoadFuture;
 
     public Application() {
         sInstance = this;
         mServiceStarted = false;
         mInitialized = false;
-        notified = false;
-        closing = false;
-        closed = false;
+        mClosing = false;
+        mClosed = false;
         mUiListeners = new HashMap<>();
         mManagerInterfaces = new HashMap<>();
         mRegisteredManagers = new ArrayList<>();
@@ -154,13 +148,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
-        // Bootstrap the monitor here in case the app is opened again after crashed or killed.
-        bootstrapBackgroundMonitor();
-
-        bootstrapFileDownloadService();
 
         ArrayList<String> contactManager = new ArrayList<>();
         TypedArray contactManagerClasses = getResources().obtainTypedArray(R.array.contact_managers);
@@ -204,7 +191,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * Service have been destroyed.
      */
     public void onServiceDestroy() {
-        if (closed) {
+        if (mClosed) {
             return;
         }
         onClose();
@@ -244,7 +231,9 @@ public class Application extends android.support.multidex.MultiDexApplication {
             listener.onInitialized();
         }
         mInitialized = true;
-        ImService.getInstance().changeForeground();
+        AppPersistentService.getInstance().changeForeground();
+        FileDownloadManager.getInstance().recoverStatus();
+        sendBroadcast(SensorMonitorReceiver.createBootstrapIntent(this));
         startTimer();
     }
 
@@ -255,7 +244,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
                 ((OnCloseListener) manager).onClose();
             }
         }
-        closed = true;
+        mClosed = true;
     }
 
     private void onUnload() {
@@ -269,18 +258,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
     }
 
     /**
-     * @return <code>true</code> only once per application life. Subsequent
-     * calls will always returns <code>false</code>.
-     */
-    public boolean doNotify() {
-        if (notified) {
-            return false;
-        }
-        notified = true;
-        return true;
-    }
-
-    /**
      * Starts data loading in background if not started yet.
      *
      * @return
@@ -291,7 +268,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
         }
         mServiceStarted = true;
         LogManager.i(this, "onStart");
-        loadFuture = mBackgroundExecutor.submit(new Callable<Void>() {
+        mLoadFuture = mBackgroundExecutor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 try {
@@ -302,7 +279,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
                         public void run() {
                             // Throw exceptions in UI thread if any.
                             try {
-                                loadFuture.get();
+                                mLoadFuture.get();
                             } catch (InterruptedException | ExecutionException e) {
                                 throw new RuntimeException(e);
                             }
@@ -319,15 +296,15 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * Requests to close application in some time in future.
      */
     public void requestToClose() {
-        closing = true;
-        stopService(ImService.createIntent(this));
+        mClosing = true;
+        stopService(AppPersistentService.createIntent(this));
     }
 
     /**
      * @return Whether application is to be closed.
      */
     public boolean isClosing() {
-        return closing;
+        return mClosing;
     }
 
     /**
@@ -356,7 +333,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     @SuppressWarnings("unchecked")
     public <T extends BaseManagerInterface> Collection<T> getManagers(Class<T> cls) {
-        if (closed) {
+        if (mClosed) {
             return Collections.emptyList();
         }
         Collection<T> collection = (Collection<T>) mManagerInterfaces.get(cls);
@@ -371,16 +348,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
             mManagerInterfaces.put(cls, collection);
         }
         return collection;
-    }
-
-    private void bootstrapBackgroundMonitor() {
-        Intent intent = new Intent(TrackerBroadcastReceiver.ACTION_BOOTSTRAP_MONITOR_ALARM);
-        sendBroadcast(intent);
-    }
-
-    private void bootstrapFileDownloadService() {
-        FileDownloadManager fdm = FileDownloadManager.getInstance(this);
-        fdm.recoverStatus();
     }
 
     @SuppressWarnings("unchecked")
@@ -398,7 +365,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * @return List of registered UI listeners.
      */
     public <T extends BaseUIListener> Collection<T> getUIListeners(Class<T> cls) {
-        if (closed) {
+        if (mClosed) {
             return Collections.emptyList();
         }
         return Collections.unmodifiableCollection(getOrCreateUIListeners(cls));

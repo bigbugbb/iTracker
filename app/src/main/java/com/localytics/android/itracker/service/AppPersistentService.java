@@ -10,11 +10,11 @@ import com.localytics.android.itracker.data.LogManager;
 import com.localytics.android.itracker.data.SettingsManager;
 import com.localytics.android.itracker.data.notification.NotificationManager;
 
-public class ImService extends Service {
+public class AppPersistentService extends Service {
 
-    private static ImService sInstance;
+    private static AppPersistentService sInstance;
 
-    public static ImService getInstance() {
+    public static AppPersistentService getInstance() {
         return sInstance;
     }
 
@@ -55,7 +55,7 @@ public class ImService extends Service {
     }
 
     public static Intent createIntent(Context context) {
-        return new Intent(context, ImService.class);
+        return new Intent(context, AppPersistentService.class);
     }
 
 }

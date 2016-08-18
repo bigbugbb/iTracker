@@ -19,7 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.localytics.android.itracker.data.SettingsManager;
-import com.localytics.android.itracker.service.ImService;
+import com.localytics.android.itracker.service.AppPersistentService;
 
 /**
  * Android boot receiver.
@@ -31,7 +31,7 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (SettingsManager.connectionStartAtBoot()) {
-            context.startService(ImService.createIntent(context));
+            context.startService(AppPersistentService.createIntent(context));
         } else {
             android.os.Process.killProcess(android.os.Process.myPid());
         }

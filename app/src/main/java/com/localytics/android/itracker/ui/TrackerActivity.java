@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.model.Track;
 import com.localytics.android.itracker.ui.widget.FragmentPagerAdapter;
 import com.localytics.android.itracker.utils.LogUtils;
 
@@ -76,6 +78,10 @@ public class TrackerActivity extends BaseActivity implements
     static final int REQUEST_PHOTO_CAPTURE        = 4;
     static final int REQUEST_VIDEO_CAPTURE        = 5;
     static final int REQUEST_DIRECT_TAG           = 6;
+
+    public static Intent createIntent(Context context) {
+        return new Intent(context, TrackerActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

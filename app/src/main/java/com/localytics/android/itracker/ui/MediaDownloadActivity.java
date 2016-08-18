@@ -119,7 +119,7 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
                         }
                     });
                 } else {
-                    FileDownloadManager.getInstance(mContext).startAvailableDownloads();
+                    FileDownloadManager.getInstance().startAvailableDownloads();
                 }
             } catch (Exception e) {
                 LOGE(TAG, "Fail to make the download request", e);

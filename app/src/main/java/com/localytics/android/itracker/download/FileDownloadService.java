@@ -79,12 +79,30 @@ public class FileDownloadService extends Service {
     private String INTERRUPT_BY_PAUSE = "interrupt_by_pause";
     private String INTERRUPT_BY_CANCEL = "interrupt_by_cancel";
 
+    private static FileDownloadService sInstance;
+
+    public static FileDownloadService getInstance() {
+        return sInstance;
+    }
+
+    public static Intent createIntent(Context context) {
+        return new Intent(context, FileDownloadService.class);
+    }
+
+    public static Intent createFileDownloadIntent(Context context, FileDownloadRequest request) {
+        Intent intent = new Intent(FileDownloadService.ACTION_DOWNLOAD_FILE);
+        intent.setPackage(context.getPackageName());
+        intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
+        return intent;
+    }
+
     public void onCreate() {
+        sInstance = this;
         mHandlerThread = new HandlerThread("FileDownload");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
 
-        FileDownloadManager.getInstance(getApplicationContext());
+        FileDownloadManager.getInstance();
 
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         mQueue = new PriorityBlockingQueue<>(availableProcessors, new DownloadTaskComparator());
@@ -93,7 +111,7 @@ public class FileDownloadService extends Service {
         mTasks = Collections.synchronizedMap(new HashMap<String, FileDownloadTask>());
         mBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
 
-        mNotificationBuilder = FileDownloadNotificationBuilder.getInstance(getApplicationContext());
+        mNotificationBuilder = FileDownloadNotificationBuilder.getInstance();
     }
 
     @Nullable

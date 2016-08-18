@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 import android.widget.RemoteViews;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -24,26 +25,27 @@ import java.util.Map;
 
 class FileDownloadNotificationBuilder {
 
-    private static FileDownloadNotificationBuilder sInstance;
-
     private Context mContext;
+
     private Map<String, String> mSortKeys;
 
     private int mLastSortKey;
 
+    private static FileDownloadNotificationBuilder sInstance;
+
     final static String NOTIFICATION_GROUP_FILE_DOWNLOADS = "com.localytics.android.itracker.notification_group_file_downloads";
 
-    public static FileDownloadNotificationBuilder getInstance(final Context context) {
+    public static FileDownloadNotificationBuilder getInstance() {
         synchronized (FileDownloadNotificationBuilder.class) {
             if (sInstance == null) {
-                sInstance = new FileDownloadNotificationBuilder(context);
+                sInstance = new FileDownloadNotificationBuilder();
             }
         }
         return sInstance;
     }
 
-    private FileDownloadNotificationBuilder(final Context context) {
-        mContext = context;
+    private FileDownloadNotificationBuilder() {
+        mContext = Application.getInstance();
         mSortKeys = new HashMap<>();
         mLastSortKey = 0;
     }

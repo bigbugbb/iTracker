@@ -175,7 +175,7 @@ public class SyncHelper {
 
         // Download available media files
         if (ConnectivityUtils.isOnline(mContext)) {
-            FileDownloadManager.getInstance(mContext).startAvailableDownloads();
+            FileDownloadManager.getInstance().startAvailableDownloads();
         }
 
         // Initialize the Amazon Cognito credentials provider

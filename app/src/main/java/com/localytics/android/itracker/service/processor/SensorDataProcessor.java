@@ -1,4 +1,4 @@
-package com.localytics.android.itracker.monitor.processor;
+package com.localytics.android.itracker.service.processor;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -6,8 +6,6 @@ import android.hardware.SensorEvent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.IntDef;
-
-import com.localytics.android.itracker.monitor.SensorDataProcessException;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -151,6 +149,26 @@ abstract public class SensorDataProcessor {
             if (mState != PROCESSOR_STATE_CANCELLED) {
                 mState = PROCESSOR_STATE_PROCESSED;
             }
+        }
+    }
+
+    public static class SensorDataProcessException extends Exception {
+        private static final long serialVersionUID = 1400623677490280711L;
+
+        /**
+         * Constructs a {@code SensorDataProcessException} with no specified detail
+         * message.
+         */
+        public SensorDataProcessException() {}
+
+        /**
+         * Constructs a {@code SensorDataProcessException} with the specified detail
+         * message.
+         *
+         * @param message the detail message
+         */
+        public SensorDataProcessException(String message) {
+            super(message);
         }
     }
 

@@ -304,13 +304,13 @@ public class MediaDownloadFragment extends TrackerFragment {
         if (!ConnectivityUtils.isWifiConnected(context)) {
             Toast.makeText(getActivity(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
         } else {
-            FileDownloadManager.getInstance(context).startDownload(download.identifier);
+            FileDownloadManager.getInstance().startDownload(download.identifier);
         }
     }
 
     private void onActionPauseDownload(MediaDownload download) {
         Context context = getActivity().getApplicationContext();
-        FileDownloadManager.getInstance(context).pauseDownload(download.identifier);
+        FileDownloadManager.getInstance().pauseDownload(download.identifier);
     }
 
     private void onActionCancelDownload(final MediaDownload download) {

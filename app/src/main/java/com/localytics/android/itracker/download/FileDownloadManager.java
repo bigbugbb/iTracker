@@ -14,8 +14,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.TaskStackBuilder;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.OnInitializedListener;
 import com.localytics.android.itracker.data.model.MediaDownload;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
@@ -39,28 +41,24 @@ public class FileDownloadManager extends ContentObserver {
     private static FileDownloadManager sInstance;
     private static final int NOTIFICATION_ID = 8888;
 
-    public static FileDownloadManager getInstance(final Context context) {
+    public static FileDownloadManager getInstance() {
         synchronized (FileDownloadManager.class) {
             if (sInstance == null) {
-                sInstance = new FileDownloadManager(context);
+                sInstance = new FileDownloadManager();
             }
         }
         return sInstance;
     }
 
-    private FileDownloadManager(final Context context) {
+    private FileDownloadManager() {
         super(null);
 
-        if (context == null) {
-            throw new IllegalArgumentException("Context can never be null");
-        }
-
-        mContext = context;
+        mContext = Application.getInstance();
         mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
     }
 
     public void recoverStatus() {
-        Intent intent = new Intent(mContext, FileDownloadService.class);
+        Intent intent = FileDownloadService.createIntent(Application.getInstance());
         intent.setAction(FileDownloadService.ACTION_RECOVER_STATUS);
         mContext.startService(intent);
     }
@@ -112,9 +110,7 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     private void postRequest(FileDownloadRequest request) {
-        Intent intent = new Intent(FileDownloadService.ACTION_DOWNLOAD_FILE);
-        intent.setPackage(mContext.getPackageName());
-        intent.putExtra(FileDownloadService.FILE_DOWNLOAD_REQUEST, request);
+        Intent intent = FileDownloadService.createFileDownloadIntent(Application.getInstance(), request);
         mContext.startService(intent);
     }
 
