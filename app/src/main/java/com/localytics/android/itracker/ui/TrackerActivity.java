@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.data.model.Track;
+import com.localytics.android.itracker.ui.helper.SingleActivity;
 import com.localytics.android.itracker.ui.widget.FragmentPagerAdapter;
 import com.localytics.android.itracker.utils.LogUtils;
 
@@ -39,7 +39,7 @@ import java.util.List;
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 
 
-public class TrackerActivity extends BaseActivity implements
+public class TrackerActivity extends SingleActivity implements
         NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener {
 
     private static final String TAG = LogUtils.makeLogTag(TrackerActivity.class);

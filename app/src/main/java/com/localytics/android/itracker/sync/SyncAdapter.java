@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
+import android.os.Process;
 
 import com.localytics.android.itracker.BuildConfig;
 import com.localytics.android.itracker.utils.LogUtils;
@@ -40,6 +41,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(final Account account, Bundle extras, String authority,
                               final ContentProviderClient provider, final SyncResult syncResult) {
+
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
         final boolean uploadOnly = extras.getBoolean(ContentResolver.SYNC_EXTRAS_UPLOAD, false);
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
         final boolean initialize = extras.getBoolean(ContentResolver.SYNC_EXTRAS_INITIALIZE, false);

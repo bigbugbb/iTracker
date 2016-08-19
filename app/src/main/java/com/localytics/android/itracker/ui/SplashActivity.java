@@ -1,5 +1,6 @@
 package com.localytics.android.itracker.ui;
 
+import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
@@ -7,7 +8,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.view.KeyEvent;
@@ -30,13 +30,27 @@ import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 public class SplashActivity extends SingleActivity {
     private final static String TAG = makeLogTag(SplashActivity.class);
 
+    private static final String ACTION_AUTHENTICATE_ACCOUNT = "com.localytics.android.itracker.ui.SingleActivity.ACTION_AUTHENTICATE_ACCOUNT";
+
+    private String mAction;
+
     public static Intent createIntent(Context context) {
         return new Intent(context, SplashActivity.class);
+    }
+
+    public static Intent createAuthenticateAccountIntent(Context context) {
+        Intent intent = createIntent(context);
+        intent.setAction(ACTION_AUTHENTICATE_ACCOUNT);
+        return intent;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (isFinishing()) {
+            return;
+        }
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -51,55 +65,24 @@ public class SplashActivity extends SingleActivity {
 
         PrefUtils.init(getApplicationContext());
 
-        if (!AccountUtils.hasToken(this)) {
-            new Handler(getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    AccountUtils.startAuthenticationFlow(
-                            SplashActivity.this, // This must be the activity context to start the authenticate activity.
-                            AccountUtils.ACCOUNT_TYPE,
-                            AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
-                            new SimpleAccountManagerCallback(SplashActivity.this)
-                    );
-                }
-            }, 2000);
-        } else {
-            Intent intent = new Intent(this, TrackerActivity.class);
-            startActivity(intent);
+        mAction = getIntent().getAction();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        mAction = getIntent().getAction();
+        getIntent().setAction(null);
+
+        if (ACTION_AUTHENTICATE_ACCOUNT.equals(mAction)) {
+            startAuthenticate();
         }
     }
 
     @Override
     public void onBackPressed() {
         // do nothing to prevent user closing the app from the back button
-    }
-
-    private static class SimpleAccountManagerCallback implements AccountManagerCallback<Bundle> {
-        private Activity mActivity;
-
-        public SimpleAccountManagerCallback(@NonNull Activity activity) {
-            mActivity = activity;
-        }
-
-        @Override
-        public void run(AccountManagerFuture<Bundle> future) {
-            final Bundle result;
-            try {
-                result = future.getResult();
-                String authToken = result.getString(AccountManager.KEY_AUTHTOKEN);
-                if (authToken != null) {
-                    LOGD(TAG, authToken != null ? "SUCCESS!\nToken: " + authToken : "FAIL");
-                    Intent intent = new Intent();
-                    intent.setClass(mActivity, TrackerActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    mActivity.startActivity(intent);
-                    mActivity.finish();
-                }
-                LOGD(TAG, "GetTokenForAccount Bundle is " + result);
-            } catch (Exception e) {
-                LOGE(TAG, "Can't get result from future", e);
-            }
-        }
     }
 
     @Override
@@ -109,6 +92,11 @@ public class SplashActivity extends SingleActivity {
             startService(AppPersistentService.createIntent(this));
             update();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -125,12 +113,51 @@ public class SplashActivity extends SingleActivity {
         if (Application.getInstance().isInitialized()
                 && !Application.getInstance().isClosing() && !isFinishing()) {
             LogManager.i(this, "Initialized");
-            finish();
+            startAuthenticate();
         }
     }
 
     private void cancel() {
         finish();
         ActivityManager.getInstance().cancelTask(this);
+    }
+
+    private void startAuthenticate() {
+        if (!AccountUtils.hasToken(this)) {
+            Application.getInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    AccountUtils.startAuthenticationFlow(
+                            SplashActivity.this, // This must be the activity context to start the authenticate activity.
+                            AccountUtils.ACCOUNT_TYPE,
+                            AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
+                            new SimpleAccountManagerCallback()
+                    );
+                }
+            });
+        } else {
+            Intent intent = TrackerActivity.createIntent(this);
+            startActivity(intent);
+        }
+    }
+
+    private static class SimpleAccountManagerCallback implements AccountManagerCallback<Bundle> {
+
+        @Override
+        public void run(AccountManagerFuture<Bundle> future) {
+            final Bundle result;
+            try {
+                result = future.getResult();
+                String authToken = result.getString(AccountManager.KEY_AUTHTOKEN);
+                if (authToken != null) {
+                    LOGD(TAG, authToken != null ? "SUCCESS!\nToken: " + authToken : "FAIL");
+                    Intent intent = TrackerActivity.createIntent(Application.getInstance());
+                    Application.getInstance().startActivity(intent);
+                }
+                LOGD(TAG, "GetTokenForAccount Bundle is " + result);
+            } catch (Exception e) {
+                LOGE(TAG, "Can't get result from future", e);
+            }
+        }
     }
 }

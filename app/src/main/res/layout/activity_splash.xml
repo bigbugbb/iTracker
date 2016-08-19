@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="10"
-    android:background="@drawable/splash_screen"
     tools:context="com.localytics.android.itracker.ui.SplashActivity">
 
     <android.support.v4.widget.Space

@@ -126,6 +126,7 @@ public class FileDownloadService extends Service {
     public void onDestroy() {
         mExecutor.shutdown();
         mHandlerThread.quitSafely();
+        sInstance = null;
     }
 
     @Override

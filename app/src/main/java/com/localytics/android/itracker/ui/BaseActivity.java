@@ -121,7 +121,7 @@ public class BaseActivity extends ManagedActivity implements
 
     protected boolean requestPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED && !(this instanceof SplashActivity)) {
 
             ArrayList<String> permissions = new ArrayList<>();
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);

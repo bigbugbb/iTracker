@@ -21,10 +21,7 @@ public class DataImportReceiver extends WakefulBroadcastReceiver {
 
         if (ACTION_IMPORT_DATA.equals(action)) {
             LOGD(TAG, "Got ACTION_IMPORT_DATA");
-            Intent serviceIntent = new Intent(context, DataImportService.class);
-            Bundle extras = intent.getExtras();
-            serviceIntent.putExtras(extras);
-            serviceIntent.setAction(DataImportService.INTENT_ACTION_IMPORT_DATA);
+            Intent serviceIntent = DataImportService.createDataImportIntent(context, intent.getExtras());
             startWakefulService(context, serviceIntent);
         }
     }

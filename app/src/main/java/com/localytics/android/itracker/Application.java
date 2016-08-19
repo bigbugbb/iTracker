@@ -20,6 +20,7 @@ import com.localytics.android.itracker.data.OnUnloadListener;
 import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
 import com.localytics.android.itracker.service.sensor.AppPersistentService;
+import com.localytics.android.itracker.ui.SplashActivity;
 import com.localytics.android.itracker.utils.LogUtils;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;
@@ -148,6 +149,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
         ArrayList<String> contactManager = new ArrayList<>();
         TypedArray contactManagerClasses = getResources().obtainTypedArray(R.array.contact_managers);
@@ -234,6 +236,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
         AppPersistentService.getInstance().changeForeground();
         FileDownloadManager.getInstance().recoverStatus();
         sendBroadcast(SensorMonitorReceiver.createBootstrapIntent(this));
+        startActivity(SplashActivity.createAuthenticateAccountIntent(this));
         startTimer();
     }
 

@@ -2,6 +2,7 @@ package com.localytics.android.itracker.sync;
 
 import android.app.Service;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
@@ -56,6 +57,13 @@ public class DataImportService extends Service {
 
     private Handler mServiceHandler;
     private HandlerThread mHandlerThread;
+
+    public static Intent createDataImportIntent(Context context, Bundle config) {
+        Intent intent = new Intent(context, DataImportService.class);
+        intent.putExtras(config);
+        intent.setAction(DataImportService.INTENT_ACTION_IMPORT_DATA);
+        return intent;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {

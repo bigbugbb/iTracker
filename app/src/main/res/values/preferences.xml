@@ -40,7 +40,6 @@
         <item>com.localytics.android.itracker.data.extension.cs.ChatStateManager</item>
         <item>com.localytics.android.itracker.data.connection.NetworkManager</item>
         <item>com.localytics.android.itracker.data.account.OAuthManager</item>
-        <item>com.localytics.android.itracker.data.roster.SyncManager</item>
         <item>com.localytics.android.itracker.data.message.ReceiptManager</item>
         <item>com.localytics.android.itracker.data.extension.archive.MessageArchiveManager</item>
         <item>com.localytics.android.itracker.data.extension.ssn.SSNManager</item>

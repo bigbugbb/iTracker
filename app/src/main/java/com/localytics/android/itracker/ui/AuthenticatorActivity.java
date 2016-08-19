@@ -3,6 +3,7 @@ package com.localytics.android.itracker.ui;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
+import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Build;
@@ -143,7 +144,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         }
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
-
-        finish(); // bye bye
+        finish();
     }
 }
