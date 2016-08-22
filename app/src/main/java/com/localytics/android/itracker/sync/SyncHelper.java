@@ -28,6 +28,7 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.data.model.Activity;
 import com.localytics.android.itracker.data.model.Backup;
@@ -345,7 +346,7 @@ public class SyncHelper {
         mRequestQueue.add(request);
 
         try {
-            String response = future.get(30, TimeUnit.SECONDS);
+            String response = future.get(30000, TimeUnit.MILLISECONDS);
             LOGD(TAG, "Backup information:\n" + response);
 
             if (!TextUtils.isEmpty(response)) {
@@ -440,11 +441,8 @@ public class SyncHelper {
                             LOGE(TAG, "Failed to update backups sync state from syncing to synced: " + key);
                         } else {
                             // Start the data import service to import data from the downloaded file.
-                            Intent intent = new Intent(DataImportReceiver.ACTION_IMPORT_DATA);
-                            Bundle extras = new Bundle();
-                            extras.putString(DataImportService.EXTRA_IMPORT_FILE_PATH, fileToDownload.getAbsolutePath());
-                            extras.putParcelable(DataImportService.EXTRA_IMPORT_BACKUP_INFO, pendingBackup);
-                            intent.putExtras(extras);
+                            Intent intent = DataImportReceiver.createImportDataIntent(
+                                    Application.getInstance(), fileToDownload.getAbsolutePath(), pendingBackup);
                             mContext.sendBroadcast(intent);
                         }
                     }

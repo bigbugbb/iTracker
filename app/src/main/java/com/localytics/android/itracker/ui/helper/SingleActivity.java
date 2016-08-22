@@ -1,12 +1,12 @@
 package com.localytics.android.itracker.ui.helper;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import android.app.Activity;
 import android.os.Bundle;
 
 import com.localytics.android.itracker.ui.BaseActivity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class SingleActivity extends BaseActivity {
 

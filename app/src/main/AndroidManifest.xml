@@ -313,18 +313,6 @@
         <!-- </intent-filter> -->
         <!-- </receiver> -->
 
-
-        <!-- <receiver -->
-        <!-- android:name="com.localytics.android.PushReceiver" -->
-        <!-- android:permission="com.google.android.c2dm.permission.SEND" > -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="com.google.android.c2dm.intent.REGISTRATION" /> -->
-        <!-- <action android:name="com.google.android.c2dm.intent.RECEIVE" /> -->
-        <!-- <category android:name="com.localytics.android.itracker" /> -->
-        <!-- </intent-filter> -->
-        <!-- </receiver> -->
-        <!-- [END Localytics Integration] -->
-
     </application>
 
 </manifest>
