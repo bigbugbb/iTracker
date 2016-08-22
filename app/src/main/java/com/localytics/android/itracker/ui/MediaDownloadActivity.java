@@ -16,10 +16,10 @@ import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
 import android.widget.Toast;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.data.model.MediaDownload;
-import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.data.FileDownloadManager;
+import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
@@ -33,7 +33,8 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGE;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
-public class MediaDownloadActivity extends BaseActivity implements MediaDownloadFragment.OnStartMediaPlaybackListener {
+public class MediaDownloadActivity extends BaseActivity
+        implements OnStartMediaPlaybackListener {
     private final static String TAG = makeLogTag(MediaDownloadActivity.class);
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
@@ -112,7 +113,7 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
                 }
 
                 if (!ConnectivityUtils.isWifiConnected(mContext)) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    Application.getInstance().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
@@ -128,10 +129,8 @@ public class MediaDownloadActivity extends BaseActivity implements MediaDownload
     }
 
     @Override
-    public void onStartMediaPlayback(Uri uri, MediaDownload download) {
-        Intent intent = new Intent(this, PlayerActivity.class);
-        intent.setData(uri);
-        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, download.title);
+    public void onStartMediaPlayback(Uri uri, String title) {
+        Intent intent = PlayerActivity.createStartPlaybackIntent(Application.getInstance(), uri, title);
         startActivity(intent);
     }
 }

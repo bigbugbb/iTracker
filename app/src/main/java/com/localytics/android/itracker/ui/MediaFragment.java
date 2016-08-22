@@ -64,6 +64,7 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.VideoListResponse;
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
@@ -90,6 +91,7 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGI;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class MediaFragment extends TrackerFragment implements
+        OnStartMediaPlaybackListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = makeLogTag(MediaFragment.class);
@@ -728,10 +730,9 @@ public class MediaFragment extends TrackerFragment implements
         return keyword;
     }
 
-    private void startMediaPlayback(Uri uri, Video video) {
-        Intent intent = new Intent(getActivity(), PlayerActivity.class);
-        intent.setData(uri);
-        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, video.title);
+    @Override
+    public void onStartMediaPlayback(Uri uri, String title) {
+        Intent intent = PlayerActivity.createStartPlaybackIntent(Application.getInstance(), uri, title);
         startActivity(intent);
     }
 
@@ -893,14 +894,14 @@ public class MediaFragment extends TrackerFragment implements
                                     if (type == ConnectivityManager.TYPE_WIFI) {
                                         Uri uri = result.getBestAvaiableQualityVideoUri();
                                         if (uri != null) {
-                                            startMediaPlayback(uri, video);
+                                            onStartMediaPlayback(uri, video.title);
                                         } else {
                                             Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
                                         }
                                     } else {
                                         Uri uri = result.getWorstAvaiableQualityVideoUri();
                                         if (uri != null) {
-                                            startMediaPlayback(uri, video);
+                                            onStartMediaPlayback(uri, video.title);
                                         } else {
                                             Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
                                         }

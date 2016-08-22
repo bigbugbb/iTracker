@@ -1,6 +1,8 @@
 package com.localytics.android.itracker.ui;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +14,13 @@ import com.localytics.android.itracker.ui.widget.player.controller.PlayerControl
 public class PlayerActivity extends BaseActivity implements PlayerControllerVisibilityListener {
 
     public static final String MEDIA_PLAYER_TITLE = "media_player_title";
+
+    public static Intent createStartPlaybackIntent(Context context, Uri uri, String title) {
+        Intent intent = new Intent(context, PlayerActivity.class);
+        intent.setData(uri);
+        intent.putExtra(PlayerActivity.MEDIA_PLAYER_TITLE, title);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

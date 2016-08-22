@@ -34,38 +34,38 @@ import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 /**
  * Provides the public api to trigger the file download actions
  */
-public class FileDownloadManager extends ContentObserver {
+public class FileDownloadManager extends ContentObserver implements OnLoadListener {
     private final static String TAG = makeLogTag(FileDownloadManager.class);
-
-    private Context mContext;
 
     private static FileDownloadManager sInstance;
     private static final int NOTIFICATION_ID = 8888;
 
-    public static FileDownloadManager getInstance() {
-        synchronized (FileDownloadManager.class) {
-            if (sInstance == null) {
-                sInstance = new FileDownloadManager();
-            }
-        }
-        return sInstance;
+    static {
+        sInstance = new FileDownloadManager();
+        Application.getInstance().addManager(sInstance);
     }
 
     private FileDownloadManager() {
         super(null);
+        Application.getInstance().getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
+    }
 
-        mContext = Application.getInstance();
-        mContext.getContentResolver().registerContentObserver(FileDownloads.CONTENT_URI, true, this);
+    public static FileDownloadManager getInstance() {
+        return sInstance;
+    }
+
+    @Override
+    public void onLoad() {
+
     }
 
     public void recoverStatus() {
-        Intent intent = FileDownloadService.createIntent(Application.getInstance());
-        intent.setAction(FileDownloadService.ACTION_RECOVER_STATUS);
-        mContext.startService(intent);
+        Intent intent = FileDownloadService.createRecoverStatusIntent(Application.getInstance());
+        Application.getInstance().startService(intent);
     }
 
     public boolean startDownload(String id) {
-        if (!ConnectivityUtils.isWifiConnected(mContext)) {
+        if (!ConnectivityUtils.isWifiConnected(Application.getInstance())) {
             return false;
         }
 
@@ -79,7 +79,7 @@ public class FileDownloadManager extends ContentObserver {
     }
 
     public boolean startDownload(String id, Uri srcUri, Uri destUri) {
-        if (!ConnectivityUtils.isWifiConnected(mContext)) {
+        if (!ConnectivityUtils.isWifiConnected(Application.getInstance())) {
             return false;
         }
 
@@ -112,7 +112,7 @@ public class FileDownloadManager extends ContentObserver {
 
     private void postRequest(FileDownloadRequest request) {
         Intent intent = FileDownloadService.createFileDownloadIntent(Application.getInstance(), request);
-        mContext.startService(intent);
+        Application.getInstance().startService(intent);
     }
 
     private String getVideoTargetUrl(final String videoId) {
@@ -129,7 +129,7 @@ public class FileDownloadManager extends ContentObserver {
     public boolean startAvailableDownloads() {
         String availableStatus = String.format("%s,%s,%s,%s,%s",
                 DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value(), DownloadStatus.PAUSED.value());
-        Cursor cursor = mContext.getContentResolver().query(
+        Cursor cursor = Application.getInstance().getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,
                 null,
@@ -162,7 +162,7 @@ public class FileDownloadManager extends ContentObserver {
     public boolean pauseAvailableDownloads() {
         String availableStatus = String.format("%s,%s,%s,%s",
                 DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
-        Cursor cursor = mContext.getContentResolver().query(
+        Cursor cursor = Application.getInstance().getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,
                 null,
@@ -194,7 +194,7 @@ public class FileDownloadManager extends ContentObserver {
             @Override
             protected Void doInBackground(Void... params) {
                 if (startAvailableDownloads() && withNotification) {
-                    sendStartDownloadingNotification(mContext);
+                    sendStartDownloadingNotification(Application.getInstance());
                 }
                 return null;
             }
@@ -206,7 +206,7 @@ public class FileDownloadManager extends ContentObserver {
             @Override
             protected Void doInBackground(Void... params) {
                 if (pauseAvailableDownloads() && withNotification) {
-                    sendPauseDownloadingNotification(mContext);
+                    sendPauseDownloadingNotification(Application.getInstance());
                 }
                 return null;
             }

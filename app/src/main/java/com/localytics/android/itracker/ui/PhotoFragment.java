@@ -33,6 +33,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Photo;
 import com.localytics.android.itracker.ui.widget.CollectionView;
@@ -480,7 +481,7 @@ public class PhotoFragment extends TrackerFragment {
                 final ItemViewHolder holder = (ItemViewHolder) tag;
                 final Photo photo = (Photo) itemTag;
                 if (holder.photoImage != null) {
-                    holder.registerListener(context, view, photo);
+                    holder.registerListener(view, photo);
                     Glide.with(context)
                             .load(photo.data)
                             .centerCrop()
@@ -522,16 +523,15 @@ public class PhotoFragment extends TrackerFragment {
         private class ItemViewHolder {
             ImageView photoImage;
 
-            void registerListener(final Context context, final View view, final Photo photo) {
+            void registerListener(final View view, final Photo photo) {
                 photoImage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        final Intent i = new Intent(context, PhotoDetailActivity.class);
-                        i.putExtra(PhotoDetailActivity.EXTRA_SELECTED_PHOTO, photo);
-                        i.putParcelableArrayListExtra(PhotoDetailActivity.EXTRA_AVAILABLE_PHOTOS, inventoryToList(mPhotoInventory));
+                        Intent intent = PhotoDetailActivity.createIntent(Application.getInstance(),
+                                photo, inventoryToList(mPhotoInventory));
                         ActivityOptions options =
                                 ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-                        context.startActivity(i, options.toBundle());
+                        Application.getInstance().startActivity(intent, options.toBundle());
                     }
                 });
             }

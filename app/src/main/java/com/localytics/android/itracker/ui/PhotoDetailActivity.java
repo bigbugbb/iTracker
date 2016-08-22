@@ -1,8 +1,9 @@
 package com.localytics.android.itracker.ui;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.NavUtils;
@@ -29,6 +30,13 @@ public class PhotoDetailActivity extends ManagedActivity implements OnContentCli
 
     private PhotoPagerAdapter mAdapter;
     private ViewPager mPager;
+
+    public static Intent createIntent(Context context, Photo selectedPhoto, ArrayList<Photo> availablePhotos) {
+        Intent intent = new Intent(context, PhotoDetailActivity.class);
+        intent.putExtra(PhotoDetailActivity.EXTRA_SELECTED_PHOTO, selectedPhoto);
+        intent.putParcelableArrayListExtra(PhotoDetailActivity.EXTRA_AVAILABLE_PHOTOS, availablePhotos);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
