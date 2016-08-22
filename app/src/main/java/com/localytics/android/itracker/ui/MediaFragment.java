@@ -132,9 +132,6 @@ public class MediaFragment extends TrackerFragment implements
 
     private String mChosenAccountName;
 
-    // Register an API key here: https://console.developers.google.com
-    public static final String KEY = "AIzaSyBKpl_2cbamvaAd8xbCE9KzW5KYEz-DEZo";
-
     public static final String[] SCOPES = {Scopes.PROFILE, YouTubeScopes.YOUTUBE};
 
     public MediaFragment() {

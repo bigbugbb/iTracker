@@ -68,7 +68,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-plus:9.4.0'
     compile 'com.google.android.gms:play-services-maps:9.4.0'
     compile 'com.google.android.gms:play-services-location:9.4.0'
-    compile 'com.google.apis:google-api-services-youtube:v3-rev164-1.21.0'
+    compile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
     compile 'com.android.support:support-v13:23.4.0'
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
