@@ -531,7 +531,7 @@ public class PhotoFragment extends TrackerFragment {
                                 photo, inventoryToList(mPhotoInventory));
                         ActivityOptions options =
                                 ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-                        Application.getInstance().startActivity(intent, options.toBundle());
+                        startActivity(intent, options.toBundle());
                     }
                 });
             }

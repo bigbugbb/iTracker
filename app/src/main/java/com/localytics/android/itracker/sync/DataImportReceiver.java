@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
+import com.localytics.android.itracker.data.model.Backup;
+
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
@@ -13,7 +15,16 @@ public class DataImportReceiver extends WakefulBroadcastReceiver {
 
     public static final String TAG = makeLogTag(DataImportReceiver.class);
 
-    public static final String ACTION_IMPORT_DATA = "com.localytics.android.itracker.intent.action.IMPORT_DATA";
+    private static final String ACTION_IMPORT_DATA = "com.localytics.android.itracker.intent.action.IMPORT_DATA";
+
+    public static Intent createImportDataIntent(Context context, String filePath, Backup pendingBackup) {
+        Intent intent = new Intent(ACTION_IMPORT_DATA);
+        Bundle extras = new Bundle();
+        extras.putString(DataImportService.EXTRA_IMPORT_FILE_PATH, filePath);
+        extras.putParcelable(DataImportService.EXTRA_IMPORT_BACKUP_INFO, pendingBackup);
+        intent.putExtras(extras);
+        return intent;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {

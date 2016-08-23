@@ -41,7 +41,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(final Account account, Bundle extras, String authority,
                               final ContentProviderClient provider, final SyncResult syncResult) {
-
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
         final boolean uploadOnly = extras.getBoolean(ContentResolver.SYNC_EXTRAS_UPLOAD, false);
