@@ -14,7 +14,9 @@ import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.provider.TrackerContract;
+import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
+import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
+import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
 import com.localytics.android.itracker.ui.DownloadStateChangedListener;
 import com.localytics.android.itracker.utils.PrefUtils;
 import com.localytics.android.itracker.utils.YouTubeExtractor;
@@ -50,7 +52,7 @@ class FileDownloadTask implements Runnable {
     private AtomicBoolean mCanceled;
 
     private String mContentType;
-    private TrackerContract.DownloadStatus mStatus;
+    private DownloadStatus mStatus;
     private Map<String, String> mDownloadInfo;
 
     private FileDownloadNotificationBuilder mNotificationBuilder;
@@ -70,7 +72,7 @@ class FileDownloadTask implements Runnable {
         mPaused = new AtomicBoolean();
         mCanceled = new AtomicBoolean();
         mResolver = mContext.getContentResolver();
-        mStatus = TrackerContract.DownloadStatus.PENDING;
+        mStatus = DownloadStatus.PENDING;
         mNotificationBuilder = FileDownloadNotificationBuilder.getInstance();
     }
 
@@ -95,11 +97,11 @@ class FileDownloadTask implements Runnable {
             long currentFileSize, totalFileSize = 0, readBetweenInterval = 0;
 
             // Query for any existing download record for this media
-            Cursor cursor = mResolver.query(TrackerContract.FileDownloads.CONTENT_URI, null, TrackerContract.FileDownloads.FILE_ID + " = ?", new String[]{mRequest.mId}, null);
+            Cursor cursor = mResolver.query(FileDownloads.CONTENT_URI, null, FileDownloads.FILE_ID + " = ?", new String[]{mRequest.mId}, null);
             if (cursor != null) {
                 try {
                     if (cursor.moveToFirst()) {
-                        totalFileSize = cursor.getLong(cursor.getColumnIndex(TrackerContract.FileDownloads.TOTAL_SIZE));
+                        totalFileSize = cursor.getLong(cursor.getColumnIndex(FileDownloads.TOTAL_SIZE));
                     }
                 } finally {
                     cursor.close();
@@ -126,15 +128,15 @@ class FileDownloadTask implements Runnable {
             LOGI(TAG, "Redirected URL: " + connection.getURL());
 
             /***** Downloading *****/
-            updateStatus(TrackerContract.DownloadStatus.DOWNLOADING, false);
+            updateStatus(DownloadStatus.DOWNLOADING, false);
 
             ContentValues values = new ContentValues();
-            values.put(TrackerContract.FileDownloads.STATUS, mStatus.value());
+            values.put(FileDownloads.STATUS, mStatus.value());
             if (totalFileSize == 0) {
                 totalFileSize = Long.parseLong(connection.getHeaderField("Content-Length"));
-                values.put(TrackerContract.FileDownloads.TOTAL_SIZE, totalFileSize);
+                values.put(FileDownloads.TOTAL_SIZE, totalFileSize);
             }
-            mResolver.update(TrackerContract.FileDownloads.CONTENT_URI, values, String.format("%s = ?", TrackerContract.FileDownloads.FILE_ID), new String[]{mRequest.mId});
+            mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{mRequest.mId});
 
             mContentType = connection.getHeaderField("Content-Type");
 
@@ -193,7 +195,7 @@ class FileDownloadTask implements Runnable {
         }
 
         if (reconnect && retries < RECONNECT_COUNT) {
-            updateStatus(TrackerContract.DownloadStatus.CONNECTING);
+            updateStatus(DownloadStatus.CONNECTING);
             waitBeforeReconnect(retries);
             download(retries + 1);
         }
@@ -214,7 +216,7 @@ class FileDownloadTask implements Runnable {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             /***** Preparing *****/
-            updateStatus(TrackerContract.DownloadStatus.PREPARING);
+            updateStatus(DownloadStatus.PREPARING);
 
             onPreparing();
 
@@ -224,27 +226,27 @@ class FileDownloadTask implements Runnable {
 
             /***** Completed *****/
             File finalFile;
-            if ((finalFile = updateFileName(mDownloadInfo.get(TrackerContract.MediaDownloads.TITLE))) == null) {
+            if ((finalFile = updateFileName(mDownloadInfo.get(MediaDownloads.TITLE))) == null) {
                 throw new IOException("Can't generate the final file");
             } else {
                 LOGD(TAG, String.format("Download %s has been completed (file: %s)", mRequest.mId, finalFile));
                 updateLocalLocation(finalFile);
-                updateStatus(TrackerContract.DownloadStatus.COMPLETED);
+                updateStatus(DownloadStatus.COMPLETED);
                 onCompleted(Uri.fromFile(finalFile));
             }
         } catch (DownloadInterruptedException e) {
             if (e.getReason().equals(INTERRUPT_BY_PAUSE)) {
                 LOGD(TAG, String.format("Download %s has been paused", mRequest.mId), e);
-                updateStatus(TrackerContract.DownloadStatus.PAUSED);
+                updateStatus(DownloadStatus.PAUSED);
                 onPaused();
             } else if (e.getReason().equals(INTERRUPT_BY_CANCEL)) {
                 LOGD(TAG, String.format("Download %s has been canceled", mRequest.mId), e);
-                updateStatus(TrackerContract.DownloadStatus.CANCELED);
+                updateStatus(DownloadStatus.CANCELED);
                 onCanceled();
             }
         } catch (Exception e) {
             LOGE(TAG, String.format("Failed to download %s from %s", mRequest.mId, mRequest.mSrcUri), e);
-            updateStatus(TrackerContract.DownloadStatus.FAILED);
+            updateStatus(DownloadStatus.FAILED);
             onFailed(e);
         } finally {
             if (mCanceled.get()) {
@@ -293,23 +295,23 @@ class FileDownloadTask implements Runnable {
 
         String title = null, startTime = null;
         Cursor cursor = mContext.getContentResolver().query(
-                TrackerContract.FileDownloads.MEDIA_DOWNLOADS_URI,
+                FileDownloads.MEDIA_DOWNLOADS_URI,
                 null,
-                TrackerContract.FileDownloads.FILE_ID + " = ?",
+                FileDownloads.FILE_ID + " = ?",
                 new String[] { mRequest.mId },
                 null);
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {
-                    title = cursor.getString(cursor.getColumnIndex(TrackerContract.MediaDownloads.TITLE));
-                    startTime = cursor.getString(cursor.getColumnIndex(TrackerContract.MediaDownloads.START_TIME));
+                    title = cursor.getString(cursor.getColumnIndex(MediaDownloads.TITLE));
+                    startTime = cursor.getString(cursor.getColumnIndex(MediaDownloads.START_TIME));
                 }
             } finally {
                 cursor.close();
             }
         }
 
-        downloadInfo.put(TrackerContract.MediaDownloads.TITLE, TextUtils.isEmpty(title) ? mRequest.getId() : title);
+        downloadInfo.put(MediaDownloads.TITLE, TextUtils.isEmpty(title) ? mRequest.getId() : title);
 
         DateTimeFormatter formatter = DateTimeFormat.forPattern("hh:mm a");
         if (TextUtils.isEmpty(startTime)) {
@@ -318,7 +320,7 @@ class FileDownloadTask implements Runnable {
             startTime = ISODateTimeFormat.dateTime().parseDateTime(startTime).toString(formatter);
         }
         startTime = startTime.startsWith("0") ? startTime.substring(1) : startTime;
-        downloadInfo.put(TrackerContract.MediaDownloads.START_TIME, startTime);
+        downloadInfo.put(MediaDownloads.START_TIME, startTime);
 
         return downloadInfo;
     }
@@ -446,23 +448,23 @@ class FileDownloadTask implements Runnable {
 
     void updateLocalLocation(File downloadedFile) {
         ContentValues values = new ContentValues();
-        values.put(TrackerContract.FileDownloads.LOCAL_LOCATION, downloadedFile.toString());
-        mResolver.update(TrackerContract.FileDownloads.CONTENT_URI, values, String.format("%s = ?", TrackerContract.FileDownloads.FILE_ID), new String[]{mRequest.mId});
+        values.put(FileDownloads.LOCAL_LOCATION, downloadedFile.toString());
+        mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{mRequest.mId});
     }
 
-    void updateStatus(TrackerContract.DownloadStatus status) {
+    void updateStatus(DownloadStatus status) {
         updateStatus(status, true);
     }
 
-    void updateStatus(TrackerContract.DownloadStatus status, boolean syncDb) {
+    void updateStatus(DownloadStatus status, boolean syncDb) {
         synchronized (this) {
             mStatus = status;
         }
 
         if (syncDb) {
             ContentValues values = new ContentValues();
-            values.put(TrackerContract.FileDownloads.STATUS, mStatus.value());
-            mResolver.update(TrackerContract.FileDownloads.CONTENT_URI, values, String.format("%s = ?", TrackerContract.FileDownloads.FILE_ID), new String[]{ mRequest.mId });
+            values.put(FileDownloads.STATUS, mStatus.value());
+            mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
         }
     }
 

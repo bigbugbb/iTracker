@@ -54,6 +54,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
 
     private MediaDownloadAdapter mMediaDownloadAdapter;
     private RecyclerView mMediaDownloadView;
+    private TextView mEmptyView;
 
     private ThrottledContentObserver mMediaDownloadsObserver;
 
@@ -78,6 +79,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mEmptyView = (TextView) view.findViewById(R.id.empty_view);
         mMediaDownloadView = (RecyclerView) view.findViewById(R.id.media_download_view);
         mMediaDownloadView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mMediaDownloadView.setItemAnimator(new DefaultItemAnimator());
@@ -135,6 +137,9 @@ public class MediaDownloadFragment extends TrackerFragment implements
                 MediaDownload[] downloads = MediaDownload.downloadsFromCursor(data);
                 if (downloads != null && downloads.length > 0) {
                     mMediaDownloadAdapter.updateDownloads(downloads);
+                    mEmptyView.setVisibility(View.GONE);
+                } else {
+                    mEmptyView.setVisibility(View.VISIBLE);
                 }
                 break;
             }
@@ -174,6 +179,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
     public void onCanceled(FileDownloadRequest request, Bundle extra) {
         AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver());
         handler.startDelete(0, null, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{request.getId()});
+        deleteDownloadedFile(Config.FILE_DOWNLOAD_DIR_PATH + request.getId());
     }
 
     @Override
@@ -311,7 +317,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
     }
 
     private void onActionCancelDownload(final MediaDownload download) {
-        Context context = getActivity().getApplicationContext();
+        Context context = Application.getInstance();
         final String tmpFileLocation = Config.FILE_DOWNLOAD_DIR_PATH + download.identifier; // In the future if no default location is used, the download object should also contain the destination location
 
         SpannableString statusText = new SpannableString(
@@ -334,20 +340,12 @@ public class MediaDownloadFragment extends TrackerFragment implements
                 .setTitle("Cancel download")
                 // Set Dialog Message
                 .setMessage(statusText)
-
                 // Positive button
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
-                            @Override
-                            protected void onDeleteComplete(int token, Object cookie, int result) {
-                                deleteDownloadedFile((String) cookie);
-                            }
-                        };
-                        handler.startDelete(0, tmpFileLocation, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
+                        FileDownloadManager.getInstance().cancelDownload(download.identifier);
                     }
                 })
-
                 // Negative Button
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,	int which) {

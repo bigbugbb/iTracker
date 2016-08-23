@@ -171,6 +171,7 @@
     <string name="play_progressive_error_message">Impossible to play the progressive video.</string>
 
     <!-- Media downloads -->
+    <string name="no_download_available">You don\'t have any downloads.</string>
     <string name="download_without_selection">You must select a video to download.</string>
 
     <!-- TODO: Remove or change this placeholder text -->
