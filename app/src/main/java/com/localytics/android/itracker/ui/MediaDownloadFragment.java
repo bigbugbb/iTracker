@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentManager;
 import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -301,23 +302,10 @@ public class MediaDownloadFragment extends TrackerFragment implements
     }
 
     private void onActionShowProperty(MediaDownload download) {
-//        AlertDialog dialog = new AlertDialog.Builder(getActivity())
-//                // Set Dialog Title
-//                .setTitle("File property")
-//                // Set Dialog Message
-//                .setMessage(statusText)
-//                // Positive button
-//                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        FileDownloadManager.getInstance().cancelDownload(download.identifier);
-//                    }
-//                })
-//                // Negative Button
-//                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog,	int which) {
-//                        // Do nothing
-//                    }
-//                }).create();
+        DownloadedMediaPropertiesDialog dialog = DownloadedMediaPropertiesDialog.getInstance(download);
+        if (getFragmentManager().findFragmentByTag(DownloadedMediaPropertiesDialog.TAG) == null) {
+            dialog.show(getFragmentManager(), DownloadedMediaPropertiesDialog.TAG);
+        }
     }
 
     private void onActionStartDownload(MediaDownload download) {

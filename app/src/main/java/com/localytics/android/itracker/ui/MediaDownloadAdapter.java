@@ -146,6 +146,7 @@ public class MediaDownloadAdapter extends RecyclerView.Adapter<MediaDownloadAdap
                 downloadFileSize.setText(formatFileTotalSize(download.total_size));
             } else {
                 downloadSpeed.setText("");
+                downloadFileSize.setText("");
                 if (download.total_size > 0) {
                     if (currentFileSize > 0) {
                         // The task has been paused previously

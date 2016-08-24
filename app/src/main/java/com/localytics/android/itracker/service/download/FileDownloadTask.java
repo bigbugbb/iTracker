@@ -14,6 +14,7 @@ import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
+import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
@@ -464,6 +465,9 @@ class FileDownloadTask implements Runnable {
         if (syncDb) {
             ContentValues values = new ContentValues();
             values.put(FileDownloads.STATUS, mStatus.value());
+            if (status == DownloadStatus.COMPLETED) {
+                values.put(FileDownloads.FINISH_TIME, DateTime.now().toString());
+            }
             mResolver.update(FileDownloads.CONTENT_URI, values, String.format("%s = ?", FileDownloads.FILE_ID), new String[]{ mRequest.mId });
         }
     }
