@@ -6,7 +6,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentProviderOperation;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.Loader;
@@ -14,7 +13,6 @@ import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -38,13 +36,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -66,12 +60,11 @@ import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.data.model.Video;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.utils.ConnectivityUtils;
 import com.localytics.android.itracker.utils.PrefUtils;
 import com.localytics.android.itracker.utils.ThrottledContentObserver;
-import com.localytics.android.itracker.utils.YouTubeExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,10 +72,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
 
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
@@ -91,7 +81,8 @@ import static com.localytics.android.itracker.utils.LogUtils.LOGI;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 public class MediaFragment extends TrackerFragment implements
-        OnStartMediaPlaybackListener,
+        MediaPlaybackDelegate,
+        OnMediaSelectModeChangedListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = makeLogTag(MediaFragment.class);
@@ -111,7 +102,6 @@ public class MediaFragment extends TrackerFragment implements
     private volatile String mNextPageToken;
     private volatile boolean mLoading;
 
-    private boolean mSelectMode;
     private boolean mShowAsGrid;
 
     private ThrottledContentObserver mVideosObserver;
@@ -180,11 +170,12 @@ public class MediaFragment extends TrackerFragment implements
         mChosenAccountName = PrefUtils.getChosenGoogleAccountName(getActivity());
         mCredential.setSelectedAccountName(mChosenAccountName);
 
-        mMediaAdapter = new MediaAdapter(getActivity());
-
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mShowAsGrid = sp.getBoolean(SHOW_MEDIA_GRID, false);
         mNextPageToken = sp.getString(NEXT_PAGE_TOKEN, null);
+
+        mMediaAdapter = new MediaAdapter(getActivity(), this, this);
+        mMediaAdapter.setShowAsGrid(mShowAsGrid);
     }
 
     @Override
@@ -245,7 +236,7 @@ public class MediaFragment extends TrackerFragment implements
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (mSelectMode) {
+        if (mMediaAdapter.isMediaSelectModeEnabled()) {
             inflater.inflate(R.menu.menu_media_select, menu);
         } else {
             inflater.inflate(R.menu.menu_media, menu);
@@ -282,14 +273,9 @@ public class MediaFragment extends TrackerFragment implements
                     Toast.makeText(getActivity(), R.string.download_without_selection, Toast.LENGTH_SHORT).show();
                     return true;
                 }
+                mMediaAdapter.setMediaSelectModeEnabled(false);
                 Intent intent = MediaDownloadActivity.createVideosDownloadIntent(Application.getInstance(), videos);
                 startActivity(intent);
-
-                if (mSelectMode) {
-                    mSelectMode = false;
-                    getActivity().invalidateOptionsMenu();
-                    mMediaAdapter.clearSelectedVideos();
-                }
                 return true;
             }
             case R.id.action_share: {
@@ -304,6 +290,7 @@ public class MediaFragment extends TrackerFragment implements
         mShowAsGrid = showAsGrid;
         mMenu.findItem(R.id.action_grid).setVisible(!mShowAsGrid);
         mMenu.findItem(R.id.action_list).setVisible(mShowAsGrid);
+        mMediaAdapter.setShowAsGrid(mShowAsGrid);
         mMediaView.setLayoutManager(mShowAsGrid ?
                 new GridLayoutManager(getActivity(), 2) : new LinearLayoutManager(getActivity()));
         mMediaView.setAdapter(mMediaAdapter);
@@ -565,12 +552,9 @@ public class MediaFragment extends TrackerFragment implements
     protected boolean requestGetAccountsPermission() {
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.GET_ACCOUNTS)
                 != PackageManager.PERMISSION_GRANTED) {
-
             ArrayList<String> permissions = new ArrayList<>();
             permissions.add(Manifest.permission.GET_ACCOUNTS);
-
             requestPermissions(permissions.toArray(new String[permissions.size()]), REQUEST_PERMISSIONS_TO_GET_ACCOUNTS);
-
             return true;
         }
 
@@ -730,209 +714,25 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     @Override
-    public void onStartMediaPlayback(Uri uri, String title) {
+    public void startMediaPlayback(Uri uri, String title) {
         Intent intent = PlayerActivity.createStartPlaybackIntent(Application.getInstance(), uri, title);
         startActivity(intent);
     }
 
     @Override
+    public void onMediaSelectModeChanged(boolean mediaSelectMode) {
+        mMediaAdapter.notifyDataSetChanged();
+        getActivity().invalidateOptionsMenu();
+    }
+
+    @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mSelectMode) {
-                mSelectMode = false;
-                getActivity().invalidateOptionsMenu();
-                mMediaAdapter.clearSelectedVideos();
+            if (mMediaAdapter.isMediaSelectModeEnabled()) {
+                mMediaAdapter.setMediaSelectModeEnabled(false);
                 return true;
             }
         }
         return false;
-    }
-
-    private class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
-
-        private Context mContext;
-        private LinkedList<Video> mVideos = new LinkedList<>();
-        private Set<String> mVideoIds = new HashSet<>();
-        private Map<String, Video> mCheckedMap = new LinkedHashMap<>();
-
-        public MediaAdapter(Context context) {
-            mContext = context;
-        }
-
-        public void updateVideos(List<Video> videos) {
-            updateVideos(videos, false);
-        }
-
-        public void updateVideos(List<Video> videos, boolean prepend) {
-            if (prepend) {
-                ListIterator<Video> back = videos.listIterator(videos.size());
-                while (back.hasPrevious()) {
-                    Video previous = back.previous();
-                    if (!mVideoIds.contains(previous.identifier)) {
-                        mVideos.push(previous);
-                        mVideoIds.add(previous.identifier);
-                    }
-                }
-            } else {
-                for (Video video : videos) {
-                    if (!mVideoIds.contains(video.identifier)) {
-                        mVideos.offer(video);
-                        mVideoIds.add(video.identifier);
-                    }
-                }
-            }
-            notifyDataSetChanged();
-        }
-
-        public List<Video> getVideos() {
-            return mVideos;
-        }
-
-        public List<Video> getSelectedVideos() {
-            List videos = new ArrayList<>();
-            for (Video video : mCheckedMap.values()) {
-                if (video != null) {
-                    videos.add(video);
-                }
-            }
-            return videos;
-        }
-
-        public void clearSelectedVideos() {
-            mCheckedMap.clear();
-            notifyDataSetChanged();
-        }
-
-        public int size() {
-            return mVideos.size();
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View item = LayoutInflater.from(mContext).inflate(mShowAsGrid ?
-                    R.layout.item_media_grid : R.layout.item_media, parent, false);
-            return new ViewHolder(item);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.bindData(mVideos.get(position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return mVideos.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            ImageView thumbnail;
-            TextView  duration;
-            TextView  title;
-            TextView  owner;
-            TextView  published;
-            CheckBox  selected;
-            View      overlay;
-
-            public ViewHolder(View itemView) {
-                super(itemView);
-                thumbnail = (ImageView) itemView.findViewById(R.id.media_thumbnail);
-                duration  = (TextView) itemView.findViewById(R.id.media_duration);
-                title     = (TextView) itemView.findViewById(R.id.media_title);
-                owner     = (TextView) itemView.findViewById(R.id.media_owner);
-                published = (TextView) itemView.findViewById(R.id.media_published_at_and_views);
-                selected  = (CheckBox) itemView.findViewById(R.id.media_selected);
-                overlay   = itemView.findViewById(R.id.selection_overlay);
-            }
-
-            public void bindData(final Video video) {
-                duration.setText(video.duration);
-                title.setText(video.title);
-                owner.setText(video.owner);
-                published.setText(video.published_and_views);
-                Glide.with(MediaFragment.this)
-                        .load(video.thumbnail)
-                        .centerCrop()
-                        .crossFade()
-                        .into(thumbnail);
-
-                if (mSelectMode) {
-                    selected.setVisibility(View.VISIBLE);
-                    selected.setChecked(mCheckedMap.get(video.identifier) != null);
-                    overlay.setVisibility(mCheckedMap.get(video.identifier) != null ? View.VISIBLE : View.INVISIBLE);
-                } else {
-                    selected.setVisibility(View.INVISIBLE);
-                    overlay.setVisibility(View.INVISIBLE);
-                }
-                selected.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        boolean isChecked = mCheckedMap.get(video.identifier) != null;
-                        mCheckedMap.put(video.identifier, isChecked ? null : video);
-                        overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
-                    }
-                });
-
-                itemView.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        if (mSelectMode) {
-                            boolean isChecked = mCheckedMap.get(video.identifier) != null;
-                            mCheckedMap.put(video.identifier, isChecked ? null : video);
-                            selected.setChecked(!isChecked);
-                            overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
-                            return;
-                        }
-
-                        YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
-                        extractor.extractAsync(new YouTubeExtractor.Callback() {
-                            @Override
-                            public void onSuccess(YouTubeExtractor.Result result) {
-                                if (ConnectivityUtils.isOnline(mContext)) {
-                                    final int type = ConnectivityUtils.getNetworkType(mContext);
-                                    if (type == ConnectivityManager.TYPE_WIFI) {
-                                        Uri uri = result.getBestAvaiableQualityVideoUri();
-                                        if (uri != null) {
-                                            onStartMediaPlayback(uri, video.title);
-                                        } else {
-                                            Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
-                                        }
-                                    } else {
-                                        Uri uri = result.getWorstAvaiableQualityVideoUri();
-                                        if (uri != null) {
-                                            onStartMediaPlayback(uri, video.title);
-                                        } else {
-                                            Toast.makeText(getActivity(), R.string.media_uri_not_found, Toast.LENGTH_SHORT);
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(getActivity(), R.string.network_disconnected, Toast.LENGTH_SHORT);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Throwable t) {
-                                t.printStackTrace();
-                            }
-                        });
-                    }
-                });
-
-                itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        if (!mSelectMode) {
-                            mSelectMode = true;
-                            mCheckedMap.put(video.identifier, video);
-                            overlay.setVisibility(View.VISIBLE);
-                            getActivity().invalidateOptionsMenu();
-                            mMediaAdapter.notifyDataSetChanged();
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-            }
-        }
     }
 }

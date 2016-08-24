@@ -59,7 +59,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
 
     private ThrottledContentObserver mMediaDownloadsObserver;
 
-    private OnStartMediaPlaybackListener mMediaPlaybackListener;
+    private MediaPlaybackDelegate mMediaPlaybackDelegate;
 
     public MediaDownloadFragment() {
         // Required empty public constructor
@@ -91,7 +91,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        mMediaPlaybackListener = (OnStartMediaPlaybackListener) activity;
+        mMediaPlaybackDelegate = (MediaPlaybackDelegate) activity;
 
         mMediaDownloadsObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
             @Override
@@ -111,7 +111,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
     public void onDetach() {
         super.onDetach();
         getActivity().getContentResolver().unregisterContentObserver(mMediaDownloadsObserver);
-        mMediaPlaybackListener = null;
+        mMediaPlaybackDelegate = null;
     }
 
     @Override
@@ -197,8 +197,8 @@ public class MediaDownloadFragment extends TrackerFragment implements
         if (download.getStatus() == DownloadStatus.COMPLETED) {
             File downloadedFile = new File(download.local_location);
             if (downloadedFile.exists() && downloadedFile.isFile()) {
-                if (mMediaPlaybackListener != null) {
-                    mMediaPlaybackListener.onStartMediaPlayback(Uri.fromFile(downloadedFile), download.title);
+                if (mMediaPlaybackDelegate != null) {
+                    mMediaPlaybackDelegate.startMediaPlayback(Uri.fromFile(downloadedFile), download.title);
                 }
             } else {
                 Toast.makeText(getActivity(), R.string.playback_downloaded_file_failed, Toast.LENGTH_LONG).show();
@@ -262,8 +262,8 @@ public class MediaDownloadFragment extends TrackerFragment implements
 
     private void onActionOpenFile(MediaDownload download) {
         if (!TextUtils.isEmpty(download.local_location)) {
-            if (mMediaPlaybackListener != null) {
-                mMediaPlaybackListener.onStartMediaPlayback(Uri.fromFile(new File(download.local_location)), download.title);
+            if (mMediaPlaybackDelegate != null) {
+                mMediaPlaybackDelegate.startMediaPlayback(Uri.fromFile(new File(download.local_location)), download.title);
             }
         }
     }
@@ -301,7 +301,23 @@ public class MediaDownloadFragment extends TrackerFragment implements
     }
 
     private void onActionShowProperty(MediaDownload download) {
-
+//        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+//                // Set Dialog Title
+//                .setTitle("File property")
+//                // Set Dialog Message
+//                .setMessage(statusText)
+//                // Positive button
+//                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        FileDownloadManager.getInstance().cancelDownload(download.identifier);
+//                    }
+//                })
+//                // Negative Button
+//                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog,	int which) {
+//                        // Do nothing
+//                    }
+//                }).create();
     }
 
     private void onActionStartDownload(MediaDownload download) {
@@ -352,7 +368,8 @@ public class MediaDownloadFragment extends TrackerFragment implements
                     public void onClick(DialogInterface dialog,	int which) {
                         // Do nothing
                     }
-                }).create();
+                })
+                .create();
 
         DownloadStatus status = download.getStatus();
         if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||

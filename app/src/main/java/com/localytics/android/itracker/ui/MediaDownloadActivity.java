@@ -8,10 +8,6 @@ import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBar;
 import android.widget.Toast;
@@ -35,13 +31,10 @@ import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class MediaDownloadActivity extends BaseActivity
-        implements OnStartMediaPlaybackListener {
+        implements MediaPlaybackDelegate {
     private final static String TAG = makeLogTag(MediaDownloadActivity.class);
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
-
-    private RequestHandler mRequestHandler;
-    private HandlerThread  mRequestThread;
 
     public static Intent createVideosDownloadIntent(Context context, List<Video> videosToDownload) {
         Intent intent = new Intent(context, MediaDownloadActivity.class);
@@ -63,80 +56,58 @@ public class MediaDownloadActivity extends BaseActivity
                     .replace(R.id.media_download_fragment, new MediaDownloadFragment())
                     .commit();
         }
-
-        mRequestThread = new HandlerThread("DownloadRequest");
-        mRequestThread.start();
-
-        mRequestHandler = new RequestHandler(getApplicationContext(), mRequestThread.getLooper());
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mRequestThread.quitSafely();
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
         final ArrayList<Video> videos = getIntent().getParcelableArrayListExtra(EXTRA_VIDEOS_TO_DOWNLOAD);
-        if (videos == null || videos.size() == 0) {
-            return;
-        }
-        mRequestHandler.obtainMessage(MESSAGE_REQUEST_DOWNLOADS, videos).sendToTarget(); // AsyncTask leads to bad response time in this case
+        Application.getInstance().runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    requestDownloads(videos);
+                } catch (Exception e) {
+                    LOGE(TAG, "Fail to make the download request", e);
+                }
+            }
+        });
     }
 
-    private static final int MESSAGE_REQUEST_DOWNLOADS = 100;
+    private void requestDownloads(List<Video> videos) {
+        if (videos != null && videos.size() > 0) {
+            ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
+            for (final Video video : videos) {
+                ops.add(ContentProviderOperation
+                        .newInsert(FileDownloads.CONTENT_URI)
+                        .withValue(FileDownloads.FILE_ID, video.identifier)
+                        .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
+                        .withValue(FileDownloads.START_TIME, DateTime.now().toString())
+                        .build());
+            }
 
-    private class RequestHandler extends Handler {
-
-        private Context mContext;
-
-        public RequestHandler(Context context, Looper looper) {
-            super(looper);
-            mContext = context;
+            try {
+                ContentResolver resolver = Application.getInstance().getContentResolver();
+                resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
+            } catch (RemoteException | OperationApplicationException e) {
+                LOGE(TAG, "Fail to initialize new downloads: " + e);
+            }
         }
 
-        @Override
-        public void handleMessage(Message msg) {
-            try {
-                ArrayList<Video> videos = (ArrayList) msg.obj;
-                ArrayList<ContentProviderOperation> ops = new ArrayList<>(videos.size());
-                for (final Video video : videos) {
-                    ops.add(ContentProviderOperation
-                            .newInsert(FileDownloads.CONTENT_URI)
-                            .withValue(FileDownloads.FILE_ID, video.identifier)
-                            .withValue(FileDownloads.STATUS, DownloadStatus.PENDING.value())
-                            .withValue(FileDownloads.START_TIME, DateTime.now().toString())
-                            .build());
+        if (!ConnectivityUtils.isWifiConnected(Application.getInstance())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
                 }
-
-                try {
-                    ContentResolver resolver = mContext.getContentResolver();
-                    resolver.applyBatch(TrackerContract.CONTENT_AUTHORITY, ops);
-                } catch (RemoteException | OperationApplicationException e) {
-                    LOGE(TAG, "Fail to initialize new downloads: " + e);
-                }
-
-                if (!ConnectivityUtils.isWifiConnected(mContext)) {
-                    Application.getInstance().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
-                        }
-                    });
-                } else {
-                    FileDownloadManager.getInstance().startAvailableDownloads();
-                }
-            } catch (Exception e) {
-                LOGE(TAG, "Fail to make the download request", e);
-            }
+            });
+        } else {
+            FileDownloadManager.getInstance().startAvailableDownloads();
         }
     }
 
     @Override
-    public void onStartMediaPlayback(Uri uri, String title) {
+    public void startMediaPlayback(Uri uri, String title) {
         Intent intent = PlayerActivity.createStartPlaybackIntent(Application.getInstance(), uri, title);
         startActivity(intent);
     }

@@ -199,7 +199,7 @@
 
     <string name="notification_media_name">RX_480_Giveaway!_PLUS_WD_Giveaway_Winners_Announced.mp4</string>
 
-    <string name="download_allowed_when_wifi_connected">Download is only allowed when WIFI is connected!</string>
+    <string name="download_allowed_when_wifi_connected">Download is only allowed with WIFI connected!</string>
     <string name="playback_downloaded_file_failed">Failed to open the file, it might be removed or renamed.</string>
     <string name="file_download_wifi_connected">Start file downloading when WIFI is connected</string>
     <string name="file_download_wifi_disconnected">Pause file downloading until WIFI is disconnected again</string>

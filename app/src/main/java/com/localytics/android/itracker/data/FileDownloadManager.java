@@ -127,8 +127,8 @@ public class FileDownloadManager extends ContentObserver implements OnLoadListen
     }
 
     public boolean startAvailableDownloads() {
-        String availableStatus = String.format("%s,%s,%s,%s,%s",
-                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value(), DownloadStatus.PAUSED.value());
+        String availableStatus = String.format("%s,%s,%s,%s",
+                DownloadStatus.PENDING.value(), DownloadStatus.PREPARING.value(), DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value());
         Cursor cursor = Application.getInstance().getContentResolver().query(
                 FileDownloads.buildMediaDownloadUriByStatus(availableStatus),
                 null,
