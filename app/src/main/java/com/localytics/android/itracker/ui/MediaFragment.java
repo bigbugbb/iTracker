@@ -282,8 +282,7 @@ public class MediaFragment extends TrackerFragment implements
                     Toast.makeText(getActivity(), R.string.download_without_selection, Toast.LENGTH_SHORT).show();
                     return true;
                 }
-                Intent intent = new Intent(getActivity(), MediaDownloadActivity.class);
-                intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videos));
+                Intent intent = MediaDownloadActivity.createVideosDownloadIntent(Application.getInstance(), videos);
                 startActivity(intent);
 
                 if (mSelectMode) {

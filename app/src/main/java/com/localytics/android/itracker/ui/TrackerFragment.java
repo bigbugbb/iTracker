@@ -212,8 +212,8 @@ public abstract class TrackerFragment extends Fragment
                         getActivity(),
                         TrackerContract.FileDownloads.MEDIA_DOWNLOADS_URI,
                         null,
-                        null,
-                        null,
+                        String.format("%s != ?", TrackerContract.FileDownloads.STATUS),
+                        new String[]{ TrackerContract.DownloadStatus.CANCELED.value() },
                         TrackerContract.FileDownloads.START_TIME + " DESC");
                 break;
             }

@@ -28,6 +28,7 @@ import com.localytics.android.itracker.utils.ConnectivityUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.localytics.android.itracker.utils.LogUtils.LOGE;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
@@ -41,6 +42,12 @@ public class MediaDownloadActivity extends BaseActivity
 
     private RequestHandler mRequestHandler;
     private HandlerThread  mRequestThread;
+
+    public static Intent createVideosDownloadIntent(Context context, List<Video> videosToDownload) {
+        Intent intent = new Intent(context, MediaDownloadActivity.class);
+        intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videosToDownload));
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

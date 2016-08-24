@@ -41,6 +41,7 @@ import com.localytics.android.itracker.utils.ConnectivityUtils;
 import com.localytics.android.itracker.utils.ThrottledContentObserver;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
@@ -139,6 +140,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
                     mMediaDownloadAdapter.updateDownloads(downloads);
                     mEmptyView.setVisibility(View.GONE);
                 } else {
+                    mMediaDownloadAdapter.updateDownloads(new ArrayList<MediaDownload>());
                     mEmptyView.setVisibility(View.VISIBLE);
                 }
                 break;
@@ -179,7 +181,6 @@ public class MediaDownloadFragment extends TrackerFragment implements
     public void onCanceled(FileDownloadRequest request, Bundle extra) {
         AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver());
         handler.startDelete(0, null, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{request.getId()});
-        deleteDownloadedFile(Config.FILE_DOWNLOAD_DIR_PATH + request.getId());
     }
 
     @Override
@@ -355,10 +356,9 @@ public class MediaDownloadFragment extends TrackerFragment implements
 
         DownloadStatus status = download.getStatus();
         if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
-                status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING ||
-                status == DownloadStatus.PAUSED) {
+                status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING) {
             dialog.show();
-        } else if (status == DownloadStatus.FAILED) {
+        } else if (status == DownloadStatus.FAILED || status == DownloadStatus.PAUSED) {
             AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
                 @Override
                 protected void onDeleteComplete(int token, Object cookie, int result) {

@@ -24,6 +24,7 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
@@ -119,6 +120,7 @@ public final class ServerUtils {
                         return params;
                     }
                 };
+                request.setRetryPolicy(new DefaultRetryPolicy(10000, 2, 2));
                 RequestUtils.getRequestQueue(context).add(request);
 
                 String response = future.get(10, TimeUnit.SECONDS);

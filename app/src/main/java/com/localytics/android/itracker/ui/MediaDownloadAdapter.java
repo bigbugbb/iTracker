@@ -59,7 +59,7 @@ public class MediaDownloadAdapter extends RecyclerView.Adapter<MediaDownloadAdap
         for (MediaDownload download : downloads) {
             newDownloads.add(download.identifier);
         }
-        if (oldDownloads.removeAll(newDownloads)) {
+        if (oldDownloads.removeAll(newDownloads) || newDownloads.isEmpty()) {
             for (String identifier : oldDownloads) {
                 MediaDownload outdatedDownload = mExistingDownloads.put(identifier, null);
                 mDownloads.remove(outdatedDownload);

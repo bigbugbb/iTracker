@@ -25,6 +25,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
@@ -174,11 +175,6 @@ public class SyncHelper {
             }
         }
 
-        // Download available media files
-        if (ConnectivityUtils.isOnline(mContext)) {
-            FileDownloadManager.getInstance().startAvailableDownloads();
-        }
-
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
             mContext,
@@ -203,6 +199,11 @@ public class SyncHelper {
 //                    + "ms ago. Requesting delay of " + toWait + "ms.");
 //            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
             return false;
+        }
+
+        // Download available media files
+        if (ConnectivityUtils.isWifiConnected(Application.getInstance())) {
+            FileDownloadManager.getInstance().startAvailableDownloads();
         }
 
         LogUtils.LOGI(TAG, "Performing sync for account: " + account);
@@ -343,10 +344,11 @@ public class SyncHelper {
                 return params;
             }
         };
+        request.setRetryPolicy(new DefaultRetryPolicy(20000, 2, 2));
         mRequestQueue.add(request);
 
         try {
-            String response = future.get(30000, TimeUnit.MILLISECONDS);
+            String response = future.get(30, TimeUnit.SECONDS);
             LOGD(TAG, "Backup information:\n" + response);
 
             if (!TextUtils.isEmpty(response)) {
