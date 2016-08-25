@@ -50,7 +50,7 @@ public interface GroupStateProvider {
      *
      * @param account
      * @param group
-     * @param show
+     * @param showOfflineMode
      */
     void setShowOfflineMode(String account, String group,
                             ShowOfflineMode showOfflineMode);

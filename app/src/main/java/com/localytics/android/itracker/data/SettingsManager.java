@@ -37,6 +37,8 @@ import com.localytics.android.itracker.data.roster.AbstractContact;
 //import com.localytics.android.ui.adapter.ComparatorByName;
 //import com.localytics.android.ui.adapter.ComparatorByStatus;
 //import com.localytics.android.ui.color.ColorManager;
+import com.localytics.android.itracker.ui.ComparatorByName;
+import com.localytics.android.itracker.ui.ComparatorByStatus;
 import com.localytics.android.itracker.utils.Emoticons;
 import com.localytics.android.xmpp.carbon.CarbonManager;
 
@@ -170,19 +172,19 @@ public class SettingsManager implements OnInitializedListener,
                 R.bool.contacts_show_accounts_default);
     }
 
-//    public static Comparator<AbstractContact> contactsOrder() {
-//        String value = getString(R.string.contacts_order_key,
-//                R.string.contacts_order_default);
-//        if (Application.getInstance()
-//                .getString(R.string.contacts_order_alphabet_value)
-//                .equals(value))
-//            return ComparatorByName.COMPARATOR_BY_NAME;
-//        else if (Application.getInstance()
-//                .getString(R.string.contacts_order_status_value).equals(value))
-//            return ComparatorByStatus.COMPARATOR_BY_STATUS;
-//        else
-//            throw new IllegalStateException();
-//    }
+    public static Comparator<AbstractContact> contactsOrder() {
+        String value = getString(R.string.contacts_order_key,
+                R.string.contacts_order_default);
+        if (Application.getInstance()
+                .getString(R.string.contacts_order_alphabet_value)
+                .equals(value))
+            return ComparatorByName.COMPARATOR_BY_NAME;
+        else if (Application.getInstance()
+                .getString(R.string.contacts_order_status_value).equals(value))
+            return ComparatorByStatus.COMPARATOR_BY_STATUS;
+        else
+            throw new IllegalStateException();
+    }
 
     public static boolean contactsShowPanel() {
         return getBoolean(R.string.contacts_show_panel_key,

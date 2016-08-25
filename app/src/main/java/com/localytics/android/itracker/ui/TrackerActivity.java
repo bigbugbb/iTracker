@@ -287,7 +287,7 @@ public class TrackerActivity extends SingleActivity implements
         adapter.addFragment(new ActionFragment(), getString(TAB_NAMES[0]));
         adapter.addFragment(new PhotoFragment(), getString(TAB_NAMES[1]));
         adapter.addFragment(new MediaFragment(), getString(TAB_NAMES[2]));
-        adapter.addFragment(new FriendFragment(), getString(TAB_NAMES[3]));
+        adapter.addFragment(new ContactFragment(), getString(TAB_NAMES[3]));
         mViewPager.setAdapter(adapter);
     }
 
