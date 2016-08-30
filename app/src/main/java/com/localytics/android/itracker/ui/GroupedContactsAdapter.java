@@ -2,10 +2,6 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.drawable.ColorDrawable;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +22,6 @@ import com.localytics.android.itracker.data.roster.ShowOfflineMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -66,7 +61,6 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
      */
     private final LayoutInflater mLayoutInflater;
     private final Activity mActivity;
-    private final int[] mAccountSubgroupColors;
     private final ContactItemInflater mContactItemInflater;
     protected Locale mLocale = Locale.getDefault();
 
@@ -75,19 +69,7 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
 
         mLayoutInflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        Resources resources = activity.getResources();
-
-        mAccountSubgroupColors = resources.getIntArray(getThemeResource(R.attr.contact_list_subgroup_background));
-
         mContactItemInflater = new ContactItemInflater(activity);
-    }
-
-    private int getThemeResource(int themeResourceId) {
-        TypedValue typedValue = new TypedValue();
-        TypedArray a = mActivity.obtainStyledAttributes(typedValue.data, new int[] {themeResourceId});
-        final int accountGroupColorsResourceId = a.getResourceId(0, 0);
-        a.recycle();
-        return accountGroupColorsResourceId;
     }
 
     @Override
@@ -170,7 +152,6 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
 
         viewHolder.mName.setText(String.format("%s (%d/%d)", name, configuration.getOnline(), configuration.getTotal()));
 
-        color = mAccountSubgroupColors[level];
         viewHolder.mGroupOfflineIndicator.setVisibility(View.VISIBLE);
 
         AccountItem accountItem = AccountManager.getInstance().getAccount(configuration.getAccount());
@@ -182,7 +163,7 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
             }
         }
 
-        view.setBackgroundDrawable(new ColorDrawable(color));
+//        view.setBackgroundDrawable(new ColorDrawable(color));
 
         return view;
     }
@@ -190,24 +171,6 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
     private View getContactView(int position, View convertView, ViewGroup parent) {
         final AbstractContact abstractContact = (AbstractContact) getItem(position);
         return mContactItemInflater.setUpContactView(convertView, parent, abstractContact);
-    }
-
-    /**
-     * Gets or creates roster group in roster account.
-     *
-     * @param accountConfiguration
-     * @param name
-     * @return
-     */
-    protected GroupConfiguration getGroupConfiguration(AccountConfiguration accountConfiguration, String name) {
-        GroupConfiguration groupConfiguration = accountConfiguration.getGroupConfiguration(name);
-        if (groupConfiguration != null) {
-            return groupConfiguration;
-        }
-        groupConfiguration = new GroupConfiguration(
-                accountConfiguration.getAccount(), name, GroupManager.getInstance());
-        accountConfiguration.addGroupConfiguration(groupConfiguration);
-        return groupConfiguration;
     }
 
     /**
@@ -225,58 +188,6 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         groupConfiguration = new GroupConfiguration(GroupManager.NO_ACCOUNT, name, GroupManager.getInstance());
         groups.put(name, groupConfiguration);
         return groupConfiguration;
-    }
-
-    /**
-     * Adds contact to specified group.
-     *
-     * @param abstractContact
-     * @param group
-     * @param online
-     * @param accounts
-     * @param groups
-     * @param contacts
-     * @param showAccounts
-     * @param showGroups
-     */
-    protected void addContact(AbstractContact abstractContact, String group, boolean online,
-                              Map<String, AccountConfiguration> accounts, Map<String, GroupConfiguration> groups,
-                              List<AbstractContact> contacts, boolean showAccounts, boolean showGroups) {
-        if (showAccounts) {
-            final String account = abstractContact.getAccount();
-            final AccountConfiguration accountConfiguration;
-            accountConfiguration = accounts.get(account);
-            if (accountConfiguration == null) {
-                return;
-            }
-            if (showGroups) {
-                GroupConfiguration groupConfiguration
-                        = getGroupConfiguration(accountConfiguration, group);
-                if (accountConfiguration.isExpanded()) {
-                    groupConfiguration.setNotEmpty();
-                    if (groupConfiguration.isExpanded()) {
-                        groupConfiguration.addAbstractContact(abstractContact);
-                    }
-                }
-                groupConfiguration.increment(online);
-            } else {
-                if (accountConfiguration.isExpanded()) {
-                    accountConfiguration.addAbstractContact(abstractContact);
-                }
-            }
-            accountConfiguration.increment(online);
-        } else {
-            if (showGroups) {
-                GroupConfiguration groupConfiguration = getGroupConfiguration(groups, group);
-                groupConfiguration.setNotEmpty();
-                if (groupConfiguration.isExpanded()) {
-                    groupConfiguration.addAbstractContact(abstractContact);
-                }
-                groupConfiguration.increment(online);
-            } else {
-                contacts.add(abstractContact);
-            }
-        }
     }
 
     /**

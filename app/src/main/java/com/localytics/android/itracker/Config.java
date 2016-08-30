@@ -34,7 +34,7 @@ public class Config {
     public static final String GCM_API_KEY = "AIzaSyCybHo5-n3EpJb2RIVTVzCC2TxhTMRuVcY";
 
     // XMPP config
-    public static final String XMPP_SERVER_URL = "ec2-54-165-238-247.compute-1.amazonaws.com";
+    public static final String XMPP_SERVER_HOST = "ec2-54-165-238-247.compute-1.amazonaws.com";
     public static final int XMPP_CLIENT_PORT = 5222;
 
     // Minimum interval between two consecutive syncs. This is a safety mechanism to throttle

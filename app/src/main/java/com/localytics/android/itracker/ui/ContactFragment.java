@@ -74,16 +74,16 @@ public class ContactFragment extends TrackerFragment implements
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
         Application.getInstance().addUIListener(OnContactChangedListener.class, this);
         Application.getInstance().addUIListener(OnChatChangedListener.class, this);
         mContactsAdapter.onChange();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onStop() {
+        super.onStop();
         Application.getInstance().removeUIListener(OnContactChangedListener.class, this);
         Application.getInstance().removeUIListener(OnChatChangedListener.class, this);
         mContactsAdapter.removeRefreshRequests();

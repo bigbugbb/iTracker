@@ -159,6 +159,8 @@ public class SignUpFragment extends Fragment {
                     User user = AccountUtils.signUpUser(email, username, password, passwordConfirmation);
 
                     data.putString(AccountManager.KEY_ACCOUNT_NAME, email);
+                    data.putString(AuthenticatorActivity.USERNAME, user.username);
+                    data.putBoolean(AuthenticatorActivity.CREATE_ACCOUNT, true);
                     data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
                     data.putString(AccountManager.KEY_PASSWORD, password);
                     data.putString(AccountManager.KEY_AUTHTOKEN, user != null ? user.auth_token : null);

@@ -18,6 +18,7 @@ import com.localytics.android.itracker.data.OnLowMemoryListener;
 import com.localytics.android.itracker.data.OnTimerListener;
 import com.localytics.android.itracker.data.OnUnloadListener;
 import com.localytics.android.itracker.data.FileDownloadManager;
+import com.localytics.android.itracker.data.connection.ConnectionManager;
 import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
 import com.localytics.android.itracker.service.sensor.AppPersistentService;
 import com.localytics.android.itracker.ui.SplashActivity;
@@ -238,6 +239,8 @@ public class Application extends android.support.multidex.MultiDexApplication {
         sendBroadcast(SensorMonitorReceiver.createBootstrapIntent(this));
         startActivity(SplashActivity.createAuthenticateAccountIntent(this));
         startTimer();
+
+        ConnectionManager.getInstance().updateConnections(true);
     }
 
     private void onClose() {
