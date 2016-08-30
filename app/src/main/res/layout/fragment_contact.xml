@@ -3,17 +3,15 @@
              android:id="@+id/friend_fragment"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".ui.FriendFragment">
+             tools:mContext=".ui.ContactFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/friends_view"
+    <ListView
+        android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="4dp"
-        android:clipToPadding="false"
-        android:background="@color/tracks_background"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"/>
+        android:drawSelectorOnTop="true"
+        android:divider="@null"
+        android:dividerHeight="0dp" />
 
     <ProgressBar
         android:id="@+id/progress_view"

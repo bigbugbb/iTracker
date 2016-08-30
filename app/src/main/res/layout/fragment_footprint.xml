@@ -4,7 +4,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingTop="?attr/actionBarSize"
-                tools:context=".ui.FootprintFragment"
+                tools:mContext=".ui.FootprintFragment"
                 tools:showIn="@layout/activity_footprint">
 
     <com.localytics.android.itracker.ui.widget.SlideBottomPanel
