@@ -125,7 +125,7 @@ public class SplashActivity extends SingleActivity {
                 @Override
                 public void run() {
                     AccountUtils.startAuthenticationFlow(
-                            SplashActivity.this, // This must be the activity context to start the authenticate activity.
+                            SplashActivity.this, // This must be the activity mContext to start the authenticate activity.
                             AccountUtils.ACCOUNT_TYPE,
                             AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
                             new SimpleAccountManagerCallback()

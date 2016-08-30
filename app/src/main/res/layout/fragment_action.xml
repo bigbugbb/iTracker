@@ -5,7 +5,7 @@
     android:id="@+id/action_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.localytics.android.itracker.ui.ActionFragment">
+    tools:mContext="com.localytics.android.itracker.ui.ActionFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/tracks_view"
