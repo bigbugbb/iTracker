@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="@dimen/contact_elevation">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="?android:attr/listPreferredItemHeight">
+
+        <ImageView
+            android:id="@+id/image_add_contacts"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="16dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/ic_action_add_contacts"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/contact_add"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"/>
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/contact_list_item_separator"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="?attr/contact_list_contact_separator"
+        android:layout_alignParentBottom="true"/>
+
+</RelativeLayout>

@@ -1,13 +1,16 @@
 package com.localytics.android.itracker.ui;
 
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v4.content.ContextCompat;
 import android.view.ContextMenu;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -35,7 +38,7 @@ public class ContactFragment extends TrackerFragment implements
     private ListView mContactsView;
     private ContactsAdapter mContactsAdapter;
 
-    private ProgressBar mProgressView;
+//    private ProgressBar mProgressView;
 
     public ContactFragment() {
         // Required empty public constructor
@@ -50,7 +53,6 @@ public class ContactFragment extends TrackerFragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_contact, container, false);
 
         // to avoid strange bug on some 4.x androids
@@ -63,14 +65,28 @@ public class ContactFragment extends TrackerFragment implements
         mContactsAdapter = new ContactsAdapter(getActivity(), this);
         mContactsView.setAdapter(mContactsAdapter);
 
+        final Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), R.style.Theme);
+        LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
+        ViewGroup contactsViewHeader = (ViewGroup) localInflater.inflate(R.layout.header_contact_list, mContactsView, false);
+        mContactsView.addHeaderView(contactsViewHeader, null, false);
+        contactsViewHeader.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        ImageView imageAddContacts = (ImageView) contactsViewHeader.findViewById(R.id.image_add_contacts);
+        imageAddContacts.setColorFilter(ContextCompat.getColor(getActivity(), R.color.orange_500), PorterDuff.Mode.SRC_ATOP);
+
         return view;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
-        mProgressView.setVisibility(mContactsAdapter.getCount() > 0 ? View.GONE : View.VISIBLE);
+//        mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
+//        mProgressView.setVisibility(mContactsAdapter.getCount() > 0 ? View.GONE : View.VISIBLE);
     }
 
     @Override

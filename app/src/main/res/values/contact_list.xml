@@ -46,7 +46,7 @@
     <string name="certificate_self_signed">Self-signed certificate</string>
     <string name="certificate_show_details">Details…</string>
     <string name="close_chats">Close all chats</string>
-    <string name="contact_integration_suggest">Do you want Xabber to be integrated into system contacts?\nThis can be changed in "Settings" → "XMPP accounts" → Your account → "Contact integration".\nNB: System contact list can go slower for a few minutes.</string>
+    <string name="contact_integration_suggest">Do you want iTracker to be integrated into system contacts?\nThis can be changed in "Settings" → "XMPP accounts" → Your account → "Contact integration".\nNB: System contact list can go slower for a few minutes.</string>
     <string name="group_room">Conferences</string>
     <string name="OTR_ERROR">OTR error</string>
     <string name="select_contact">Please click to select contact</string>
@@ -55,7 +55,7 @@
     <string name="show_offline_normal">Use general settings</string>
     <string name="show_offline_settings">Show offline contacts</string>
     <string name="start_at_boot">Run at startup</string>
-    <string name="start_at_boot_suggest">Do you want to run Xabber at startup?\nThis can be changed in "Settings" → "Connection settings" → "Start when Android boots"</string>
+    <string name="start_at_boot_suggest">Do you want to run iTracker at startup?\nThis can be changed in "Settings" → "Connection settings" → "Start when Android boots"</string>
     <string name="contact_search_hint">Search contacts</string>
     <string name="sender_is_you">You</string>
     <string name="xmpp_accounts">XMPP accounts</string>
@@ -70,7 +70,7 @@
     <string name="unblock_all">Unblock all</string>
     <string name="unblock_selected">Unblock selected</string>
     <string name="dark_theme_suggest_dialog_title">Choose your destiny</string>
-    <string name="dark_theme_suggest_dialog_message">New dark theme is now available for Xabber. Can you resist the temptation to use it?</string>
+    <string name="dark_theme_suggest_dialog_message">New dark theme is now available for iTracker. Can you resist the temptation to use it?</string>
     <string name="dark_theme_suggest_dialog_join_dark_side">Join the Dark Side</string>
     <string name="dark_theme_suggest_dialog_stay_on_light_side">"Stay on the Light Side"</string>
 </resources>

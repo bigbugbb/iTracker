@@ -12,7 +12,7 @@
      along with this program. If not, see http://www.gnu.org/licenses/.
 -->
 <resources>
-    <string name="application_title_short">Xabber</string>
-    <string name="application_title_full">Xabber</string>
-    <string name="client_name">Xabber</string>
+    <string name="application_title_short">iTracker</string>
+    <string name="application_title_full">iTracker</string>
+    <string name="client_name">iTracker</string>
 </resources>

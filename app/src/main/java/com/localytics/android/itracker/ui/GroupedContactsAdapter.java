@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,7 +68,11 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
     public GroupedContactsAdapter(Activity activity) {
         mActivity = activity;
 
-        mLayoutInflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // create ContextThemeWrapper from the original Activity Context with the custom theme
+        final Context contextThemeWrapper = new ContextThemeWrapper(activity, R.style.Theme);
+        // clone the inflater using the ContextThemeWrapper
+        mLayoutInflater = inflater.cloneInContext(contextThemeWrapper);
 
         mContactItemInflater = new ContactItemInflater(activity);
     }

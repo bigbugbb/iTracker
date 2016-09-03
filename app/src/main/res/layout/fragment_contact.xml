@@ -3,6 +3,8 @@
              android:id="@+id/friend_fragment"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
+             android:paddingLeft="@dimen/activity_horizontal_margin"
+             android:paddingRight="@dimen/activity_horizontal_margin"
              tools:mContext=".ui.ContactFragment">
 
     <ListView
@@ -13,15 +15,15 @@
         android:divider="@null"
         android:dividerHeight="0dp" />
 
-    <ProgressBar
-        android:id="@+id/progress_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="24dp"
-        android:indeterminate="false"
-        android:indeterminateDrawable="@drawable/app_loading_progress"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"/>
+    <!--<ProgressBar-->
+        <!--android:id="@+id/progress_view"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:layout_marginBottom="24dp"-->
+        <!--android:indeterminate="false"-->
+        <!--android:indeterminateDrawable="@drawable/app_loading_progress"-->
+        <!--android:layout_centerVertical="true"-->
+        <!--android:layout_centerHorizontal="true"/>-->
 
 </FrameLayout>

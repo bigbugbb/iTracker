@@ -103,7 +103,7 @@ public class ConnectionSettings {
         this.port = port;
         this.password = password;
         this.saslEnabled = saslEnabled;
-        this.tlsMode = tlsMode;
+        this.tlsMode = TLSMode.legacy;//tlsMode;
         this.compression = compression;
         this.proxyType = proxyType;
         this.proxyHost = proxyHost;

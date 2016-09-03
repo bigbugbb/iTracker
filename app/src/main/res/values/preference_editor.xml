@@ -29,7 +29,7 @@
     <string name="interface_smiles_none">No graphical emoticons</string>
     <string name="preference_connection">Connection settings\nConnection settings</string>
     <string name="preference_contacts">Contact list\nCustomize contact list appearance</string>
-    <string name="preference_debug">Debug settings\nSettings to help developers improve Xabber</string>
+    <string name="preference_debug">Debug settings\nSettings to help developers improve iTracker</string>
     <string name="preference_editor">Settings</string>
     <string name="preference_events">Notifications\nNotification settings</string>
     <string name="preference_interface">Theme settings\nAppearance settings</string>
@@ -51,7 +51,7 @@
     <string name="connection_go_away_immediately">Immediately on screen lock</string>
     <string name="connection_go_xa">"Extended away" when idle\nSet "Extended away" on screen lock</string>
     <string name="connection_priority">Priority settings</string>
-    <string name="connection_start_at_boot">Start when Android boots\nStart the application when Android boots. This doesn\'t work when Xabber is installed on SD card.</string>
+    <string name="connection_start_at_boot">Start when Android boots\nStart the application when Android boots. This doesn\'t work when iTracker is installed on SD card.</string>
     <string name="connection_wake_lock">Prevent sleep mode\nPrevent the device from sleeping. This will increase battery usage.</string>
     <string name="connection_wifi_lock">Keep WiFi awake\nKeep WiFi active on standby. This will increase battery usage</string>
     <string name="contacts_reset_offline">Reset offline settings\nClear individual settings for groups and accounts</string>

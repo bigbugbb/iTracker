@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui;
 
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,16 +21,23 @@ import com.localytics.android.itracker.utils.StringUtils;
 public class ContactItemInflater {
 
     final Context mContext;
+    final LayoutInflater mLayoutInflater;
 
     public ContactItemInflater(Context context) {
         mContext = context;
+
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // create ContextThemeWrapper from the original Activity Context with the custom theme
+        final Context contextThemeWrapper = new ContextThemeWrapper(context, R.style.Theme);
+        // clone the inflater using the ContextThemeWrapper
+        mLayoutInflater = inflater.cloneInContext(contextThemeWrapper);
     }
 
     public View setUpContactView(View convertView, ViewGroup parent, final AbstractContact contact) {
         final View view;
         final ContactListItemViewHolder viewHolder;
         if (convertView == null) {
-            view = LayoutInflater.from(mContext).inflate(R.layout.item_contact, parent, false);
+            view = mLayoutInflater.inflate(R.layout.item_contact, parent, false);
             viewHolder = new ContactListItemViewHolder(view);
             view.setTag(viewHolder);
         } else {
