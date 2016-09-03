@@ -18,7 +18,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.NetworkException;
+import com.localytics.android.itracker.data.account.AccountType;
 import com.localytics.android.itracker.data.model.User;
 import com.localytics.android.itracker.utils.AccountUtils;
 
@@ -142,6 +145,7 @@ public class SignInFragment extends Fragment {
                     User user = AccountUtils.signInUser(email, password);
 
                     data.putString(AccountManager.KEY_ACCOUNT_NAME, email);
+                    data.putString(AuthenticatorActivity.USERNAME, user.username);
                     data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
                     data.putString(AccountManager.KEY_PASSWORD, password);
                     data.putString(AccountManager.KEY_AUTHTOKEN, user.auth_token);

@@ -13,7 +13,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.localytics.android.itracker.Application;
+import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
+import com.localytics.android.itracker.data.NetworkException;
+import com.localytics.android.itracker.data.account.AccountType;
 import com.localytics.android.itracker.utils.AccountUtils;
 import com.localytics.android.itracker.utils.LogUtils;
 
@@ -25,6 +29,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
 
     private final static int SIGN_IN_FRAGMENT = 0;
     private final static int SIGN_UP_FRAGMENT = 1;
+
+    public final static String USERNAME = "username";
+    public final static String CREATE_ACCOUNT = "create_account";
 
     private ViewAnimator mAnimator;
     private AccountManager mAccountManager;
@@ -123,11 +130,15 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
         String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
         String accountPassword = intent.getStringExtra(AccountManager.KEY_PASSWORD);
+        String userName = intent.getStringExtra(USERNAME);
+        boolean createAccount = intent.getBooleanExtra(CREATE_ACCOUNT, false);
         String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
         final Account account = new Account(accountName, accountType);
 
         // Update preference with auth token and account name
         AccountUtils.setActiveAccount(getApplicationContext(), accountName);
+
+        addAccount(accountName, accountPassword, true);
 
         if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
             LogUtils.LOGD(TAG, "finish login > addAccountExplicitly");
@@ -144,5 +155,26 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
         finish();
+    }
+
+    public void addAccount(String accountName, String password, boolean createAccount) {
+        AccountType accountType = com.localytics.android.itracker.data.account.AccountManager.getInstance().getAccountTypes().get(0);
+
+        String account;
+        try {
+            account = com.localytics.android.itracker.data.account.AccountManager.getInstance().addAccount(
+                    jidFromAccountName(accountName), password, accountType,
+                    false,
+                    true,
+                    false,
+                    true);
+        } catch (NetworkException e) {
+            Application.getInstance().onError(e);
+            return;
+        }
+    }
+
+    private String jidFromAccountName(String accountName) {
+        return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
     }
 }
