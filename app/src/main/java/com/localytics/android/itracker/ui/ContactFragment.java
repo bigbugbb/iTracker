@@ -76,7 +76,7 @@ public class ContactFragment extends TrackerFragment implements
         });
 
         ImageView imageAddContacts = (ImageView) contactsViewHeader.findViewById(R.id.image_add_contacts);
-        imageAddContacts.setColorFilter(ContextCompat.getColor(getActivity(), R.color.orange_500), PorterDuff.Mode.SRC_ATOP);
+        imageAddContacts.setColorFilter(ContextCompat.getColor(getActivity(), R.color.orange_500), PorterDuff.Mode.SRC_OUT);
 
         return view;
     }
@@ -92,7 +92,6 @@ public class ContactFragment extends TrackerFragment implements
     public void onStart() {
         super.onStart();
         Application.getInstance().addUIListener(OnContactChangedListener.class, this);
-        Application.getInstance().addUIListener(OnChatChangedListener.class, this);
         mContactsAdapter.onChange();
     }
 
@@ -100,7 +99,6 @@ public class ContactFragment extends TrackerFragment implements
     public void onStop() {
         super.onStop();
         Application.getInstance().removeUIListener(OnContactChangedListener.class, this);
-        Application.getInstance().removeUIListener(OnChatChangedListener.class, this);
         mContactsAdapter.removeRefreshRequests();
     }
 
