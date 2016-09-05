@@ -11,7 +11,6 @@ class ContactListItemViewHolder extends RecyclerView.ViewHolder {
 
     final ImageView avatar;
     final TextView  name;
-    final ImageView largeClientIcon;
     final ImageView statusIcon;
     final ImageView mucIndicator;
     final View separator;
@@ -25,7 +24,6 @@ class ContactListItemViewHolder extends RecyclerView.ViewHolder {
 //        secondLineMessage = (TextView) view.findViewById(R.id.second_line_message);
 //        smallRightIcon = (ImageView) view.findViewById(R.id.small_right_icon);
 //        smallRightText = (TextView) view.findViewById(R.id.small_right_text);
-        largeClientIcon = (ImageView) view.findViewById(R.id.client_icon_large);
         statusIcon = (ImageView) view.findViewById(R.id.contact_list_item_status_icon);
         mucIndicator = (ImageView) view.findViewById(R.id.contact_list_item_muc_indicator);
         separator = view.findViewById(R.id.contact_list_item_separator);

@@ -12,6 +12,9 @@
     <string name="tab_name_media">Media</string>
     <string name="tab_name_friends">Friends</string>
 
+    <string name="friend_tab_name_messages">Messages</string>
+    <string name="friend_tab_name_contacts">Contacts</string>
+
     <string name="signup_title">Create new account</string>
     <string name="login_label">Log in</string>
 

@@ -88,13 +88,6 @@ public class ContactItemInflater {
 //        viewHolder.smallRightIcon.setVisibility(View.GONE);
 
         ClientSoftware clientSoftware = contact.getClientSoftware();
-        if (clientSoftware == ClientSoftware.unknown) {
-            viewHolder.largeClientIcon.setVisibility(View.GONE);
-        } else {
-            viewHolder.largeClientIcon.setVisibility(View.VISIBLE);
-            viewHolder.largeClientIcon.setImageLevel(clientSoftware.ordinal());
-        }
-
 
         if (messageManager.hasActiveChat(contact.getAccount(), contact.getUser())) {
 
@@ -104,7 +97,6 @@ public class ContactItemInflater {
 
             view.setBackgroundColor(ColorManager.getInstance().getActiveChatBackgroundColor());
             viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getActiveChatSeparatorColor());
-            viewHolder.largeClientIcon.setColorFilter(ColorManager.getInstance().getActiveChatLargeClientIconColor());
 
             if (!statusText.isEmpty()) {
 //                viewHolder.smallRightText.setText(StringUtils.getSmartTimeText(mContext, chat.getLastTime()));
@@ -118,13 +110,11 @@ public class ContactItemInflater {
 //                viewHolder.smallRightIcon.setImageResource(R.drawable.ic_client_small);
 //                viewHolder.smallRightIcon.setVisibility(View.VISIBLE);
 //                viewHolder.smallRightIcon.setImageLevel(clientSoftware.ordinal());
-                viewHolder.largeClientIcon.setVisibility(View.GONE);
             }
         } else {
             statusText = contact.getStatusText().trim();
             view.setBackgroundColor(ColorManager.getInstance().getContactBackground());
             viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getContactSeparatorColor());
-            viewHolder.largeClientIcon.setColorFilter(ColorManager.getInstance().getContactLargeClientIconColor());
         }
 
 //        if (statusText.isEmpty()) {

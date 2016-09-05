@@ -47,7 +47,6 @@ public class ContactFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPosition = 3;
     }
 
     @Override

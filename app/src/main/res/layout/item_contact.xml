@@ -5,17 +5,6 @@
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:elevation="@dimen/contact_elevation">
 
-    <ImageView
-        android:id="@+id/client_icon_large"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:src="@drawable/ic_client_large"
-        android:tint="?attr/contact_list_contact_client_large_icon_color"
-        android:paddingRight="56dp"
-        android:paddingBottom="4dp"/>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
