@@ -150,25 +150,11 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         viewHolder.mIndicator.setImageLevel(configuration.isExpanded() ? 1 : 0);
         viewHolder.mGroupOfflineIndicator.setImageLevel(configuration.getShowOfflineMode().ordinal());
 
-        int color;
-
         viewHolder.mGroupOfflineIndicator.setVisibility(View.GONE);
-        viewHolder.mOfflineShadow.setVisibility(View.GONE);
 
         viewHolder.mName.setText(String.format("%s (%d/%d)", name, configuration.getOnline(), configuration.getTotal()));
 
         viewHolder.mGroupOfflineIndicator.setVisibility(View.VISIBLE);
-
-        AccountItem accountItem = AccountManager.getInstance().getAccount(configuration.getAccount());
-
-        if (accountItem != null) {
-            StatusMode statusMode = accountItem.getDisplayStatusMode();
-            if (statusMode == StatusMode.unavailable || statusMode == StatusMode.connection) {
-                viewHolder.mOfflineShadow.setVisibility(View.VISIBLE);
-            }
-        }
-
-//        view.setBackgroundDrawable(new ColorDrawable(color));
 
         return view;
     }
@@ -245,13 +231,11 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         final ImageView mIndicator;
         final TextView  mName;
         final ImageView mGroupOfflineIndicator;
-        final ImageView mOfflineShadow;
 
         public GroupViewHolder(View view) {
             mIndicator = (ImageView) view.findViewById(R.id.indicator);
             mName = (TextView) view.findViewById(R.id.name);
             mGroupOfflineIndicator = (ImageView) view.findViewById(R.id.group_offline_indicator);
-            mOfflineShadow = (ImageView) view.findViewById(R.id.offline_shadow);
         }
     }
 

@@ -8,22 +8,24 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:gravity="center_vertical"
         android:minHeight="?android:attr/listPreferredItemHeight">
 
         <ImageView
             android:id="@+id/image_add_contacts"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginRight="16dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:adjustViewBounds="true"
             android:src="@drawable/ic_action_add_contacts"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
             android:ellipsize="end"
             android:singleLine="true"
             android:text="@string/contact_add"

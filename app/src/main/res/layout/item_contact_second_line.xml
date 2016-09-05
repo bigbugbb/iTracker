@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -33,7 +31,6 @@
         android:textColor="?attr/contact_list_contact_second_line_text_color"
         android:layout_toRightOf="@+id/outgoing_message_indicator"
         android:layout_toLeftOf="@+id/small_right_icon" />
-
 
     <ImageView
         android:id="@+id/small_right_icon"

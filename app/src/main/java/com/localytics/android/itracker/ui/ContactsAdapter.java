@@ -127,12 +127,10 @@ public class ContactsAdapter extends GroupedContactsAdapter implements Runnable,
             }
         }
 
-        final boolean showOffline = SettingsManager.contactsShowOffline();
         final boolean showEmptyGroups = SettingsManager.contactsShowEmptyGroups();
         final Comparator<AbstractContact> comparator = SettingsManager.contactsOrder();
         final CommonState commonState = AccountManager.getInstance().getCommonState();
         final String selectedAccount = AccountManager.getInstance().getSelectedAccount();
-
 
         /**
          * Groups.
@@ -165,7 +163,7 @@ public class ContactsAdapter extends GroupedContactsAdapter implements Runnable,
                 if (selectedAccount != null && !selectedAccount.equals(account)) {
                     continue;
                 }
-                if (addContact(rosterContact, online, groups, showOffline)) {
+                if (addContact(rosterContact, online, groups, true)) {
                     hasVisibleContacts = true;
                 }
             }
