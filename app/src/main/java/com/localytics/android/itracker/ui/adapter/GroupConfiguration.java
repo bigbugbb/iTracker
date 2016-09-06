@@ -167,10 +167,10 @@ public class GroupConfiguration extends BaseEntity {
             if (anotherUser.equals(GroupManager.IS_ACCOUNT)) {
                 return 1;
             }
-            if (user.equals(GroupManager.NO_GROUP)) {
+            if (user.equals(GroupManager.IS_FRIEND)) {
                 return -1;
             }
-            if (anotherUser.equals(GroupManager.NO_GROUP)) {
+            if (anotherUser.equals(GroupManager.IS_FRIEND)) {
                 return 1;
             }
             if (user.equals(GroupManager.IS_ROOM)) {

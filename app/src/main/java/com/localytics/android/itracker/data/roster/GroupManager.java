@@ -39,9 +39,9 @@ public class GroupManager implements OnLoadListener, OnAccountRemovedListener,
     public static final String ACTIVE_CHATS = "com.localytics.android.itracker.data.ACTIVE_CHATS";
 
     /**
-     * Reserved group name to store information about group "out of groups".
+     * Reserved group name to store information about any friend.
      */
-    public static final String NO_GROUP = "com.localytics.android.itracker.data.NO_GROUP";
+    public static final String IS_FRIEND = "com.localytics.android.itracker.data.IS_FRIEND";
 
     /**
      * Group name used to store information about account itself.
@@ -110,12 +110,12 @@ public class GroupManager implements OnLoadListener, OnAccountRemovedListener,
 
     /**
      * @return Group's name to be display.
-     * @see {@link #IS_ROOM}, {@link #ACTIVE_CHATS}, {@link #NO_GROUP},
+     * @see {@link #IS_ROOM}, {@link #ACTIVE_CHATS}, {@link #IS_FRIEND},
      * {@link #IS_ACCOUNT}, {@link #NO_ACCOUNT}.
      */
     public String getGroupName(String account, String group) {
-        if (GroupManager.NO_GROUP.equals(group))
-            return Application.getInstance().getString(R.string.group_none);
+        if (GroupManager.IS_FRIEND.equals(group))
+            return Application.getInstance().getString(R.string.group_friends);
         else if (GroupManager.IS_ROOM.equals(group))
             return Application.getInstance().getString(R.string.group_room);
         else if (GroupManager.ACTIVE_CHATS.equals(group))

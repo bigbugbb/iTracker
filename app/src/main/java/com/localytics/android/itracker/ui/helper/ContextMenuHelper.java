@@ -248,13 +248,13 @@ public class ContextMenuHelper {
 //                        public boolean onMenuItemClick(MenuItem item) {
 //                            GroupRenameDialogFragment.newInstance(
 //                                    account.equals(GroupManager.NO_ACCOUNT) ? null : account,
-//                                    group.equals(GroupManager.NO_GROUP) ? null
+//                                    group.equals(GroupManager.IS_FRIEND) ? null
 //                                            : group).show(activity.getFragmentManager(),
 //                                    "GROUP_RENAME");
 //                            return true;
 //                        }
 //                    });
-//            if (!group.equals(GroupManager.NO_GROUP)) {
+//            if (!group.equals(GroupManager.IS_FRIEND)) {
 //                menu.add(R.string.group_remove).setOnMenuItemClickListener(
 //                        new MenuItem.OnMenuItemClickListener() {
 //

@@ -50,7 +50,7 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         groups.add(new Group() {
             @Override
             public String getName() {
-                return GroupManager.NO_GROUP;
+                return GroupManager.IS_FRIEND;
             }
         });
         NO_GROUP_LIST = Collections.unmodifiableCollection(groups);
