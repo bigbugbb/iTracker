@@ -10,7 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 
 import com.localytics.android.itracker.R;
-import com.localytics.android.itracker.ui.TrackerActivity;
+import com.localytics.android.itracker.ui.activity.TrackerActivity;
 
 import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 import static com.localytics.android.itracker.utils.LogUtils.LOGE;

@@ -66,7 +66,7 @@
             android:value="@integer/google_play_services_version"/>
 
         <activity
-            android:name=".ui.TrackerActivity"
+            android:name=".ui.activity.TrackerActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
@@ -80,7 +80,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.SplashActivity"
+            android:name=".ui.activity.SplashActivity"
             android:label="@string/app_name"
             android:noHistory="true"
             android:launchMode="singleTask"
@@ -92,47 +92,47 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.FootprintActivity"
+            android:name=".ui.activity.FootprintActivity"
             android:label="@string/title_activity_footprint"
-            android:parentActivityName=".ui.TrackerActivity"
+            android:parentActivityName=".ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.TrackerActivity"/>
+                android:value=".ui.activity.TrackerActivity"/>
         </activity>
         <activity
-            android:name=".ui.PhotoDetailActivity"
+            android:name=".ui.activity.PhotoDetailActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:parentActivityName=".ui.TrackerActivity"
+            android:parentActivityName=".ui.activity.TrackerActivity"
             android:theme="@style/TranslucentSystemBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.TrackerActivity"/>
+                android:value=".ui.activity.TrackerActivity"/>
         </activity>
         <activity
-            android:name=".ui.MediaDownloadActivity"
+            android:name=".ui.activity.MediaDownloadActivity"
             android:label="@string/title_activity_downloads"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:parentActivityName=".ui.TrackerActivity"
+            android:parentActivityName=".ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.TrackerActivity"/>
+                android:value=".ui.activity.TrackerActivity"/>
             <intent-filter>
                 <action android:name="com.localytics.android.itracker.intent.action.DOWNLOAD_MEDIA" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.PlayerActivity"
+            android:name=".ui.activity.PlayerActivity"
             android:label="PlayerActivity"
             android:theme="@style/TranslucentSystemBar"
-            android:parentActivityName=".ui.TrackerActivity"
+            android:parentActivityName=".ui.activity.TrackerActivity"
             android:screenOrientation="sensorLandscape"
             android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.TrackerActivity"/>
+                android:value=".ui.activity.TrackerActivity"/>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <!-- http://blog.csdn.net/jason0539/article/details/10049899 -->
@@ -144,7 +144,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.AuthenticatorActivity"
+            android:name=".ui.activity.AuthenticatorActivity"
             android:label="@string/login_label"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme">
@@ -160,7 +160,7 @@
         <service android:name=".service.sensor.AppPersistentService" />
 
         <!-- Authenticator related service -->
-        <service android:name=".auth.AuthenticateService">
+        <service android:name=".service.auth.AuthenticateService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>

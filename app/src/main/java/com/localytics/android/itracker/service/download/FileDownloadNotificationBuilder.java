@@ -16,8 +16,8 @@ import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.provider.TrackerContract;
-import com.localytics.android.itracker.ui.MediaDownloadActivity;
-import com.localytics.android.itracker.ui.PlayerActivity;
+import com.localytics.android.itracker.ui.activity.MediaDownloadActivity;
+import com.localytics.android.itracker.ui.activity.PlayerActivity;
 
 import java.util.HashMap;
 import java.util.Map;

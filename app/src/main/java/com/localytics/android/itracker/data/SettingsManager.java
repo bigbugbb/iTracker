@@ -37,8 +37,8 @@ import com.localytics.android.itracker.data.roster.AbstractContact;
 //import com.localytics.android.ui.adapter.ComparatorByName;
 //import com.localytics.android.ui.adapter.ComparatorByStatus;
 //import com.localytics.android.ui.color.ColorManager;
-import com.localytics.android.itracker.ui.ComparatorByName;
-import com.localytics.android.itracker.ui.ComparatorByStatus;
+import com.localytics.android.itracker.ui.adapter.ComparatorByName;
+import com.localytics.android.itracker.ui.adapter.ComparatorByStatus;
 import com.localytics.android.itracker.utils.Emoticons;
 import com.localytics.android.xmpp.carbon.CarbonManager;
 

@@ -25,7 +25,8 @@ import android.widget.TextView;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.model.Track;
-import com.localytics.android.itracker.ui.OnTrackItemSelectedListener;
+import com.localytics.android.itracker.ui.listener.OnTrackItemSelectedListener;
+import com.localytics.android.itracker.ui.adapter.TrackItemAdapter;
 
 import org.joda.time.DateTime;
 

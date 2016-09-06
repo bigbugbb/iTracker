@@ -3,7 +3,7 @@ package com.localytics.android.itracker;
 import android.os.StrictMode;
 import android.text.format.DateUtils;
 
-import com.localytics.android.itracker.ui.TrackerActivity;
+import com.localytics.android.itracker.ui.activity.TrackerActivity;
 import com.localytics.android.itracker.utils.ExternalStorageUtils;
 import com.localytics.android.itracker.utils.SdkVersionUtils;
 

@@ -23,7 +23,7 @@ import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.service.download.FileDownloadRequest;
 import com.localytics.android.itracker.service.download.FileDownloadService;
-import com.localytics.android.itracker.ui.MediaDownloadActivity;
+import com.localytics.android.itracker.ui.activity.MediaDownloadActivity;
 import com.localytics.android.itracker.utils.ConnectivityUtils;
 import com.localytics.android.itracker.utils.YouTubeExtractor;
 

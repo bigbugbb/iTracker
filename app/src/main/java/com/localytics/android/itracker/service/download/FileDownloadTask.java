@@ -14,11 +14,10 @@ import android.text.format.DateUtils;
 
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
-import com.localytics.android.itracker.data.model.FileDownload;
 import com.localytics.android.itracker.provider.TrackerContract.DownloadStatus;
 import com.localytics.android.itracker.provider.TrackerContract.FileDownloads;
 import com.localytics.android.itracker.provider.TrackerContract.MediaDownloads;
-import com.localytics.android.itracker.ui.DownloadStateChangedListener;
+import com.localytics.android.itracker.ui.listener.DownloadStateChangedListener;
 import com.localytics.android.itracker.utils.PrefUtils;
 import com.localytics.android.itracker.utils.YouTubeExtractor;
 

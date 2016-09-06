@@ -21,7 +21,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.localytics.android.itracker.Application;
-import com.localytics.android.itracker.ui.SplashActivity;
+import com.localytics.android.itracker.ui.activity.SplashActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;

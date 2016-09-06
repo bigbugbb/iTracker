@@ -21,7 +21,7 @@ import com.localytics.android.itracker.data.FileDownloadManager;
 import com.localytics.android.itracker.data.connection.ConnectionManager;
 import com.localytics.android.itracker.receiver.SensorMonitorReceiver;
 import com.localytics.android.itracker.service.sensor.AppPersistentService;
-import com.localytics.android.itracker.ui.SplashActivity;
+import com.localytics.android.itracker.ui.activity.SplashActivity;
 import com.localytics.android.itracker.utils.LogUtils;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;

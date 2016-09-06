@@ -82,6 +82,8 @@
     <string name="sign_out">Sign Out</string>
     <string name="disconnect">Disconnect</string>
 
+    <string name="empty_chat_messages">You don\'t have any messages</string>
+
     <!-- Content Description for images -->
     <string name="desc_itracker_icon">iTracker Logo</string>
 
