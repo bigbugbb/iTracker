@@ -20,6 +20,7 @@ import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.message.OnChatChangedListener;
 import com.localytics.android.itracker.data.roster.AbstractContact;
 import com.localytics.android.itracker.data.roster.OnContactChangedListener;
+import com.localytics.android.itracker.ui.activity.ContactAddActivity;
 import com.localytics.android.itracker.ui.adapter.ContactsAdapter;
 import com.localytics.android.itracker.ui.adapter.GroupConfiguration;
 
@@ -72,7 +73,7 @@ public class ContactFragment extends TrackerFragment implements
         contactsViewHeader.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                startActivity(ContactAddActivity.createIntent(getActivity()));
             }
         });
 
@@ -125,7 +126,7 @@ public class ContactFragment extends TrackerFragment implements
 
     @Override
     public void onContactsChanged(Collection<BaseEntity> entities) {
-
+        mContactsAdapter.refreshRequest();
     }
 
     @Override

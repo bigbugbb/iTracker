@@ -144,6 +144,15 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.activity.ContactAddActivity"
+            android:label="@string/title_activity_add_contact"
+            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.activity.TrackerActivity"/>
+        </activity>
+        <activity
             android:name=".ui.activity.AuthenticatorActivity"
             android:label="@string/login_label"
             android:launchMode="singleTask"
