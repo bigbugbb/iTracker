@@ -16,6 +16,7 @@ import com.localytics.android.itracker.utils.Emoticons;
 import com.localytics.android.itracker.utils.StringUtils;
 
 public class ChatContactItemInflater extends RegularContactItemInflater {
+
     public ChatContactItemInflater(Context context) {
         super(context);
     }
@@ -71,10 +72,7 @@ public class ChatContactItemInflater extends RegularContactItemInflater {
 
         viewHolder.outgoingMessageIndicator.setVisibility(View.GONE);
 
-        viewHolder.smallRightText.setVisibility(View.GONE);
-        viewHolder.smallRightIcon.setVisibility(View.GONE);
-
-        ClientSoftware clientSoftware = contact.getClientSoftware();
+        viewHolder.messageTime.setVisibility(View.GONE);
 
         if (messageManager.hasActiveChat(contact.getAccount(), contact.getUser())) {
 
@@ -86,17 +84,14 @@ public class ChatContactItemInflater extends RegularContactItemInflater {
             viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getActiveChatSeparatorColor());
 
             if (!statusText.isEmpty()) {
-                viewHolder.smallRightText.setText(StringUtils.getSmartTimeText(mContext, chat.getLastTime()));
-                viewHolder.smallRightText.setVisibility(View.VISIBLE);
+                viewHolder.messageTime.setText(StringUtils.getSmartTimeText(mContext, chat.getLastTime()));
+                viewHolder.messageTime.setVisibility(View.VISIBLE);
 
                 if (!chat.isLastMessageIncoming()) {
                     viewHolder.outgoingMessageIndicator.setText(mContext.getString(R.string.sender_is_you) + ": ");
                     viewHolder.outgoingMessageIndicator.setVisibility(View.VISIBLE);
                     viewHolder.outgoingMessageIndicator.setTextColor(ColorManager.getInstance().getAccountPainter().getAccountMainColor(contact.getAccount()));
                 }
-                viewHolder.smallRightIcon.setImageResource(R.drawable.ic_client_small);
-                viewHolder.smallRightIcon.setVisibility(View.VISIBLE);
-                viewHolder.smallRightIcon.setImageLevel(clientSoftware.ordinal());
             }
         } else {
             statusText = contact.getStatusText().trim();
@@ -111,7 +106,6 @@ public class ChatContactItemInflater extends RegularContactItemInflater {
             viewHolder.secondLineMessage.setText(Emoticons.getSmiledText(mContext, statusText, viewHolder.secondLineMessage));
         }
 
-        viewHolder.statusIcon.setImageLevel(contact.getStatusMode().getStatusLevel());
         return view;
     }
 }

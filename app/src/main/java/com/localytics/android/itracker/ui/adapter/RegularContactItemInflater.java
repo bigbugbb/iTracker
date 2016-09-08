@@ -56,15 +56,7 @@ public class RegularContactItemInflater {
         });
 
         viewHolder.name.setText(contact.getName());
-
-        MessageManager messageManager = MessageManager.getInstance();
-        if (MUCManager.getInstance().isMucPrivateChat(contact.getAccount(), contact.getUser())) {
-            viewHolder.name.setTextColor(ColorManager.getInstance().getColorMucPrivateChatText());
-        } else if (messageManager.hasActiveChat(contact.getAccount(), contact.getUser())) {
-            viewHolder.name.setTextColor(ColorManager.getInstance().getActiveChatTextColor());
-        } else {
-            viewHolder.name.setTextColor(ColorManager.getInstance().getColorMain());
-        }
+        viewHolder.status.setText(String.format("[%s]", mContext.getString(contact.getStatusMode().getStringID())));
 
         if (MUCManager.getInstance().hasRoom(contact.getAccount(), contact.getUser())) {
             viewHolder.mucIndicator.setVisibility(View.VISIBLE);
@@ -76,13 +68,7 @@ public class RegularContactItemInflater {
             viewHolder.mucIndicator.setVisibility(View.GONE);
         }
 
-        if (messageManager.hasActiveChat(contact.getAccount(), contact.getUser())) {
-            view.setBackgroundColor(ColorManager.getInstance().getActiveChatBackgroundColor());
-            viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getActiveChatSeparatorColor());
-        } else {
-            view.setBackgroundColor(ColorManager.getInstance().getContactBackground());
-            viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getContactSeparatorColor());
-        }
+        viewHolder.separator.setBackgroundColor(ColorManager.getInstance().getActiveChatSeparatorColor());
 
         return view;
     }

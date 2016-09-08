@@ -143,7 +143,6 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         }
 
         final GroupConfiguration configuration = (GroupConfiguration) getItem(position);
-        final int level = AccountManager.getInstance().getColorLevel(configuration.getAccount());
 
         final String name = GroupManager.getInstance()
                 .getGroupName(configuration.getAccount(), configuration.getUser());
