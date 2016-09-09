@@ -340,24 +340,24 @@ public class SettingsManager implements OnInitializedListener,
         return getBoolean(R.string.chats_show_background_key, R.bool.chats_show_background_default);
     }
 
-//    public static int chatsAppearanceStyle() {
-//        String value = getString(R.string.chats_font_size_key,
-//                R.string.chats_font_size_default);
-//        if (Application.getInstance()
-//                .getString(R.string.chats_font_size_small_value).equals(value))
-//            return R.style.ChatText_Small;
-//        else if (Application.getInstance()
-//                .getString(R.string.chats_font_size_normal_value).equals(value))
-//            return R.style.ChatText_Normal;
-//        else if (Application.getInstance()
-//                .getString(R.string.chats_font_size_large_value).equals(value))
-//            return R.style.ChatText_Large;
-//        else if (Application.getInstance()
-//                .getString(R.string.chats_font_size_xlarge_value).equals(value))
-//            return R.style.ChatText_XLarge;
-//        else
-//            throw new IllegalStateException();
-//    }
+    public static int chatsAppearanceStyle() {
+        String value = getString(R.string.chats_font_size_key,
+                R.string.chats_font_size_default);
+        if (Application.getInstance()
+                .getString(R.string.chats_font_size_small_value).equals(value))
+            return R.style.ChatText_Small;
+        else if (Application.getInstance()
+                .getString(R.string.chats_font_size_normal_value).equals(value))
+            return R.style.ChatText_Normal;
+        else if (Application.getInstance()
+                .getString(R.string.chats_font_size_large_value).equals(value))
+            return R.style.ChatText_Large;
+        else if (Application.getInstance()
+                .getString(R.string.chats_font_size_xlarge_value).equals(value))
+            return R.style.ChatText_XLarge;
+        else
+            throw new IllegalStateException();
+    }
 
     public static boolean chatsStateNotification() {
         return getBoolean(R.string.chats_state_notification_key,

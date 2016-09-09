@@ -15,23 +15,23 @@ import com.localytics.android.itracker.data.entity.BaseEntity;
 import com.localytics.android.itracker.data.message.OnChatChangedListener;
 import com.localytics.android.itracker.data.roster.AbstractContact;
 import com.localytics.android.itracker.data.roster.OnContactChangedListener;
+import com.localytics.android.itracker.ui.activity.ChatViewerActivity;
 import com.localytics.android.itracker.ui.adapter.ChatsAdapter;
 
 import java.util.Collection;
 
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
-public class ChatFragment extends TrackerFragment implements
+public class ChatListFragment extends TrackerFragment implements
         OnContactChangedListener,
         OnChatChangedListener,
-        AdapterView.OnItemClickListener,
-        View.OnClickListener {
-    private static final String TAG = makeLogTag(ChatFragment.class);
+        AdapterView.OnItemClickListener {
+    private static final String TAG = makeLogTag(ChatListFragment.class);
 
     private ListView mChatsView;
     private ChatsAdapter mChatsAdapter;
 
-    public ChatFragment() {
+    public ChatListFragment() {
         // Required empty public constructor
     }
 
@@ -108,12 +108,12 @@ public class ChatFragment extends TrackerFragment implements
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Object object = parent.getAdapter().getItem(position);
         if (object instanceof AbstractContact) {
-//            contactListFragmentListener.onContactClick((AbstractContact) object);
+            onContactClick((AbstractContact) object);
         }
     }
 
-    @Override
-    public void onClick(View v) {
-
+    private void onContactClick(AbstractContact abstractContact) {
+        startActivity(ChatViewerActivity.createSpecificChatIntent(getActivity(),
+                abstractContact.getAccount(), abstractContact.getUser()));
     }
 }

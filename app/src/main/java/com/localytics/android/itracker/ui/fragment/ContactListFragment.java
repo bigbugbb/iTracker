@@ -29,20 +29,20 @@ import java.util.Collection;
 import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
-public class ContactFragment extends TrackerFragment implements
+public class ContactListFragment extends TrackerFragment implements
         OnContactChangedListener,
         OnChatChangedListener,
         ContactsAdapter.OnContactListChangedListener,
         AdapterView.OnItemClickListener,
         View.OnClickListener {
-    private static final String TAG = makeLogTag(ContactFragment.class);
+    private static final String TAG = makeLogTag(ContactListFragment.class);
 
     private ListView mContactsView;
     private ContactsAdapter mContactsAdapter;
 
 //    private ProgressBar mProgressView;
 
-    public ContactFragment() {
+    public ContactListFragment() {
         // Required empty public constructor
     }
 

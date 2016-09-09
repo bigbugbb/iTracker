@@ -59,9 +59,9 @@ public class FriendFragment extends TrackerFragment {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return new ChatFragment();
+                    return new ChatListFragment();
                 case 1:
-                    return new ContactFragment();
+                    return new ContactListFragment();
                 default:
                     return null;
             }
