@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.ActivityManager;
+import com.localytics.android.itracker.data.model.Track;
 
 /**
  * Base class for all Activities.
@@ -20,7 +21,9 @@ public abstract class ManagedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ActivityManager.getInstance().onCreate(this);
         super.onCreate(savedInstanceState);
-        overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+        if (!(this instanceof TrackerActivity)) {
+            overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+        }
     }
 
     @Override
@@ -69,6 +72,8 @@ public abstract class ManagedActivity extends AppCompatActivity {
     @Override
     public void finish() {
         super.finish();
-        overridePendingTransition(R.anim.slide_in_reverse, R.anim.slide_out_reverse);
+        if (!(this instanceof TrackerActivity)) {
+            overridePendingTransition(R.anim.slide_in_reverse, R.anim.slide_out_reverse);
+        }
     }
 }
