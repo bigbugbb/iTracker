@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/expander_height"
     android:background="@color/grey_300"
-    android:elevation="2dp">
+    android:elevation="1dp">
 
     <ImageView
         android:id="@+id/indicator"
