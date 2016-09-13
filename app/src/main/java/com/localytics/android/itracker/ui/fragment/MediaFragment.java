@@ -427,6 +427,10 @@ public class MediaFragment extends TrackerFragment implements
         new AsyncTask<Void, Void, List<Video>>() {
             @Override
             protected List<Video> doInBackground(Void... voids) {
+                if (!isAdded()) {
+                    return null;
+                }
+
                 YouTube youtube = new YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, mCredential)
                         .setApplicationName(getString(R.string.app_name))
                         .build();

@@ -21,7 +21,7 @@ public abstract class ManagedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ActivityManager.getInstance().onCreate(this);
         super.onCreate(savedInstanceState);
-        if (!(this instanceof SplashActivity)) {
+        if (!(this instanceof TrackerActivity)) {
             overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
         }
     }
