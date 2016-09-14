@@ -38,7 +38,7 @@ public class ContactAddActivity extends BaseActivity {
         Intent intent = getIntent();
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager()
+            getFragmentManager()
                     .beginTransaction()
                     .add(R.id.contact_add_fragment, ContactAddFragment.newInstance(getAccount(intent), getUser(intent)))
                     .commit();

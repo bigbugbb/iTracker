@@ -7,31 +7,9 @@
     android:fitsSystemWindows="true"
     tools:mContext=".ui.activity.ChatViewerActivity">
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/pager"
+    <FrameLayout
+        android:id="@+id/chat_viewer_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:id="@+id/chat_scroll_indicator_top_spacer" />
-
-        <LinearLayout
-            android:id="@+id/chat_scroll_indicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal"
-            android:layout_below="@+id/chat_scroll_indicator_top_spacer">
-
-        </LinearLayout>
-
-    </RelativeLayout>
+        android:layout_height="match_parent"/>
 
 </android.support.design.widget.CoordinatorLayout>

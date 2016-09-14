@@ -528,8 +528,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         }
     }
 
-
-
     public void restoreInputState() {
         skipOnTextChanges = true;
 

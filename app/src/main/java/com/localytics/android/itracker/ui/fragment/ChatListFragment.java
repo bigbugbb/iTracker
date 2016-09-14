@@ -108,12 +108,9 @@ public class ChatListFragment extends TrackerFragment implements
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Object object = parent.getAdapter().getItem(position);
         if (object instanceof AbstractContact) {
-            onContactClick((AbstractContact) object);
+            AbstractContact contact = (AbstractContact) object;
+            startActivity(ChatViewerActivity.createSpecificChatIntent(getActivity(),
+                    contact.getAccount(), contact.getUser()));
         }
-    }
-
-    private void onContactClick(AbstractContact abstractContact) {
-        startActivity(ChatViewerActivity.createSpecificChatIntent(getActivity(),
-                abstractContact.getAccount(), abstractContact.getUser()));
     }
 }
