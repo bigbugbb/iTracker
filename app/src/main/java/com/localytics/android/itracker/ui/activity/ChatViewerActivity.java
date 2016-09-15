@@ -23,7 +23,6 @@ import com.localytics.android.itracker.data.message.OnChatChangedListener;
 import com.localytics.android.itracker.data.notification.NotificationManager;
 import com.localytics.android.itracker.data.roster.OnContactChangedListener;
 import com.localytics.android.itracker.ui.fragment.ChatViewerFragment;
-import com.localytics.android.itracker.ui.fragment.ContactAddFragment;
 
 import java.util.Collection;
 
@@ -246,11 +245,6 @@ public class ChatViewerActivity extends BaseActivity implements
             }
         }
     }
-
-//    @Override
-//    public void onChatViewAdapterFinishUpdate() {
-//        insertExtraText();
-//    }
 
     private void insertExtraText() {
         if (mExtraText == null) {

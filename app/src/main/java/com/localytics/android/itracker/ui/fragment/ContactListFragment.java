@@ -1,6 +1,7 @@
 package com.localytics.android.itracker.ui.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -17,10 +18,13 @@ import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.data.account.CommonState;
 import com.localytics.android.itracker.data.entity.BaseEntity;
+import com.localytics.android.itracker.data.extension.muc.MUCManager;
 import com.localytics.android.itracker.data.message.OnChatChangedListener;
 import com.localytics.android.itracker.data.roster.AbstractContact;
 import com.localytics.android.itracker.data.roster.OnContactChangedListener;
 import com.localytics.android.itracker.ui.activity.ContactAddActivity;
+import com.localytics.android.itracker.ui.activity.ContactEditorActivity;
+import com.localytics.android.itracker.ui.activity.ContactViewerActivity;
 import com.localytics.android.itracker.ui.adapter.ContactsAdapter;
 import com.localytics.android.itracker.ui.adapter.GroupConfiguration;
 
@@ -133,12 +137,24 @@ public class ContactListFragment extends TrackerFragment implements
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Object object = parent.getAdapter().getItem(position);
         if (object instanceof AbstractContact) {
-//            contactListFragmentListener.onContactClick((AbstractContact) object);
+            showContactInfo((AbstractContact) object);
         } else if (object instanceof GroupConfiguration) {
             GroupConfiguration groupConfiguration = (GroupConfiguration) object;
             mContactsAdapter.setExpanded(groupConfiguration.getAccount(), groupConfiguration.getUser(),
                     !groupConfiguration.isExpanded());
         }
+    }
+
+    private void showContactInfo(AbstractContact contact) {
+        Intent intent;
+        String account = contact.getAccount();
+        String user = contact.getUser();
+        if (MUCManager.getInstance().hasRoom(account, user)) {
+            intent = ContactViewerActivity.createIntent(getActivity(), account, user);
+        } else {
+            intent = ContactEditorActivity.createIntent(getActivity(), account, user);
+        }
+        startActivity(intent);
     }
 
     @Override

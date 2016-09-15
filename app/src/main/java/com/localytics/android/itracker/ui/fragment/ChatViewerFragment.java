@@ -92,27 +92,27 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     private static final int PERMISSIONS_REQUEST_SAVE_TO_DOWNLOADS = 25;
     private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 26;
     private static final int PERMISSIONS_REQUEST_EXPORT_CHAT = 27;
-    boolean isInputEmpty = true;
-    private EditText inputView;
-    private ChatMessageAdapter chatMessageAdapter;
-    private boolean skipOnTextChanges = false;
-    private String account;
-    private String user;
-    private ImageButton sendButton;
-    private ImageButton securityButton;
-    private Toolbar toolbar;
+    boolean mIsInputEmpty = true;
+    private EditText mInputView;
+    private ChatMessageAdapter mChatMessageAdapter;
+    private boolean mSkipOnTextChanges = false;
+    private String mAccount;
+    private String mUser;
+    private ImageButton mSendButton;
+    private ImageButton mSecurityButton;
+    private Toolbar mToolbar;
 
-    private ChatViewerFragmentListener listener;
-    private Animation shakeAnimation = null;
-    private RecyclerView recyclerView;
-    private View contactTitleView;
-    private AbstractContact abstractContact;
-    private LinearLayoutManager layoutManager;
-    private MessageItem clickedMessageItem;
+    private ChatViewerFragmentListener mListener;
+    private Animation mShakeAnimation = null;
+    private RecyclerView mRecyclerView;
+    private View mContactTitleView;
+    private AbstractContact mAbstractContact;
+    private LinearLayoutManager mLayoutManager;
+    private MessageItem mClickedMessageItem;
 
-    private Timer stopTypingTimer = new Timer();
+    private Timer mStopTypingTimer = new Timer();
     private final long STOP_TYPING_DELAY = 4000; // in ms
-    private ImageButton attachButton;
+    private ImageButton mAttachButton;
 
     public static ChatViewerFragment newInstance(String account, String user) {
         ChatViewerFragment fragment = new ChatViewerFragment();
@@ -129,7 +129,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         super.onAttach(activity);
 
         try {
-            listener = (ChatViewerFragmentListener) activity;
+            mListener = (ChatViewerFragmentListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement ChatViewerFragmentListener");
@@ -141,8 +141,8 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         super.onCreate(savedInstanceState);
 
         Bundle args = getArguments();
-        account = args.getString(ARGUMENT_ACCOUNT, null);
-        user = args.getString(ARGUMENT_USER, null);
+        mAccount = args.getString(ARGUMENT_ACCOUNT, null);
+        mUser = args.getString(ARGUMENT_USER, null);
     }
 
     @Override
@@ -153,56 +153,56 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
         View view = localInflater.inflate(R.layout.fragment_chat_viewer, container, false);
 
+        mContactTitleView = view.findViewById(R.id.contact_title);
 
-        contactTitleView = view.findViewById(R.id.contact_title);
+        mAbstractContact = RosterManager.getInstance().getBestContact(mAccount, mUser);
+        mContactTitleView.findViewById(R.id.avatar).setOnClickListener(this);
 
-        abstractContact = RosterManager.getInstance().getBestContact(account, user);
-        contactTitleView.findViewById(R.id.avatar).setOnClickListener(this);
-
-        toolbar = (Toolbar) view.findViewById(R.id.toolbar_default);
-        toolbar.inflateMenu(R.menu.menu_chat);
-        toolbar.setOnMenuItemClickListener(this);
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        mToolbar = (Toolbar) view.findViewById(R.id.toolbar_default);
+        mToolbar.inflateMenu(R.menu.menu_chat);
+        mToolbar.setOnMenuItemClickListener(this);
+        mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 NavUtils.navigateUpFromSameTask(getActivity());
+                getActivity().overridePendingTransition(R.anim.slide_in_reverse, R.anim.slide_out_reverse);
             }
         });
 
         setHasOptionsMenu(true);
 
-        sendButton = (ImageButton) view.findViewById(R.id.button_send_message);
-        sendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
+        mSendButton = (ImageButton) view.findViewById(R.id.button_send_message);
+        mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
 
-        AbstractChat abstractChat = MessageManager.getInstance().getChat(account, user);
+        AbstractChat abstractChat = MessageManager.getInstance().getChat(mAccount, mUser);
 
-        securityButton = (ImageButton) view.findViewById(R.id.button_security);
+        mSecurityButton = (ImageButton) view.findViewById(R.id.button_security);
 
         if (abstractChat instanceof RegularChat) {
-            securityButton.setOnClickListener(new View.OnClickListener() {
+            mSecurityButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     showSecurityMenu();
                 }
             });
         } else {
-            securityButton.setVisibility(View.GONE);
+            mSecurityButton.setVisibility(View.GONE);
         }
 
-        chatMessageAdapter = new ChatMessageAdapter(getActivity(), account, user, this, this);
+        mChatMessageAdapter = new ChatMessageAdapter(getActivity(), mAccount, mUser, this, this);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.chat_messages_recycler_view);
-        recyclerView.setAdapter(chatMessageAdapter);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.chat_messages_recycler_view);
+        mRecyclerView.setAdapter(mChatMessageAdapter);
 
-        layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setStackFromEnd(true);
-        recyclerView.setLayoutManager(layoutManager);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mLayoutManager.setStackFromEnd(true);
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
         // to avoid strange bug on some 4.x androids
         view.findViewById(R.id.input_layout).setBackgroundColor(ColorManager.getInstance().getChatInputBackgroundColor());
 
-        inputView = (EditText) view.findViewById(R.id.chat_input);
+        mInputView = (EditText) view.findViewById(R.id.chat_input);
 
         view.findViewById(R.id.button_send_message).setOnClickListener(
                 new View.OnClickListener() {
@@ -214,7 +214,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
                 });
 
-        inputView.setOnKeyListener(new View.OnKeyListener() {
+        mInputView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int keyCode, KeyEvent event) {
                 if (SettingsManager.chatsSendByEnter()
@@ -227,12 +227,12 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             }
         });
 
-        inputView.addTextChangedListener(new TextWatcher() {
+        mInputView.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!skipOnTextChanges && stopTypingTimer != null) {
-                    stopTypingTimer.cancel();
+                if (!mSkipOnTextChanges && mStopTypingTimer != null) {
+                    mStopTypingTimer.cancel();
                 }
             }
 
@@ -244,20 +244,20 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             public void afterTextChanged(Editable text) {
                 setUpInputViewButtons();
 
-                if (skipOnTextChanges) {
+                if (mSkipOnTextChanges) {
                     return;
                 }
 
-                ChatStateManager.getInstance().onComposing(account, user, text);
+                ChatStateManager.getInstance().onComposing(mAccount, mUser, text);
 
-                stopTypingTimer = new Timer();
-                stopTypingTimer.schedule(new TimerTask() {
+                mStopTypingTimer = new Timer();
+                mStopTypingTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         Application.getInstance().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ChatStateManager.getInstance().onPaused(account, user);
+                                ChatStateManager.getInstance().onPaused(mAccount, mUser);
                             }
                         });
                     }
@@ -275,10 +275,10 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         // Give the topmost view of your activity layout hierarchy. This will be used to measure soft keyboard height
         final EmojiconsPopup popup = new EmojiconsPopup(rootView, getActivity());
 
-        //Will automatically set size according to the soft keyboard size
+        // Will automatically set size according to the soft keyboard size
         popup.setSizeForSoftKeyboard();
 
-        //If the emoji popup is dismissed, change emojiButton to smiley icon
+        // If the emoji popup is dismissed, change emojiButton to smiley icon
         popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
 
             @Override
@@ -287,7 +287,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             }
         });
 
-        //If the text keyboard closes, also dismiss the emoji popup
+        // If the text keyboard closes, also dismiss the emoji popup
         popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener() {
 
             @Override
@@ -302,87 +302,83 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             }
         });
 
-        //On emoji clicked, add it to edittext
+        // On emoji clicked, add it to edittext
         popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
 
             @Override
             public void onEmojiconClicked(Emojicon emojicon) {
-                if (inputView == null || emojicon == null) {
+                if (mInputView == null || emojicon == null) {
                     return;
                 }
 
-                int start = inputView.getSelectionStart();
-                int end = inputView.getSelectionEnd();
+                int start = mInputView.getSelectionStart();
+                int end = mInputView.getSelectionEnd();
                 if (start < 0) {
-                    inputView.append(emojicon.getEmoji());
+                    mInputView.append(emojicon.getEmoji());
                 } else {
-                    inputView.getText().replace(Math.min(start, end),
+                    mInputView.getText().replace(Math.min(start, end),
                             Math.max(start, end), emojicon.getEmoji(), 0,
                             emojicon.getEmoji().length());
                 }
             }
         });
 
-        //On backspace clicked, emulate the KEYCODE_DEL key event
+        // On backspace clicked, emulate the KEYCODE_DEL key event
         popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener() {
 
             @Override
             public void onEmojiconBackspaceClicked(View v) {
                 KeyEvent event = new KeyEvent(
                         0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
-                inputView.dispatchKeyEvent(event);
+                mInputView.dispatchKeyEvent(event);
             }
         });
 
-        // To toggle between text keyboard and emoji keyboard keyboard(Popup)
+        // To toggle between text keyboard and emoji keyboard (Popup)
         emojiButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
-                //If popup is not showing => emoji keyboard is not visible, we need to show it
-                if(!popup.isShowing()){
+                // If popup is not showing => emoji keyboard is not visible, we need to show it
+                if (!popup.isShowing()) {
 
-                    //If keyboard is visible, simply show the emoji popup
-                    if(popup.isKeyBoardOpen()){
+                    // If keyboard is visible, simply show the emoji popup
+                    if (popup.isKeyBoardOpen()) {
                         popup.showAtBottom();
                         changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_24dp);
                     }
 
-                    //else, open the text keyboard first and immediately after that show the emoji popup
-                    else{
-                        inputView.setFocusableInTouchMode(true);
-                        inputView.requestFocus();
+                    // else, open the text keyboard first and immediately after that show the emoji popup
+                    else {
+                        mInputView.setFocusableInTouchMode(true);
+                        mInputView.requestFocus();
                         popup.showAtBottomPending();
                         final InputMethodManager inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                        inputMethodManager.showSoftInput(inputView, InputMethodManager.SHOW_IMPLICIT);
+                        inputMethodManager.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
                         changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_24dp);
                     }
                 }
 
-                //If popup is showing, simply dismiss it to show the undelying text keyboard
-                else{
+                // If popup is showing, simply dismiss it to show the undelying text keyboard
+                else {
                     popup.dismiss();
                 }
             }
         });
 
-        attachButton = (ImageButton) view.findViewById(R.id.button_attach);
-        attachButton.setOnClickListener(new View.OnClickListener() {
+        mAttachButton = (ImageButton) view.findViewById(R.id.button_attach);
+        mAttachButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onAttachButtonPressed();
+                if (PermissionsRequester.requestFileReadPermissionIfNeeded(ChatViewerFragment.this, PERMISSIONS_REQUEST_ATTACH_FILE)) {
+                    startFileSelection();
+                }
+
             }
         });
 
         return view;
-    }
-
-    private void onAttachButtonPressed() {
-        if (PermissionsRequester.requestFileReadPermissionIfNeeded(this, PERMISSIONS_REQUEST_ATTACH_FILE)) {
-            startFileSelection();
-        }
-
     }
 
     private void startFileSelection() {
@@ -456,7 +452,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     private void uploadFile(String path) {
-        HttpFileUploadManager.getInstance().uploadFile(account, user, path);
+        HttpFileUploadManager.getInstance().uploadFile(mAccount, mUser, path);
     }
 
     private void changeEmojiKeyboardIcon(ImageView iconToBeChanged, int drawableResourceId){
@@ -466,26 +462,25 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     @Override
     public void onResume() {
         super.onResume();
-        listener.registerChat(this);
+        mListener.registerChat(this);
         updateChat();
         restoreInputState();
     }
 
-
     @Override
     public void onDetach() {
         super.onDetach();
-        listener = null;
+        mListener = null;
     }
 
     private void showSecurityMenu() {
-        PopupMenu popup = new PopupMenu(getActivity(), securityButton);
+        PopupMenu popup = new PopupMenu(getActivity(), mSecurityButton);
         popup.inflate(R.menu.menu_security);
         popup.setOnMenuItemClickListener(this);
 
         Menu menu = popup.getMenu();
 
-        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(account, user);
+        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(mAccount, mUser);
 
         if (securityLevel == SecurityLevel.plain) {
             menu.findItem(R.id.action_start_encryption).setVisible(true)
@@ -505,40 +500,36 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     private void setUpInputViewButtons() {
-        boolean empty = inputView.getText().toString().trim().isEmpty();
+        mIsInputEmpty = mInputView.getText().toString().trim().isEmpty();
 
-        if (empty != isInputEmpty) {
-            isInputEmpty = empty;
-        }
-
-        if (isInputEmpty) {
-            sendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
-            sendButton.setEnabled(false);
-            securityButton.setVisibility(View.VISIBLE);
-            if (HttpFileUploadManager.getInstance().isFileUploadSupported(account)) {
-                attachButton.setVisibility(View.VISIBLE);
+        if (mIsInputEmpty) {
+            mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
+            mSendButton.setEnabled(false);
+            mSecurityButton.setVisibility(View.VISIBLE);
+            if (HttpFileUploadManager.getInstance().isFileUploadSupported(mAccount)) {
+                mAttachButton.setVisibility(View.VISIBLE);
             } else {
-                attachButton.setVisibility(View.GONE);
+                mAttachButton.setVisibility(View.GONE);
             }
         } else {
-            sendButton.setEnabled(true);
-            sendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getAccountSendButtonColor(account));
-            securityButton.setVisibility(View.GONE);
-            attachButton.setVisibility(View.GONE);
+            mSendButton.setEnabled(true);
+            mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getAccountSendButtonColor(mAccount));
+            mSecurityButton.setVisibility(View.GONE);
+            mAttachButton.setVisibility(View.GONE);
         }
     }
 
     public void restoreInputState() {
-        skipOnTextChanges = true;
+        mSkipOnTextChanges = true;
 
-        inputView.setText(ChatManager.getInstance().getTypedMessage(account, user));
-        inputView.setSelection(ChatManager.getInstance().getSelectionStart(account, user),
-                ChatManager.getInstance().getSelectionEnd(account, user));
+        mInputView.setText(ChatManager.getInstance().getTypedMessage(mAccount, mUser));
+        mInputView.setSelection(ChatManager.getInstance().getSelectionStart(mAccount, mUser),
+                ChatManager.getInstance().getSelectionEnd(mAccount, mUser));
 
-        skipOnTextChanges = false;
+        mSkipOnTextChanges = false;
 
-        if (!inputView.getText().toString().isEmpty()) {
-            inputView.requestFocus();
+        if (!mInputView.getText().toString().isEmpty()) {
+            mInputView.requestFocus();
         }
     }
 
@@ -546,19 +537,19 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     public void onPause() {
         super.onPause();
 
-        ChatStateManager.getInstance().onPaused(account, user);
+        ChatStateManager.getInstance().onPaused(mAccount, mUser);
 
         saveInputState();
-        listener.unregisterChat(this);
+        mListener.unregisterChat(this);
     }
 
     public void saveInputState() {
-        ChatManager.getInstance().setTyped(account, user, inputView.getText().toString(),
-                inputView.getSelectionStart(), inputView.getSelectionEnd());
+        ChatManager.getInstance().setTyped(mAccount, mUser, mInputView.getText().toString(),
+                mInputView.getSelectionStart(), mInputView.getSelectionEnd());
     }
 
     private void sendMessage() {
-        String text = inputView.getText().toString().trim();
+        String text = mInputView.getText().toString().trim();
 
         if (text.isEmpty()) {
             return;
@@ -568,7 +559,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
         sendMessage(text);
 
-        listener.onMessageSent();
+        mListener.onMessageSent();
 
         if (SettingsManager.chatsHideKeyboard() == SettingsManager.ChatsHideKeyboard.always
                 || (getActivity().getResources().getBoolean(R.bool.landscape)
@@ -578,7 +569,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     private void sendMessage(String text) {
-        MessageManager.getInstance().sendMessage(account, user, text);
+        MessageManager.getInstance().sendMessage(mAccount, mUser, text);
         updateChat();
     }
 
@@ -600,7 +591,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     private void setUpOptionsMenu(Menu menu) {
-        AbstractChat abstractChat = MessageManager.getInstance().getChat(account, user);
+        AbstractChat abstractChat = MessageManager.getInstance().getChat(mAccount, mUser);
 
         if (abstractChat instanceof RoomChat) {
             RoomState chatState = ((RoomChat) abstractChat).getState();
@@ -631,53 +622,53 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     public void updateChat() {
-        ContactTitleInflater.updateTitle(contactTitleView, getActivity(), abstractContact);
-        int itemCountBeforeUpdate = chatMessageAdapter.getItemCount();
-        chatMessageAdapter.onChange();
+        ContactTitleInflater.updateTitle(mContactTitleView, getActivity(), mAbstractContact);
+        int itemCountBeforeUpdate = mChatMessageAdapter.getItemCount();
+        mChatMessageAdapter.onChange();
         scrollChat(itemCountBeforeUpdate);
-        setUpOptionsMenu(toolbar.getMenu());
+        setUpOptionsMenu(mToolbar.getMenu());
         updateSecurityButton();
     }
 
     private void scrollChat(int itemCountBeforeUpdate) {
-        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+        int lastVisibleItemPosition = mLayoutManager.findLastVisibleItemPosition();
         if (lastVisibleItemPosition == -1 || lastVisibleItemPosition == (itemCountBeforeUpdate - 1)) {
             scrollDown();
         }
     }
 
     private void scrollDown() {
-        recyclerView.scrollToPosition(chatMessageAdapter.getItemCount() - 1);
+        mRecyclerView.scrollToPosition(mChatMessageAdapter.getItemCount() - 1);
     }
 
     private void updateSecurityButton() {
-        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(account, user);
-        securityButton.setImageLevel(securityLevel.getImageLevel());
+        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(mAccount, mUser);
+        mSecurityButton.setImageLevel(securityLevel.getImageLevel());
     }
 
     public boolean isEqual(BaseEntity chat) {
-        return chat != null && this.account.equals(chat.getAccount()) && this.user.equals(chat.getUser());
+        return chat != null && this.mAccount.equals(chat.getAccount()) && this.mUser.equals(chat.getUser());
     }
 
     public void setInputText(String additional) {
-        skipOnTextChanges = true;
-        inputView.setText(additional);
-        inputView.setSelection(additional.length());
-        skipOnTextChanges = false;
+        mSkipOnTextChanges = true;
+        mInputView.setText(additional);
+        mInputView.setSelection(additional.length());
+        mSkipOnTextChanges = false;
     }
 
     public String getAccount() {
-        return account;
+        return mAccount;
     }
 
     public String getUser() {
-        return user;
+        return mUser;
     }
 
     private void clearInputText() {
-        skipOnTextChanges = true;
-        inputView.getText().clear();
-        skipOnTextChanges = false;
+        mSkipOnTextChanges = true;
+        mInputView.getText().clear();
+        mSkipOnTextChanges = false;
     }
 
     @Override
@@ -687,15 +678,15 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             /* security menu */
 
             case R.id.action_start_encryption:
-                startEncryption(account, user);
+                startEncryption(mAccount, mUser);
                 return true;
 
             case R.id.action_restart_encryption:
-                restartEncryption(account, user);
+                restartEncryption(mAccount, mUser);
                 return true;
 
             case R.id.action_stop_encryption:
-                stopEncryption(account, user);
+                stopEncryption(mAccount, mUser);
                 return true;
 
             case R.id.action_verify_with_fingerprint:
@@ -721,7 +712,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 return true;
 
             case R.id.action_show_history:
-                showHistory(account, user);
+                showHistory(mAccount, mUser);
                 return true;
 
             case R.id.action_authorization_settings:
@@ -729,11 +720,11 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 return true;
 
             case R.id.action_close_chat:
-                closeChat(account, user);
+                closeChat(mAccount, mUser);
                 return true;
 
             case R.id.action_clear_history:
-                clearHistory(account, user);
+                clearHistory(mAccount, mUser);
                 return true;
 
             case R.id.action_export_chat:
@@ -751,7 +742,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             /* conference specific options menu */
 
             case R.id.action_join_conference:
-                MUCManager.getInstance().joinRoom(account, user, true);
+                MUCManager.getInstance().joinRoom(mAccount, mUser, true);
                 return true;
 
             case R.id.action_invite_to_chat:
@@ -759,7 +750,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 return true;
 
             case R.id.action_leave_conference:
-                leaveConference(account, user);
+                leaveConference(mAccount, mUser);
                 return true;
 
             case R.id.action_list_of_occupants:
@@ -769,29 +760,29 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             /* message popup menu */
 
             case R.id.action_message_repeat:
-                if (clickedMessageItem.isUploadFileMessage()) {
-                    uploadFile(clickedMessageItem.getFile().getPath());
+                if (mClickedMessageItem.isUploadFileMessage()) {
+                    uploadFile(mClickedMessageItem.getFile().getPath());
                 } else {
-                    sendMessage(clickedMessageItem.getText());
+                    sendMessage(mClickedMessageItem.getText());
                 }
                 return true;
 
             case R.id.action_message_copy:
                 ((ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE))
-                        .setPrimaryClip(ClipData.newPlainText(clickedMessageItem.getSpannable(), clickedMessageItem.getSpannable()));
+                        .setPrimaryClip(ClipData.newPlainText(mClickedMessageItem.getSpannable(), mClickedMessageItem.getSpannable()));
                 return true;
 
             case R.id.action_message_quote:
-                setInputText("> " + clickedMessageItem.getText() + "\n");
+                setInputText("> " + mClickedMessageItem.getText() + "\n");
                 return true;
 
             case R.id.action_message_remove:
-                MessageManager.getInstance().removeMessage(clickedMessageItem);
+                MessageManager.getInstance().removeMessage(mClickedMessageItem);
                 updateChat();
                 return true;
 
             case R.id.action_message_open_file:
-                FileManager.openFile(getActivity(), clickedMessageItem.getFile());
+                FileManager.openFile(getActivity(), mClickedMessageItem.getFile());
                 return true;
 
             case R.id.action_message_save_file:
@@ -799,9 +790,9 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 return true;
 
             case R.id.action_message_open_muc_private_chat:
-                String occupantFullJid = user + "/" + clickedMessageItem.getResource();
-                MessageManager.getInstance().openChat(account, occupantFullJid);
-                startActivity(ChatViewerActivity.createSpecificChatIntent(getActivity(), account, occupantFullJid));
+                String occupantFullJid = mUser + "/" + mClickedMessageItem.getResource();
+                MessageManager.getInstance().openChat(mAccount, occupantFullJid);
+                startActivity(ChatViewerActivity.createSpecificChatIntent(getActivity(), mAccount, occupantFullJid));
                 return true;
 
             default:
@@ -831,7 +822,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
             @Override
             public void run() {
                 try {
-                    FileManager.saveFileToDownloads(clickedMessageItem.getFile());
+                    FileManager.saveFileToDownloads(mClickedMessageItem.getFile());
                     Application.getInstance().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -889,10 +880,10 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
     private void showContactInfo() {
         Intent intent;
-        if (MUCManager.getInstance().hasRoom(account, user)) {
-            intent = ContactViewerActivity.createIntent(getActivity(), account, user);
+        if (MUCManager.getInstance().hasRoom(mAccount, mUser)) {
+            intent = ContactViewerActivity.createIntent(getActivity(), mAccount, mUser);
         } else {
-            intent = ContactEditorActivity.createIntent(getActivity(), account, user);
+            intent = ContactEditorActivity.createIntent(getActivity(), mAccount, mUser);
         }
         startActivity(intent);
     }
@@ -900,7 +891,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     private void closeChat(String account, String user) {
         MessageManager.getInstance().closeChat(account, user);
         NotificationManager.getInstance().removeMessageNotification(account, user);
-        listener.onCloseChat();
+        mListener.onCloseChat();
     }
 
     private void clearHistory(String account, String user) {
@@ -914,7 +905,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
     private void callAttention() {
         try {
-            AttentionManager.getInstance().sendAttention(account, user);
+            AttentionManager.getInstance().sendAttention(mAccount, mUser);
         } catch (NetworkException e) {
             Application.getInstance().onError(e);
         }
@@ -922,12 +913,12 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
     @Override
     public void onMessageClick(View caller, int position) {
-        int itemViewType = chatMessageAdapter.getItemViewType(position);
+        int itemViewType = mChatMessageAdapter.getItemViewType(position);
 
         if (itemViewType == ChatMessageAdapter.VIEW_TYPE_INCOMING_MESSAGE
                 || itemViewType == ChatMessageAdapter.VIEW_TYPE_OUTGOING_MESSAGE) {
 
-            clickedMessageItem = chatMessageAdapter.getMessageItem(position);
+            mClickedMessageItem = mChatMessageAdapter.getMessageItem(position);
 
             PopupMenu popup = new PopupMenu(getActivity(), caller);
             popup.inflate(R.menu.menu_chat_context);
@@ -935,24 +926,24 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
             final Menu menu = popup.getMenu();
 
-            if (clickedMessageItem.isError()) {
+            if (mClickedMessageItem.isError()) {
                 menu.findItem(R.id.action_message_repeat).setVisible(true);
             }
 
-            if (clickedMessageItem.isUploadFileMessage()) {
+            if (mClickedMessageItem.isUploadFileMessage()) {
                 menu.findItem(R.id.action_message_copy).setVisible(false);
                 menu.findItem(R.id.action_message_quote).setVisible(false);
                 menu.findItem(R.id.action_message_remove).setVisible(false);
             }
 
-            final File file = clickedMessageItem.getFile();
+            final File file = mClickedMessageItem.getFile();
 
             if (file != null && file.exists()) {
                 menu.findItem(R.id.action_message_open_file).setVisible(true);
                 menu.findItem(R.id.action_message_save_file).setVisible(true);
             }
 
-            if (clickedMessageItem.isIncoming() && MUCManager.getInstance().hasRoom(account, user)) {
+            if (mClickedMessageItem.isIncoming() && MUCManager.getInstance().hasRoom(mAccount, mUser)) {
                 menu.findItem(R.id.action_message_open_muc_private_chat).setVisible(true);
             }
 
@@ -961,10 +952,10 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     public void playIncomingAnimation() {
-        if (shakeAnimation == null) {
-            shakeAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.shake);
+        if (mShakeAnimation == null) {
+            mShakeAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.shake);
         }
-        toolbar.findViewById(R.id.name_holder).startAnimation(shakeAnimation);
+        mToolbar.findViewById(R.id.name_holder).startAnimation(mShakeAnimation);
     }
 
     @Override
