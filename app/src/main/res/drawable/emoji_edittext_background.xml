@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <!-- Draw a 2dp width border around shape -->
+            <stroke
+                android:color="@color/colorAccent"
+                android:width="1px"
+                />
+        </shape>
+    </item>
+    <!-- Overlap the left, top and right border using background color  -->
+    <item
+        android:bottom="1px"
+        >
+        <shape android:shape="rectangle">
+            <solid android:color="@color/white"/>
+        </shape>
+    </item>
+</layer-list>

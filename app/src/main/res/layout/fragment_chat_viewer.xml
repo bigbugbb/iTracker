@@ -56,9 +56,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:padding="12dp"
+            android:layout_marginLeft="4dp"
+            android:padding="8dp"
             android:background="?android:selectableItemBackground"
-            android:src="@drawable/ic_mood_black_24dp"
+            android:src="@drawable/ic_mood_black_32dp"
             android:tint="?attr/chat_input_button_color" />
 
         <github.ankushsachdeva.emojicon.EmojiconEditText
@@ -69,9 +70,11 @@
             android:layout_gravity="top"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
+            android:paddingTop="4dp"
             android:paddingBottom="4dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/transparent"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/emoji_edittext_background"
             android:cursorVisible="true"
             android:fadingEdge="vertical"
             android:gravity="center_vertical"
@@ -79,27 +82,17 @@
             android:imeOptions="flagNoExtractUi"
             android:inputType="textAutoCorrect|textCapSentences|textMultiLine"
             android:maxLines="4"
-            android:minHeight="40dp"
-            android:scrollbars="vertical" />
+            android:lineSpacingExtra="4dp"
+            android:minHeight="36dp"
+            android:textSize="16sp" />
 
         <ImageButton
             android:id="@+id/button_attach"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?android:selectableItemBackground"
-            android:padding="12dp"
-            android:src="@drawable/ic_attach_file_black_24dp"
-            android:tint="?attr/chat_input_button_color"
-            android:layout_gravity="bottom" />
-
-        <ImageButton
-            android:id="@+id/button_security"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?android:selectableItemBackground"
-            android:contentDescription="@string/otr_encryption"
-            android:padding="12dp"
-            android:src="@drawable/ic_security_grey_24dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_attach_file_black_32dp"
             android:tint="?attr/chat_input_button_color"
             android:layout_gravity="bottom" />
 
@@ -108,10 +101,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:layout_marginRight="4dp"
             android:background="?android:selectableItemBackground"
             android:contentDescription="@string/chat_send"
-            android:padding="12dp"
-            android:src="@drawable/ic_send_black_24dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_send_black_32dp"
             android:tint="?attr/chat_input_button_color" />
 
     </LinearLayout>

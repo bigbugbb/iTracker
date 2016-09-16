@@ -36,38 +36,36 @@
 
     </LinearLayout>
 
+    <ViewAnimator
+        android:id="@+id/auth_views"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/app_title"
+        android:layout_centerInParent="true">
 
-
-        <ViewAnimator
-            android:id="@+id/auth_views"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/app_title"
-            android:layout_centerInParent="true">
+            android:layout_height="wrap_content">
 
-            <ScrollView
+            <FrameLayout
+                android:id="@+id/auth_signin_fragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent" />
 
-                <FrameLayout
-                    android:id="@+id/auth_signin_fragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+        </ScrollView>
 
-            </ScrollView>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-            <ScrollView
+            <FrameLayout
+                android:id="@+id/auth_signup_fragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent" />
 
-                <FrameLayout
-                    android:id="@+id/auth_signup_fragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+        </ScrollView>
 
-            </ScrollView>
-
-        </ViewAnimator>
+    </ViewAnimator>
 
     <ProgressBar
         android:id="@+id/authenticate_progress"
@@ -77,7 +75,7 @@
         android:indeterminate="false"
         android:indeterminateDrawable="@drawable/app_loading_progress"
         android:visibility="invisible"
-        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
         android:layout_below="@+id/auth_views" />
 
 </RelativeLayout>

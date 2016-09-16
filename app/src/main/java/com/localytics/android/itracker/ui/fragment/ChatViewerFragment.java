@@ -53,7 +53,6 @@ import com.localytics.android.itracker.data.extension.muc.MUCManager;
 import com.localytics.android.itracker.data.extension.muc.RoomChat;
 import com.localytics.android.itracker.data.extension.muc.RoomState;
 import com.localytics.android.itracker.data.extension.otr.OTRManager;
-import com.localytics.android.itracker.data.extension.otr.SecurityLevel;
 import com.localytics.android.itracker.data.message.AbstractChat;
 import com.localytics.android.itracker.data.message.MessageItem;
 import com.localytics.android.itracker.data.message.MessageManager;
@@ -99,7 +98,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     private String mAccount;
     private String mUser;
     private ImageButton mSendButton;
-    private ImageButton mSecurityButton;
     private Toolbar mToolbar;
 
     private ChatViewerFragmentListener mListener;
@@ -173,21 +171,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
         mSendButton = (ImageButton) view.findViewById(R.id.button_send_message);
         mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
-
-        AbstractChat abstractChat = MessageManager.getInstance().getChat(mAccount, mUser);
-
-        mSecurityButton = (ImageButton) view.findViewById(R.id.button_security);
-
-        if (abstractChat instanceof RegularChat) {
-            mSecurityButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showSecurityMenu();
-                }
-            });
-        } else {
-            mSecurityButton.setVisibility(View.GONE);
-        }
 
         mChatMessageAdapter = new ChatMessageAdapter(getActivity(), mAccount, mUser, this, this);
 
@@ -282,7 +265,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
             @Override
             public void onDismiss() {
-                changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_mood_black_24dp);
+                changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_mood_black_32dp);
             }
         });
 
@@ -345,7 +328,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                     // If keyboard is visible, simply show the emoji popup
                     if (popup.isKeyBoardOpen()) {
                         popup.showAtBottom();
-                        changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_24dp);
+                        changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_32dp);
                     }
 
                     // else, open the text keyboard first and immediately after that show the emoji popup
@@ -355,7 +338,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                         popup.showAtBottomPending();
                         final InputMethodManager inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                         inputMethodManager.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
-                        changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_24dp);
+                        changeEmojiKeyboardIcon(emojiButton, R.drawable.ic_keyboard_black_32dp);
                     }
                 }
 
@@ -472,31 +455,31 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         mListener = null;
     }
 
-    private void showSecurityMenu() {
-        PopupMenu popup = new PopupMenu(getActivity(), mSecurityButton);
-        popup.inflate(R.menu.menu_security);
-        popup.setOnMenuItemClickListener(this);
-
-        Menu menu = popup.getMenu();
-
-        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(mAccount, mUser);
-
-        if (securityLevel == SecurityLevel.plain) {
-            menu.findItem(R.id.action_start_encryption).setVisible(true)
-                    .setEnabled(SettingsManager.securityOtrMode() != SettingsManager.SecurityOtrMode.disabled);
-        } else {
-            menu.findItem(R.id.action_restart_encryption).setVisible(true);
-        }
-
-        boolean isEncrypted = securityLevel != SecurityLevel.plain;
-
-        menu.findItem(R.id.action_stop_encryption).setEnabled(isEncrypted);
-        menu.findItem(R.id.action_verify_with_fingerprint).setEnabled(isEncrypted);
-        menu.findItem(R.id.action_verify_with_question).setEnabled(isEncrypted);
-        menu.findItem(R.id.action_verify_with_shared_secret).setEnabled(isEncrypted);
-
-        popup.show();
-    }
+//    private void showSecurityMenu() {
+//        PopupMenu popup = new PopupMenu(getActivity(), mSecurityButton);
+//        popup.inflate(R.menu.menu_security);
+//        popup.setOnMenuItemClickListener(this);
+//
+//        Menu menu = popup.getMenu();
+//
+//        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(mAccount, mUser);
+//
+//        if (securityLevel == SecurityLevel.plain) {
+//            menu.findItem(R.id.action_start_encryption).setVisible(true)
+//                    .setEnabled(SettingsManager.securityOtrMode() != SettingsManager.SecurityOtrMode.disabled);
+//        } else {
+//            menu.findItem(R.id.action_restart_encryption).setVisible(true);
+//        }
+//
+//        boolean isEncrypted = securityLevel != SecurityLevel.plain;
+//
+//        menu.findItem(R.id.action_stop_encryption).setEnabled(isEncrypted);
+//        menu.findItem(R.id.action_verify_with_fingerprint).setEnabled(isEncrypted);
+//        menu.findItem(R.id.action_verify_with_question).setEnabled(isEncrypted);
+//        menu.findItem(R.id.action_verify_with_shared_secret).setEnabled(isEncrypted);
+//
+//        popup.show();
+//    }
 
     private void setUpInputViewButtons() {
         mIsInputEmpty = mInputView.getText().toString().trim().isEmpty();
@@ -504,7 +487,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         if (mIsInputEmpty) {
             mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
             mSendButton.setEnabled(false);
-            mSecurityButton.setVisibility(View.VISIBLE);
             if (HttpFileUploadManager.getInstance().isFileUploadSupported(mAccount)) {
                 mAttachButton.setVisibility(View.VISIBLE);
             } else {
@@ -513,7 +495,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         } else {
             mSendButton.setEnabled(true);
             mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getAccountSendButtonColor(mAccount));
-            mSecurityButton.setVisibility(View.GONE);
             mAttachButton.setVisibility(View.GONE);
         }
     }
@@ -626,7 +607,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         mChatMessageAdapter.onChange();
         scrollChat(itemCountBeforeUpdate);
         setUpOptionsMenu(mToolbar.getMenu());
-        updateSecurityButton();
     }
 
     private void scrollChat(int itemCountBeforeUpdate) {
@@ -638,11 +618,6 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
     private void scrollDown() {
         mRecyclerView.scrollToPosition(mChatMessageAdapter.getItemCount() - 1);
-    }
-
-    private void updateSecurityButton() {
-        SecurityLevel securityLevel = OTRManager.getInstance().getSecurityLevel(mAccount, mUser);
-        mSecurityButton.setImageLevel(securityLevel.getImageLevel());
     }
 
     public boolean isEqual(BaseEntity chat) {
