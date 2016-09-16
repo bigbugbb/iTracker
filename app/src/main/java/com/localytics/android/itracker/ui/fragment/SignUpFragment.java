@@ -174,6 +174,7 @@ public class SignUpFragment extends Fragment {
                 }
 
                 final Intent intent = new Intent();
+                intent.putExtra(AuthenticatorActivity.CREATE_ACCOUNT, true);
                 intent.putExtras(data);
                 return intent;
             }

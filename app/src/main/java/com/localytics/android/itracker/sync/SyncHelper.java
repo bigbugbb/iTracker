@@ -380,7 +380,7 @@ public class SyncHelper {
                     null,
                     TrackerContract.SELECTION_BY_SYNC,
                     new String[] {SyncState.PENDING.value()},
-                    Backups.DATE + " DESC");
+                    Backups.DATE + " DESC " + "LIMIT " + Config.RESTORE_BACKUP_DATA_ITEMS_PER_SYNC);
             if (cursor != null) {
                 List<Backup> pendingBackups = new ArrayList<>(cursor.getCount());
                 while (cursor.moveToNext()) {

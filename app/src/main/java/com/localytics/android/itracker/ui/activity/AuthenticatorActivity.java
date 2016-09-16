@@ -140,7 +140,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         // Update preference with auth token and account name
         AccountUtils.setActiveAccount(getApplicationContext(), accountName);
 
-        addAccount(accountName, accountPassword, true);
+        addAccount(accountName, accountPassword, createAccount);
 
         if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
             LogUtils.LOGD(TAG, "finish login > addAccountExplicitly");
@@ -169,7 +169,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
                     false,
                     true,
                     false,
-                    true);
+                    createAccount);
         } catch (NetworkException e) {
             Application.getInstance().onError(e);
             return;

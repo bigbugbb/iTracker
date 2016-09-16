@@ -156,9 +156,8 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         mContactTitleView = view.findViewById(R.id.contact_title);
 
         mAbstractContact = RosterManager.getInstance().getBestContact(mAccount, mUser);
-        mContactTitleView.findViewById(R.id.avatar).setOnClickListener(this);
 
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar_default);
+        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.inflateMenu(R.menu.menu_chat);
         mToolbar.setOnMenuItemClickListener(this);
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);

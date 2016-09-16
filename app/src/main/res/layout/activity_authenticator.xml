@@ -11,6 +11,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginBottom="40dp"
         android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
         android:orientation="horizontal">
 
         <ImageView
@@ -35,40 +36,48 @@
 
     </LinearLayout>
 
-    <ViewAnimator
-        android:id="@+id/auth_views"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/app_title">
 
-        <ScrollView
+
+        <ViewAnimator
+            android:id="@+id/auth_views"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <FrameLayout
-                android:id="@+id/auth_signin_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </ScrollView>
+            android:layout_height="wrap_content"
+            android:layout_below="@id/app_title"
+            android:layout_centerInParent="true">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <FrameLayout
-                android:id="@+id/auth_signup_fragment"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </ScrollView>
+                android:layout_height="wrap_content">
 
-    </ViewAnimator>
+                <FrameLayout
+                    android:id="@+id/auth_signin_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </ScrollView>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:id="@+id/auth_signup_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </ScrollView>
+
+        </ViewAnimator>
 
     <ProgressBar
         android:id="@+id/authenticate_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="32dp"
         android:indeterminate="false"
         android:indeterminateDrawable="@drawable/app_loading_progress"
         android:visibility="invisible"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/auth_views" />
+        android:layout_below="@+id/auth_views" />
 
 </RelativeLayout>

@@ -17,16 +17,15 @@ public class ContactTitleInflater {
 
     public static void updateTitle(View titleView, final Context context, AbstractContact abstractContact) {
         final TextView nameView = (TextView) titleView.findViewById(R.id.name);
-        final ImageView avatarView = (ImageView) titleView.findViewById(R.id.avatar);
 
         nameView.setText(abstractContact.getName());
 
-        // if it is account, not simple user contact
-        if (Jid.getBareAddress(abstractContact.getUser()).equals(Jid.getBareAddress(abstractContact.getAccount()))) {
-            avatarView.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(abstractContact.getAccount()));
-        } else {
-            avatarView.setImageDrawable(abstractContact.getAvatar());
-        }
+//        // if it is account, not simple user contact
+//        if (Jid.getBareAddress(abstractContact.getUser()).equals(Jid.getBareAddress(abstractContact.getAccount()))) {
+//            avatarView.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(abstractContact.getAccount()));
+//        } else {
+//            avatarView.setImageDrawable(abstractContact.getAvatar());
+//        }
         setStatus(context, titleView, abstractContact);
     }
 

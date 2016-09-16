@@ -156,6 +156,7 @@ public class SignInFragment extends Fragment {
                 }
 
                 final Intent intent = new Intent();
+                intent.putExtra(AuthenticatorActivity.CREATE_ACCOUNT, false);
                 intent.putExtras(data);
                 return intent;
             }
@@ -177,8 +178,8 @@ public class SignInFragment extends Fragment {
     }
 
     private void enableUi(boolean enabled) {
-        mEmail.setEnabled(enabled);
-        mPassword.setEnabled(enabled);
+        mEmailInputLayout.setEnabled(enabled);
+        mPasswordInputLayout.setEnabled(enabled);
         mSignIn.setEnabled(enabled);
         mSignIn.setText(enabled ? R.string.sign_in : R.string.sign_in_user);
         mNewAccount.setEnabled(enabled);
