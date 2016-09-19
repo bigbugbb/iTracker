@@ -1,48 +1,55 @@
 {
-  "project_info": {
-    "project_number": "585031889427",
-    "project_id": "itracker-1127"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:585031889427:android:0626b46cecca7782",
-        "android_client_info": {
-          "package_name": "com.localytics.android.itracker"
-        }
-      },
-      "oauth_client": [
+    "project_info": {
+        "project_number": "1055621041981",
+        "firebase_url": "https://itracker-dev.firebaseio.com",
+        "project_id": "itracker-dev",
+        "storage_bucket": "itracker-dev.appspot.com"
+    },
+    "client": [
         {
-          "client_id": "585031889427-7c0cqd57hp3hminlcs9p18l8d34h6i0a.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.localytics.android.itracker",
-            "certificate_hash": "21FFAB26A2F5A1F5B155C97ED60073E8F7E76C63"
-          }
-        },
-        {
-          "client_id": "585031889427-b6n80b1ki90dejskg964lhegkn3de6t3.apps.googleusercontent.com",
-          "client_type": 3
+            "client_info": {
+                "mobilesdk_app_id": "1:1055621041981:android:a0022b14f23e6b92",
+                "android_client_info": {
+                    "package_name": "com.itracker.android.dev"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "1055621041981-2r78n4nj58fa1pagv8crrhfsch7u00cl.apps.googleusercontent.com",
+                    "client_type": 1,
+                    "android_info": {
+                        "package_name": "com.itracker.android.dev",
+                        "certificate_hash": "9F6375381815AD1BDDB36496F1CE4D26A0E719AE"
+                    }
+                },
+                {
+                    "client_id": "1055621041981-mmirebocm0jh87puk0fbfctjc9i4j6fl.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                  "current_key": "AIzaSyBGi_pBG3iV8XT_PQdUB9Gvs257flRY0_I"
+                }
+            ],
+            "services": {
+                "analytics_service": {
+                    "status": 1
+                },
+                "appinvite_service": {
+                    "status": 2,
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "1055621041981-mmirebocm0jh87puk0fbfctjc9i4j6fl.apps.googleusercontent.com",
+                            "client_type": 3
+                        }
+                    ]
+                },
+                "ads_service": {
+                    "status": 2
+                }
+            }
         }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCkUnAoXAFS8NLA4eoKKUcBVwFf9PDXuhA"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 1
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
+    ],
+    "configuration_version": "1"
 }

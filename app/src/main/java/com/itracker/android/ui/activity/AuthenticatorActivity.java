@@ -1,0 +1,290 @@
+package com.itracker.android.ui.activity;
+
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorActivity;
+import android.accounts.AccountManager;
+import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.ProgressBar;
+import android.widget.Toast;
+import android.widget.ViewAnimator;
+
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.itracker.android.Application;
+import com.itracker.android.Config;
+import com.itracker.android.R;
+import com.itracker.android.data.NetworkException;
+import com.itracker.android.data.account.AccountType;
+import com.itracker.android.ui.fragment.SignInFragment;
+import com.itracker.android.ui.fragment.SignUpFragment;
+import com.itracker.android.utils.AccountUtils;
+
+import static com.itracker.android.utils.LogUtils.LOGD;
+import static com.itracker.android.utils.LogUtils.LOGW;
+import static com.itracker.android.utils.LogUtils.makeLogTag;
+
+
+public class AuthenticatorActivity extends AccountAuthenticatorActivity
+        implements SignInFragment.OnAccountSignInListener, SignUpFragment.OnAccountSignUpListener {
+
+    private static final String TAG = makeLogTag(AuthenticatorActivity.class);
+
+    private final static int SIGN_IN_FRAGMENT = 0;
+    private final static int SIGN_UP_FRAGMENT = 1;
+
+    public final static String USERNAME = "username";
+    public final static String CREATE_ACCOUNT = "create_account";
+
+    private ViewAnimator mAnimator;
+    private AccountManager mAccountManager;
+
+    private LoginButton mFacebookLoginButton;
+    private CallbackManager mCallbackManager;
+
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
+    private ProgressBar mProgressBar;
+
+    /**
+     * Called when the activity is first created.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_authenticator);
+
+        mAccountManager = AccountManager.get(this);
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    LOGD(TAG, "onAuthStateChanged:signed_out");
+                }
+                // ...
+            }
+        };
+
+        if (savedInstanceState == null) {
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.auth_signin_fragment, new SignInFragment());
+            transaction.replace(R.id.auth_signup_fragment, new SignUpFragment());
+            transaction.commit();
+        }
+
+        mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
+
+        initializeFacebookLogin();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+    }
+
+    private void initializeFacebookLogin() {
+        // Setup facebook login button
+        mFacebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
+        mFacebookLoginButton.setReadPermissions("email", "public_profile");
+
+        // Callback registration
+        mCallbackManager = CallbackManager.Factory.create();
+        mFacebookLoginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                LOGD(TAG, "facebook:onSuccess:" + loginResult);
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                LOGD(TAG, "facebook:onCancel");
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                LOGD(TAG, "facebook:onError", exception);
+            }
+        });
+    }
+
+    /**
+     * Called when activity start-up is complete (after {@link #onStart}
+     * and {@link #onRestoreInstanceState} have been called).  Applications will
+     * generally not implement this method; it is intended for system
+     * classes to do final initialization after application code has run.
+     * <p/>
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     * @see #onCreate
+     */
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mAnimator = (ViewAnimator) findViewById(R.id.auth_views);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mFirebaseAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mCallbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onAccountWillCreateNew() {
+        mAnimator.setDisplayedChild(mAnimator.getDisplayedChild() == SIGN_IN_FRAGMENT ? SIGN_UP_FRAGMENT : SIGN_IN_FRAGMENT);
+    }
+
+    @Override
+    public void onAccountSignInSuccess(Intent intent) {
+        onFinishLogin(intent);
+    }
+
+    @Override
+    public void onAccountAreadyExists() {
+        mAnimator.setDisplayedChild(mAnimator.getDisplayedChild() == SIGN_IN_FRAGMENT ? SIGN_UP_FRAGMENT : SIGN_IN_FRAGMENT);
+    }
+
+    @Override
+    public void onAccountSignInError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        mProgressBar.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onAccountStartSignIn() {
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onAccountSignUpSuccess(Intent intent) {
+        onFinishLogin(intent);
+    }
+
+    @Override
+    public void onAccountSignUpError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        mProgressBar.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onAccountStartSignUp() {
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void onFinishLogin(Intent intent) {
+        LOGD(TAG, "finish login");
+        String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+        String accountPassword = intent.getStringExtra(AccountManager.KEY_PASSWORD);
+        String userName = intent.getStringExtra(USERNAME);
+        boolean createAccount = intent.getBooleanExtra(CREATE_ACCOUNT, false);
+        String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+        final Account account = new Account(accountName, accountType);
+
+        // Update preference with auth token and account name
+        AccountUtils.setActiveAccount(getApplicationContext(), accountName);
+
+        addAccount(accountName, accountPassword, createAccount);
+
+        if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
+            LOGD(TAG, "finish login > addAccountExplicitly");
+            String authTokenType = getIntent().getStringExtra(AccountUtils.ARG_AUTHTOKEN_TYPE); // we currently ignore the auth token type
+
+            // Creating the account on the device and setting the auth token we got
+            // (Not setting the auth token will cause another call to the server to authenticate the user)
+            mAccountManager.addAccountExplicitly(account, accountPassword, intent.getBundleExtra(AccountManager.KEY_USERDATA));
+            mAccountManager.setAuthToken(account, authTokenType, authToken);
+        } else {
+            LOGD(TAG, "finish login > setPassword");
+            mAccountManager.setPassword(account, accountPassword);
+        }
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    public void addAccount(String accountName, String password, boolean createAccount) {
+        AccountType accountType = com.itracker.android.data.account.AccountManager.getInstance().getAccountTypes().get(0);
+
+        final String account;
+        try {
+            account = com.itracker.android.data.account.AccountManager.getInstance().addAccount(
+                    jidFromAccountName(accountName), password, accountType,
+                    false,
+                    true,
+                    false,
+                    createAccount);
+            LOGD(TAG, "addAcount: " + account);
+        } catch (NetworkException e) {
+            Application.getInstance().onError(e);
+        }
+    }
+
+    private String jidFromAccountName(String accountName) {
+        return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
+    }
+
+    private void handleFacebookAccessToken(AccessToken token) {
+        LOGD(TAG, "handleFacebookAccessToken:" + token);
+
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        mFirebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        LOGD(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            LOGW(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+}

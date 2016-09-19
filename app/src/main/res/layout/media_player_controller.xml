@@ -8,7 +8,7 @@
                 android:fitsSystemWindows="true"
                 android:gravity="bottom">
 
-    <com.localytics.android.itracker.ui.widget.player.gestures.PlayerGestureControllerView
+    <com.itracker.android.ui.widget.player.gestures.PlayerGestureControllerView
         android:id="@+id/media_controller_gestures_area"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/ic_action_bulb"/>
 
-            <com.localytics.android.itracker.ui.widget.player.BrightnessSeekBar
+            <com.itracker.android.ui.widget.player.BrightnessSeekBar
                 android:id="@+id/media_controller_brightness"
                 android:layout_width="0dip"
                 android:layout_height="@dimen/media_controller_seekbar_height"
@@ -87,7 +87,7 @@
                 style="@style/MediaButton.Next"
                 android:contentDescription="Next" />
 
-            <com.localytics.android.itracker.ui.widget.player.VolumeSeekBar
+            <com.itracker.android.ui.widget.player.VolumeSeekBar
                 android:id="@+id/media_controller_volume"
                 android:layout_width="0dip"
                 android:layout_height="@dimen/media_controller_seekbar_height"

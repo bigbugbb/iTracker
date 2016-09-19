@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.localytics.android.itracker.ui.widget.player.PlayerTouchRoot
+<com.itracker.android.ui.widget.player.PlayerTouchRoot
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/media_controller_touch_root"
     android:layout_width="match_parent"
@@ -77,4 +77,4 @@
 
     </RelativeLayout>
 
-</com.localytics.android.itracker.ui.widget.player.PlayerTouchRoot>
+</com.itracker.android.ui.widget.player.PlayerTouchRoot>

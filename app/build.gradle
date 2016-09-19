@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.localytics.android.itracker"
+        applicationId "com.itracker.android"
         minSdkVersion 18
         targetSdkVersion 23
         versionCode 100
@@ -25,6 +25,18 @@ android {
 
     dexOptions {
         incremental true
+    }
+
+    productFlavors {
+        dev {
+            applicationId "com.itracker.android.dev"
+            resValue 'string', 'application_package', applicationId
+        }
+
+        prod {
+            applicationId "com.itracker.android"
+            resValue 'string', 'application_package', applicationId
+        }
     }
 
     buildTypes {
@@ -68,11 +80,13 @@ dependencies {
     compile 'joda-time:joda-time:2.9.1'
     compile 'com.loopj.android:android-async-http:1.4.9'
     compile 'com.google.android.gms:play-services-base:9.4.0'
-    compile 'com.google.android.gms:play-services-gcm:9.4.0'
-    compile 'com.google.android.gms:play-services-auth:9.4.0'
     compile 'com.google.android.gms:play-services-plus:9.4.0'
+    compile 'com.google.android.gms:play-services-auth:9.4.0'
     compile 'com.google.android.gms:play-services-maps:9.4.0'
     compile 'com.google.android.gms:play-services-location:9.4.0'
+    compile 'com.google.firebase:firebase-messaging:9.4.0'
+    compile 'com.google.firebase:firebase-auth:9.4.0'
+    compile 'com.google.firebase:firebase-auth:9.4.0'
     compile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
@@ -85,3 +99,6 @@ dependencies {
     compile 'io.realm:realm-android:0.85.0'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
 }
+
+// ADD THIS AT THE BOTTOM
+apply plugin: 'com.google.gms.google-services'

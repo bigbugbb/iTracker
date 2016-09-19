@@ -7,7 +7,7 @@
                 tools:mContext=".ui.FootprintFragment"
                 tools:showIn="@layout/activity_footprint">
 
-    <com.localytics.android.itracker.ui.widget.SlideBottomPanel
+    <com.itracker.android.ui.widget.SlideBottomPanel
         android:id="@+id/sbp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.localytics.android.itracker.ui.widget.GLMotionsView
+            <com.itracker.android.ui.widget.GLMotionsView
                 android:id="@+id/summary_view"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -60,7 +60,7 @@
 
         </FrameLayout>
 
-    </com.localytics.android.itracker.ui.widget.SlideBottomPanel>
+    </com.itracker.android.ui.widget.SlideBottomPanel>
 
     <android.support.v7.widget.CardView
         xmlns:app="http://schemas.android.com/apk/res-auto"

@@ -7,7 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.fragment.ConferenceInfoFragment"
+        tools:context="com.itracker.android.ui.fragment.ConferenceInfoFragment"
         android:orientation="vertical"
         >
 

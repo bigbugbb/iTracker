@@ -1,4 +1,4 @@
-<com.localytics.android.itracker.ui.widget.PhotoCoordinatorLayout
+<com.itracker.android.ui.widget.PhotoCoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/photo_fragment"
@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:mContext=".ui.PhotoFragment">
 
-    <com.localytics.android.itracker.ui.widget.CollectionView
+    <com.itracker.android.ui.widget.CollectionView
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/photos_view"
         android:layout_width="match_parent"
@@ -22,5 +22,5 @@
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_fab_photo"/>
 
-</com.localytics.android.itracker.ui.widget.PhotoCoordinatorLayout>
+</com.itracker.android.ui.widget.PhotoCoordinatorLayout>
 

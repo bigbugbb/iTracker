@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.localytics.android.itracker">
+    package="com.itracker.android">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -35,13 +35,13 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
     <permission
-        android:name="com.localytics.android.itracker.permission.C2D_MESSAGE"
+        android:name="com.itracker.android.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.localytics.android.itracker.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.itracker.android.permission.C2D_MESSAGE" />
 
     <application
-        android:name=".Application"
+        android:name="com.itracker.android.Application"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -84,7 +84,7 @@
         </activity>
 
         <activity
-            android:name=".ui.activity.TrackerActivity"
+            android:name="com.itracker.android.ui.activity.TrackerActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
@@ -98,7 +98,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.SplashActivity"
+            android:name="com.itracker.android.ui.activity.SplashActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:noHistory="true"
@@ -111,49 +111,49 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.FootprintActivity"
+            android:name="com.itracker.android.ui.activity.FootprintActivity"
             android:label="@string/title_activity_footprint"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
         <activity
-            android:name=".ui.activity.PhotoDetailActivity"
+            android:name="com.itracker.android.ui.activity.PhotoDetailActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:theme="@style/TranslucentSystemBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
         <activity
-            android:name=".ui.activity.MediaDownloadActivity"
+            android:name="com.itracker.android.ui.activity.MediaDownloadActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_downloads"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
 
             <intent-filter>
-                <action android:name="com.localytics.android.itracker.intent.action.DOWNLOAD_MEDIA" />
+                <action android:name="com.itracker.android.intent.action.DOWNLOAD_MEDIA" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.PlayerActivity"
+            android:name="com.itracker.android.ui.activity.PlayerActivity"
             android:exported="true"
             android:label="PlayerActivity"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/TranslucentSystemBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -166,39 +166,39 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.ContactAddActivity"
+            android:name="com.itracker.android.ui.activity.ContactAddActivity"
             android:label="@string/title_activity_add_contact"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
         <activity
-            android:name=".ui.activity.ChatViewerActivity"
-            android:parentActivityName=".ui.activity.TrackerActivity"
+            android:name="com.itracker.android.ui.activity.ChatViewerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activity.TrackerActivity" />
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
         <activity
-            android:name=".ui.activity.AuthenticatorActivity"
+            android:name="com.itracker.android.ui.activity.AuthenticatorActivity"
             android:label="@string/login_label"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />
 
         <provider
-            android:name=".provider.TrackerProvider"
-            android:authorities="com.localytics.itracker"
+            android:name="com.itracker.android.provider.TrackerProvider"
+            android:authorities="com.itracker.android"
             android:exported="false"
             android:label="@string/provider_name" />
 
-        <service android:name=".service.sensor.AppPersistentService" />
+        <service android:name="com.itracker.android.service.sensor.AppPersistentService" />
 
         <!-- Authenticator related service -->
-        <service android:name=".service.auth.AuthenticateService">
+        <service android:name="com.itracker.android.service.auth.AuthenticateService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -210,13 +210,13 @@
 
         <!-- Player related service -->
         <service
-            android:name=".player.MediaPlayerService"
+            android:name="com.itracker.android.player.MediaPlayerService"
             android:enabled="true"
             android:exported="true" />
 
         <!-- Sync adapter related service -->
         <service
-            android:name=".sync.SyncService"
+            android:name="com.itracker.android.sync.SyncService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -232,55 +232,54 @@
 
         <!-- File download related service -->
         <service
-            android:name=".service.download.FileDownloadService"
+            android:name="com.itracker.android.service.download.FileDownloadService"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.localytics.android.itracker.intent.action.DOWNLOAD_FILE" />
-                <action android:name="com.localytics.android.itracker.intent.action.UPDATE_STATUS" />
+                <action android:name="com.itracker.android.intent.action.DOWNLOAD_FILE" />
+                <action android:name="com.itracker.android.intent.action.UPDATE_STATUS" />
             </intent-filter>
         </service>
 
         <!-- GCM related service -->
         <service
-            android:name=".service.gcm.RegistrationIntentService"
-            android:exported="false" />
-        <service
-            android:name=".service.gcm.GcmListenerService"
+            android:name="com.itracker.android.service.fcm.GcmListenerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </service>
         <service
-            android:name=".service.gcm.InstanceIDListenerService"
+            android:name="com.itracker.android.service.fcm.InstanceIDListenerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>
         </service>
 
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND">
+        <service
+            android:name=".service.fcm.AppMessagingService">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-
-                <category android:name="com.localytics.android.itracker" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
-        </receiver>
+        </service>
+        <service
+            android:name=".service.fcm.AppInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
 
         <!-- Sensor data related service -->
         <service
-            android:name=".service.sensor.SensorMonitorService"
+            android:name="com.itracker.android.service.sensor.SensorMonitorService"
             android:exported="false" />
 
         <receiver
-            android:name=".receiver.SensorMonitorReceiver"
+            android:name="com.itracker.android.receiver.SensorMonitorReceiver"
             android:label="@string/app_name">
             <intent-filter>
-                <action android:name="com.localytics.android.itracker.intent.action.START_SENSOR_MONITOR" />
-                <action android:name="com.localytics.android.itracker.intent.action.BOOTSTRAP_MONITOR_ALARM" />
+                <action android:name="com.itracker.android.intent.action.START_SENSOR_MONITOR" />
+                <action android:name="com.itracker.android.intent.action.BOOTSTRAP_MONITOR_ALARM" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.ACTION_USER_PRESENT" />
                 <action android:name="android.intent.action.ACTION_SCREEN_OFF" />
@@ -321,13 +320,13 @@
 
         <!-- Service related to restore data from s3 -->
         <service
-            android:name=".sync.DataImportService"
+            android:name="com.itracker.android.sync.DataImportService"
             android:enabled="true"
             android:exported="false" />
 
-        <receiver android:name=".sync.DataImportReceiver">
+        <receiver android:name="com.itracker.android.sync.DataImportReceiver">
             <intent-filter>
-                <action android:name="com.localytics.android.itracker.intent.action.IMPORT_DATA" />
+                <action android:name="com.itracker.android.intent.action.IMPORT_DATA" />
             </intent-filter>
         </receiver>
 
@@ -336,19 +335,19 @@
             android:name="LOCALYTICS_APP_KEY"
             android:value="59b6d367575c8798a17acb0-9ccf239a-d9ac-11e5-aa99-00342b7f5075" />
 
-        <!-- <activity android:name="com.localytics.android.PushTrackingActivity"/> -->
+        <!-- <activity android:name="com.itracker.android.PushTrackingActivity"/> -->
 
 
         <!-- <receiver -->
-        <!-- android:name="com.localytics.android.ReferralReceiver" -->
+        <!-- android:name="com.itracker.android.ReferralReceiver" -->
         <!-- android:exported="true"> -->
         <!-- <intent-filter> -->
         <!-- <action android:name="com.android.vending.INSTALL_REFERRER" /> -->
         <!-- </intent-filter> -->
         <!-- </receiver> -->
 
-        <activity android:name=".ui.activity.ContactViewerActivity" />
-        <activity android:name=".ui.activity.ContactEditorActivity"></activity>
+        <activity android:name="com.itracker.android.ui.activity.ContactViewerActivity" />
+        <activity android:name="com.itracker.android.ui.activity.ContactEditorActivity"></activity>
     </application>
 
 </manifest>

@@ -34,12 +34,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <com.localytics.android.itracker.ui.widget.HorizontalNestedScrollView
+                <com.itracker.android.ui.widget.HorizontalNestedScrollView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fillViewport="true">
 
-                    <com.localytics.android.itracker.ui.widget.LowSamplingSummaryView
+                    <com.itracker.android.ui.widget.LowSamplingSummaryView
                         android:id="@+id/motion_summary"
                         android:scaleType="matrix"
                         android:adjustViewBounds="true"
@@ -47,7 +47,7 @@
                         android:layout_height="@dimen/summary_image_height"
                         android:clickable="true" />
 
-                </com.localytics.android.itracker.ui.widget.HorizontalNestedScrollView>
+                </com.itracker.android.ui.widget.HorizontalNestedScrollView>
             </FrameLayout>
 
             <TextView
@@ -68,7 +68,7 @@
             app:fabSize="mini"
             app:layout_anchor="@id/layout_motion_summary"
             app:layout_anchorGravity="bottom|right|end"
-            app:layout_behavior="com.localytics.android.itracker.ui.widget.ScrollHideFABBehavior"/>
+            app:layout_behavior="com.itracker.android.ui.widget.ScrollHideFABBehavior"/>
 
     </android.support.design.widget.CoordinatorLayout>
 

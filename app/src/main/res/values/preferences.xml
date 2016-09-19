@@ -14,66 +14,66 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string-array name="managers">
-        <item>com.localytics.android.itracker.data.SettingsManager</item>
-        <item>com.localytics.android.itracker.data.LogManager</item>
-        <item>com.localytics.android.itracker.data.DatabaseManager</item>
-        <item>com.localytics.android.itracker.data.extension.avatar.AvatarStorage</item>
-        <item>com.localytics.android.itracker.data.extension.otr.OTRManager</item>
-        <item>com.localytics.android.itracker.data.connection.ConnectionManager</item>
-        <item>com.localytics.android.itracker.data.account.ScreenManager</item>
-        <item>com.localytics.android.itracker.data.connection.ReconnectionManager</item>
-        <item>com.localytics.android.itracker.data.account.AccountManager</item>
-        <item>com.localytics.android.itracker.data.account.AccountAuthenticator</item>
-        <item>com.localytics.android.itracker.data.extension.muc.MUCManager</item>
-        <item>com.localytics.android.itracker.data.message.MessageManager</item>
-        <item>com.localytics.android.itracker.data.message.chat.ChatManager</item>
-        <item>com.localytics.android.itracker.data.extension.vcard.VCardManager</item>
-        <item>com.localytics.android.itracker.data.extension.avatar.AvatarManager</item>
-        <item>com.localytics.android.itracker.data.roster.PresenceManager</item>
-        <item>com.localytics.android.itracker.data.roster.RosterManager</item>
-        <item>com.localytics.android.itracker.data.roster.GroupManager</item>
-        <item>com.localytics.android.itracker.data.message.phrase.PhraseManager</item>
-        <item>com.localytics.android.itracker.data.notification.NotificationManager</item>
-        <item>com.localytics.android.itracker.data.ActivityManager</item>
-        <item>com.localytics.android.itracker.data.extension.capability.CapabilitiesManager</item>
-        <item>com.localytics.android.itracker.data.extension.ping.PingManager</item>
-        <item>com.localytics.android.itracker.data.extension.cs.ChatStateManager</item>
-        <item>com.localytics.android.itracker.data.connection.NetworkManager</item>
-        <item>com.localytics.android.itracker.data.account.OAuthManager</item>
-        <item>com.localytics.android.itracker.data.message.ReceiptManager</item>
-        <item>com.localytics.android.itracker.data.extension.archive.MessageArchiveManager</item>
-        <item>com.localytics.android.itracker.data.extension.ssn.SSNManager</item>
-        <item>com.localytics.android.itracker.data.extension.capability.ServerInfoManager</item>
-        <item>com.localytics.android.itracker.data.extension.time.TimeManager</item>
-        <item>com.localytics.android.itracker.data.extension.attention.AttentionManager</item>
-        <item>com.localytics.android.xmpp.carbon.CarbonManager</item>
-        <item>com.localytics.android.itracker.data.extension.httpfileupload.HttpFileUploadManager</item>
-        <item>com.localytics.android.itracker.data.extension.blocking.BlockingManager</item>
+        <item>com.itracker.android.data.SettingsManager</item>
+        <item>com.itracker.android.data.LogManager</item>
+        <item>com.itracker.android.data.DatabaseManager</item>
+        <item>com.itracker.android.data.extension.avatar.AvatarStorage</item>
+        <item>com.itracker.android.data.extension.otr.OTRManager</item>
+        <item>com.itracker.android.data.connection.ConnectionManager</item>
+        <item>com.itracker.android.data.account.ScreenManager</item>
+        <item>com.itracker.android.data.connection.ReconnectionManager</item>
+        <item>com.itracker.android.data.account.AccountManager</item>
+        <item>com.itracker.android.data.account.AccountAuthenticator</item>
+        <item>com.itracker.android.data.extension.muc.MUCManager</item>
+        <item>com.itracker.android.data.message.MessageManager</item>
+        <item>com.itracker.android.data.message.chat.ChatManager</item>
+        <item>com.itracker.android.data.extension.vcard.VCardManager</item>
+        <item>com.itracker.android.data.extension.avatar.AvatarManager</item>
+        <item>com.itracker.android.data.roster.PresenceManager</item>
+        <item>com.itracker.android.data.roster.RosterManager</item>
+        <item>com.itracker.android.data.roster.GroupManager</item>
+        <item>com.itracker.android.data.message.phrase.PhraseManager</item>
+        <item>com.itracker.android.data.notification.NotificationManager</item>
+        <item>com.itracker.android.data.ActivityManager</item>
+        <item>com.itracker.android.data.extension.capability.CapabilitiesManager</item>
+        <item>com.itracker.android.data.extension.ping.PingManager</item>
+        <item>com.itracker.android.data.extension.cs.ChatStateManager</item>
+        <item>com.itracker.android.data.connection.NetworkManager</item>
+        <item>com.itracker.android.data.account.OAuthManager</item>
+        <item>com.itracker.android.data.message.ReceiptManager</item>
+        <item>com.itracker.android.data.extension.archive.MessageArchiveManager</item>
+        <item>com.itracker.android.data.extension.ssn.SSNManager</item>
+        <item>com.itracker.android.data.extension.capability.ServerInfoManager</item>
+        <item>com.itracker.android.data.extension.time.TimeManager</item>
+        <item>com.itracker.android.data.extension.attention.AttentionManager</item>
+        <item>com.itracker.android.xmpp.carbon.CarbonManager</item>
+        <item>com.itracker.android.data.extension.httpfileupload.HttpFileUploadManager</item>
+        <item>com.itracker.android.data.extension.blocking.BlockingManager</item>
     </string-array>
 
     <string-array name="contact_managers">
-        <item>com.localytics.android.itracker.data.account.AccountAuthenticator</item>
-        <item>com.localytics.android.itracker.data.roster.SyncManager</item>
+        <item>com.itracker.android.data.account.AccountAuthenticator</item>
+        <item>com.itracker.android.data.roster.SyncManager</item>
     </string-array>
 
     <string-array name="tables">
-        <item>com.localytics.android.itracker.data.account.AccountTable</item>
-        <item>com.localytics.android.itracker.data.extension.muc.RoomTable</item>
-        <item>com.localytics.android.itracker.data.message.MessageTable</item>
-        <item>com.localytics.android.itracker.data.roster.GroupTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.PrivateChatTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.NotifyVisibleTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.ShowTextTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.SoundTable</item>
-        <item>com.localytics.android.itracker.data.extension.vcard.VCardTable</item>
-        <item>com.localytics.android.itracker.data.extension.avatar.AvatarTable</item>
-        <item>com.localytics.android.itracker.data.extension.capability.CapabilitiesTable</item>
-        <item>com.localytics.android.itracker.data.account.StatusTable</item>
-        <item>com.localytics.android.itracker.data.extension.otr.OTRTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.VibroTable</item>
-        <item>com.localytics.android.itracker.data.notification.NotificationTable</item>
-        <item>com.localytics.android.itracker.data.message.chat.Suppress100Table</item>
-        <item>com.localytics.android.itracker.data.message.phrase.PhraseTable</item>
+        <item>com.itracker.android.data.account.AccountTable</item>
+        <item>com.itracker.android.data.extension.muc.RoomTable</item>
+        <item>com.itracker.android.data.message.MessageTable</item>
+        <item>com.itracker.android.data.roster.GroupTable</item>
+        <item>com.itracker.android.data.message.chat.PrivateChatTable</item>
+        <item>com.itracker.android.data.message.chat.NotifyVisibleTable</item>
+        <item>com.itracker.android.data.message.chat.ShowTextTable</item>
+        <item>com.itracker.android.data.message.chat.SoundTable</item>
+        <item>com.itracker.android.data.extension.vcard.VCardTable</item>
+        <item>com.itracker.android.data.extension.avatar.AvatarTable</item>
+        <item>com.itracker.android.data.extension.capability.CapabilitiesTable</item>
+        <item>com.itracker.android.data.account.StatusTable</item>
+        <item>com.itracker.android.data.extension.otr.OTRTable</item>
+        <item>com.itracker.android.data.message.chat.VibroTable</item>
+        <item>com.itracker.android.data.notification.NotificationTable</item>
+        <item>com.itracker.android.data.message.chat.Suppress100Table</item>
+        <item>com.itracker.android.data.message.phrase.PhraseTable</item>
     </string-array>
 
     <string name="in_never_value">-1</string>
@@ -86,7 +86,7 @@
     <string name="in_30m_value">1800000</string>
     <string name="in_1h_value">3600000</string>
 
-    <string name="default_sound">com.localytics.android.DEFAULT_SOUND</string>
+    <string name="default_sound">com.itracker.android.DEFAULT_SOUND</string>
 
     <!-- preference_interface -->
     <string name="interface_theme_key">interface_theme</string>

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/background_dark">
 
-    <com.localytics.android.itracker.ui.widget.player.PlayerVideoView
+    <com.itracker.android.ui.widget.player.PlayerVideoView
         android:id="@+id/player_video_texture"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -12,13 +12,13 @@
         android:keepScreenOn="true"
         android:fitsSystemWindows="true" />
 
-    <com.localytics.android.itracker.ui.widget.player.controller.MediaPlayerController
+    <com.itracker.android.ui.widget.player.controller.MediaPlayerController
         android:id="@+id/player_video_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />
 
-    <com.localytics.android.itracker.ui.widget.player.PlayerLoadingView
+    <com.itracker.android.ui.widget.player.PlayerLoadingView
         android:id="@+id/player_video_loading"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
