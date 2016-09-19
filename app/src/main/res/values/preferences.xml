@@ -204,7 +204,7 @@
     <string name="preference_chats">@string/chat_viewer</string>
 
     <string name="chats_show_avatars_key">chats_show_avatars</string>
-    <bool name="chats_show_avatars_default">false</bool>
+    <bool name="chats_show_avatars_default">true</bool>
 
     <string name="contacts_reset_offline_key">contacts_reset_offline</string>
 

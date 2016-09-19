@@ -2,6 +2,7 @@ package com.localytics.android.itracker.ui.adapter;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -28,11 +29,13 @@ import com.localytics.android.itracker.data.message.ChatAction;
 import com.localytics.android.itracker.data.message.MessageItem;
 import com.localytics.android.itracker.data.message.MessageManager;
 import com.localytics.android.itracker.data.roster.AbstractContact;
+import com.localytics.android.itracker.data.roster.RosterContact;
 import com.localytics.android.itracker.data.roster.RosterManager;
 import com.localytics.android.itracker.ui.color.ColorManager;
 import com.localytics.android.itracker.ui.helper.PermissionsRequester;
 import com.localytics.android.itracker.utils.Emoticons;
 import com.localytics.android.itracker.utils.StringUtils;
+import com.localytics.android.xmpp.address.Jid;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,42 +50,42 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private static final int VIEW_TYPE_HINT = 1;
     private static final int VIEW_TYPE_ACTION_MESSAGE = 4;
 
-    private final Context context;
-    private final Message.MessageClickListener messageClickListener;
+    private final Context mContext;
+    private final Message.MessageClickListener mMessageClickListener;
     /**
      * Message font appearance.
      */
-    private final int appearanceStyle;
-    private String account;
-    private String user;
-    private boolean isMUC;
+    private final int mAppearanceStyle;
+    private String mAccount;
+    private String mUser;
+    private boolean mIsMUC;
     private String mucNickname;
 
-    private List<MessageItem> messages;
+    private List<MessageItem> mMessages;
     /**
      * Text with extra information.
      */
-    private String hint;
-    private Listener listener;
+    private String mHint;
+    private Listener mListener;
 
     public interface Listener {
         void onNoDownloadFilePermission();
     }
 
     public ChatMessageAdapter(Context context, String account, String user, Message.MessageClickListener messageClickListener, ChatMessageAdapter.Listener listener) {
-        this.context = context;
-        messages = Collections.emptyList();
-        this.account = account;
-        this.user = user;
-        this.messageClickListener = messageClickListener;
-        this.listener = listener;
+        mContext = context;
+        mMessages = Collections.emptyList();
+        mAccount = account;
+        mUser = user;
+        mMessageClickListener = messageClickListener;
+        mListener = listener;
 
-        isMUC = MUCManager.getInstance().hasRoom(account, user);
-        if (isMUC) {
+        mIsMUC = MUCManager.getInstance().hasRoom(account, user);
+        if (mIsMUC) {
             mucNickname = MUCManager.getInstance().getNickname(account, user);
         }
-        hint = null;
-        appearanceStyle = SettingsManager.chatsAppearanceStyle();
+        mHint = null;
+        mAppearanceStyle = SettingsManager.chatsAppearanceStyle();
     }
 
     @Override
@@ -98,11 +101,11 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             case VIEW_TYPE_INCOMING_MESSAGE:
                 return new IncomingMessage(LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.chat_viewer_incoming_message, parent, false), messageClickListener);
+                        .inflate(R.layout.chat_viewer_incoming_message, parent, false), mMessageClickListener);
 
             case VIEW_TYPE_OUTGOING_MESSAGE:
                 return new OutgoingMessage(LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.chat_viewer_outgoing_message, parent, false), messageClickListener);
+                        .inflate(R.layout.chat_viewer_outgoing_message, parent, false), mMessageClickListener);
             default:
                 return null;
         }
@@ -117,21 +120,21 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         switch (viewType) {
             case VIEW_TYPE_HINT:
-                ((BasicMessage) holder).messageText.setText(hint);
+                ((BasicMessage) holder).mMessageText.setText(mHint);
                 break;
 
             case VIEW_TYPE_ACTION_MESSAGE:
                 ChatAction action = messageItem.getAction();
-                String time = StringUtils.getSmartTimeText(context, messageItem.getTimestamp());
+                String time = StringUtils.getSmartTimeText(mContext, messageItem.getTimestamp());
 
                 String name;
-                if (isMUC) {
+                if (mIsMUC) {
                     name = messageItem.getResource();
                 } else {
-                    name = RosterManager.getInstance().getBestContact(account, messageItem.getChat().getUser()).getName();
+                    name = RosterManager.getInstance().getBestContact(mAccount, messageItem.getChat().getUser()).getName();
                 }
-                ((BasicMessage)holder).messageText.setText(time + ": "
-                        + action.getText(context, name, messageItem.getSpannable().toString()));
+                ((BasicMessage) holder).mMessageText.setText(time + ": "
+                        + action.getText(mContext, name, messageItem.getSpannable().toString()));
 
                 break;
 
@@ -139,38 +142,39 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 setUpIncomingMessage((IncomingMessage) holder, messageItem);
                 break;
             case VIEW_TYPE_OUTGOING_MESSAGE:
-                setUpOutgoingMessage((Message) holder, messageItem);
+                setUpOutgoingMessage((OutgoingMessage) holder, messageItem);
                 break;
         }
 
     }
 
-    private void setUpOutgoingMessage(Message holder, MessageItem messageItem) {
-        setUpMessage(messageItem, holder);
-        setStatusIcon(messageItem, (OutgoingMessage) holder);
-        setUpFileMessage(holder, messageItem);
+    private void setUpOutgoingMessage(OutgoingMessage outgoingMessage, MessageItem messageItem) {
+        setUpMessage(messageItem, outgoingMessage);
+        setUpAvatar(messageItem, outgoingMessage);
+        setStatusIcon(messageItem, outgoingMessage);
+        setUpFileMessage(outgoingMessage, messageItem);
 
-        setUpMessageBalloonBackground(holder.messageBalloon,
-                context.getResources().getColorStateList(R.color.outgoing_message_color_state_dark), R.drawable.message_outgoing_states);
+        setUpMessageBalloonBackground(outgoingMessage.mMessageBalloon,
+                mContext.getResources().getColorStateList(R.color.outgoing_message_color_state_dark), R.drawable.message_outgoing_states);
     }
 
     private void setUpIncomingMessage(final IncomingMessage incomingMessage, final MessageItem messageItem) {
         setUpMessage(messageItem, incomingMessage);
 
-        setUpMessageBalloonBackground(incomingMessage.messageBalloon,
-                ColorManager.getInstance().getChatIncomingBalloonColorsStateList(account), R.drawable.message_incoming);
+        setUpMessageBalloonBackground(incomingMessage.mMessageBalloon,
+                ColorManager.getInstance().getChatIncomingBalloonColorsStateList(mAccount), R.drawable.message_incoming);
 
         setUpAvatar(messageItem, incomingMessage);
         setUpFileMessage(incomingMessage, messageItem);
 
         if (messageItem.getText().trim().isEmpty()) {
-            incomingMessage.messageBalloon.setVisibility(View.GONE);
-            incomingMessage.messageTime.setVisibility(View.GONE);
-            incomingMessage.avatar.setVisibility(View.GONE);
+            incomingMessage.mMessageBalloon.setVisibility(View.GONE);
+            incomingMessage.mMessageTime.setVisibility(View.GONE);
+            incomingMessage.mAvatar.setVisibility(View.GONE);
             LogManager.w(this, "Empty message! Hidden, but need to correct");
         } else {
-            incomingMessage.messageBalloon.setVisibility(View.VISIBLE);
-            incomingMessage.messageTime.setVisibility(View.VISIBLE);
+            incomingMessage.mMessageBalloon.setVisibility(View.VISIBLE);
+            incomingMessage.mMessageTime.setVisibility(View.VISIBLE);
         }
     }
 
@@ -205,19 +209,19 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             int pB = messageBalloon.getPaddingBottom();
 
             messageBalloon.setBackgroundResource(lightBackgroundId);
-            messageBalloon.getBackground().setLevel(AccountManager.getInstance().getColorLevel(account));
+            messageBalloon.getBackground().setLevel(AccountManager.getInstance().getColorLevel(mAccount));
             messageBalloon.setPadding(pL, pT, pR, pB);
         }
     }
 
 
     private void setUpFileMessage(final Message messageView, final MessageItem messageItem) {
-        messageView.downloadProgressBar.setVisibility(View.GONE);
-        messageView.attachmentButton.setVisibility(View.GONE);
-        messageView.downloadButton.setVisibility(View.GONE);
-        messageView.messageImage.setVisibility(View.GONE);
-        messageView.messageFileInfo.setVisibility(View.GONE);
-        messageView.messageTextForFileName.setVisibility(View.GONE);
+        messageView.mDownloadProgressBar.setVisibility(View.GONE);
+        messageView.mAttachmentButton.setVisibility(View.GONE);
+        messageView.mDownloadButton.setVisibility(View.GONE);
+        messageView.mMessageImage.setVisibility(View.GONE);
+        messageView.mMessageFileInfo.setVisibility(View.GONE);
+        messageView.mMessageTextForFileName.setVisibility(View.GONE);
 
         if (messageItem.getFile() == null) {
             return;
@@ -225,21 +229,21 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         LogManager.i(this, "processing file messageView " + messageItem.getText());
 
-        messageView.messageText.setVisibility(View.GONE);
-        messageView.messageTextForFileName.setText(FileManager.getFileName(messageItem.getFile().getPath()));
-        messageView.messageTextForFileName.setVisibility(View.VISIBLE);
+        messageView.mMessageText.setVisibility(View.GONE);
+        messageView.mMessageTextForFileName.setText(FileManager.getFileName(messageItem.getFile().getPath()));
+        messageView.mMessageTextForFileName.setVisibility(View.VISIBLE);
 
-        messageView.attachmentButton.setOnClickListener(new View.OnClickListener() {
+        messageView.mAttachmentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FileManager.openFile(context, messageItem.getFile());
+                FileManager.openFile(mContext, messageItem.getFile());
             }
         });
 
         final Long fileSize = messageItem.getFileSize();
         if (fileSize != null) {
-            messageView.messageFileInfo.setText(android.text.format.Formatter.formatShortFileSize(context, fileSize));
-            messageView.messageFileInfo.setVisibility(View.VISIBLE);
+            messageView.mMessageFileInfo.setText(android.text.format.Formatter.formatShortFileSize(mContext, fileSize));
+            messageView.mMessageFileInfo.setVisibility(View.VISIBLE);
         }
 
         if (messageItem.getFile().exists()) {
@@ -251,8 +255,8 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 LogManager.i(this, "Downloading file from message adapter");
                 downloadFile(messageView, messageItem);
             } else {
-                messageView.downloadButton.setVisibility(View.VISIBLE);
-                messageView.downloadButton.setOnClickListener(new View.OnClickListener() {
+                messageView.mDownloadButton.setVisibility(View.VISIBLE);
+                messageView.mDownloadButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         downloadFile(messageView, messageItem);
@@ -264,27 +268,27 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private void downloadFile(final Message messageView, final MessageItem messageItem) {
         if (!PermissionsRequester.hasFileWritePermission()) {
-            listener.onNoDownloadFilePermission();
+            mListener.onNoDownloadFilePermission();
             return;
         }
 
-        messageView.downloadButton.setVisibility(View.GONE);
-        messageView.downloadProgressBar.setVisibility(View.VISIBLE);
+        messageView.mDownloadButton.setVisibility(View.GONE);
+        messageView.mDownloadProgressBar.setVisibility(View.VISIBLE);
         FileManager.getInstance().downloadFile(messageItem, new FileManager.ProgressListener() {
             @Override
             public void onProgress(long bytesWritten, long totalSize) {
-                String progress = android.text.format.Formatter.formatShortFileSize(context, bytesWritten);
+                String progress = android.text.format.Formatter.formatShortFileSize(mContext, bytesWritten);
                 // in some cases total size set to 1 (should be fixed in future version of com.loopj.android:android-async-http)
                 if (bytesWritten <= totalSize) {
-                    progress += " / " + android.text.format.Formatter.formatShortFileSize(context, totalSize);
+                    progress += " / " + android.text.format.Formatter.formatShortFileSize(mContext, totalSize);
                 }
 
-                if (!progress.equals(messageView.messageFileInfo.getText())) {
-                    messageView.messageFileInfo.setText(progress);
+                if (!progress.equals(messageView.mMessageFileInfo.getText())) {
+                    messageView.mMessageFileInfo.setText(progress);
                 }
 
-                if (messageView.messageFileInfo.getVisibility() != View.VISIBLE) {
-                    messageView.messageFileInfo.setVisibility(View.VISIBLE);
+                if (messageView.mMessageFileInfo.getVisibility() != View.VISIBLE) {
+                    messageView.mMessageFileInfo.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -297,42 +301,39 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private void onFileExists(Message message, final File file) {
         if (FileManager.fileIsImage(file) && PermissionsRequester.hasFileReadPermission()) {
-            message.messageTextForFileName.setVisibility(View.GONE);
-            message.messageImage.setVisibility(View.VISIBLE);
-            FileManager.loadImageFromFile(file, message.messageImage);
-            message.messageImage.setOnClickListener(new View.OnClickListener() {
+            message.mMessageTextForFileName.setVisibility(View.GONE);
+            message.mMessageImage.setVisibility(View.VISIBLE);
+            FileManager.loadImageFromFile(file, message.mMessageImage);
+            message.mMessageImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    FileManager.openFile(context, file);
+                    FileManager.openFile(mContext, file);
                 }
             });
 
         } else {
-            message.attachmentButton.setVisibility(View.VISIBLE);
+            message.mAttachmentButton.setVisibility(View.VISIBLE);
         }
 
-        message.messageFileInfo.setText(android.text.format.Formatter.formatShortFileSize(context, file.length()));
-        message.messageFileInfo.setVisibility(View.VISIBLE);
+        message.mMessageFileInfo.setText(android.text.format.Formatter.formatShortFileSize(mContext, file.length()));
+        message.mMessageFileInfo.setVisibility(View.VISIBLE);
     }
 
     @Override
     public int getItemCount() {
-        if (hint == null) {
-            return messages.size();
+        if (mHint == null) {
+            return mMessages.size();
         } else {
-            return messages.size() + 1;
+            return mMessages.size() + 1;
         }
     }
 
     public MessageItem getMessageItem(int position) {
-        if (position < messages.size()) {
-            return messages.get(position);
+        if (position < mMessages.size()) {
+            return mMessages.get(position);
         } else {
             return null;
         }
-
-
-
     }
 
     @Override
@@ -342,7 +343,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemViewType(int position) {
-        if (position >= messages.size()) {
+        if (position >= mMessages.size()) {
             return VIEW_TYPE_HINT;
         }
 
@@ -352,7 +353,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
 
         if (messageItem.isIncoming()) {
-            if (isMUC && messageItem.getResource().equals(mucNickname)) {
+            if (mIsMUC && messageItem.getResource().equals(mucNickname)) {
                 return VIEW_TYPE_OUTGOING_MESSAGE;
             }
             return VIEW_TYPE_INCOMING_MESSAGE;
@@ -363,45 +364,45 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private void setUpMessage(MessageItem messageItem, Message message) {
 
-        if (isMUC) {
-            message.messageHeader.setText(messageItem.getResource());
-            message.messageHeader.setVisibility(View.VISIBLE);
+        if (mIsMUC) {
+            message.mMessageHeader.setText(messageItem.getResource());
+            message.mMessageHeader.setVisibility(View.VISIBLE);
         } else {
-            message.messageHeader.setVisibility(View.GONE);
+            message.mMessageHeader.setVisibility(View.GONE);
         }
 
         if (messageItem.isUnencypted()) {
-            message.messageUnencrypted.setVisibility(View.VISIBLE);
+            message.mMessageUnencrypted.setVisibility(View.VISIBLE);
         } else {
-            message.messageUnencrypted.setVisibility(View.GONE);
+            message.mMessageUnencrypted.setVisibility(View.GONE);
         }
 
-        message.messageText.setTextAppearance(context, appearanceStyle);
-        message.messageTextForFileName.setTextAppearance(context, appearanceStyle);
+        message.mMessageText.setTextAppearance(mContext, mAppearanceStyle);
+        message.mMessageTextForFileName.setTextAppearance(mContext, mAppearanceStyle);
 
         final Spannable spannable = messageItem.getSpannable();
-        Emoticons.getSmiledText(context, spannable, message.messageText);
-        message.messageText.setText(spannable);
-        message.messageText.setVisibility(View.VISIBLE);
+        Emoticons.getSmiledText(mContext, spannable, message.mMessageText);
+        message.mMessageText.setText(spannable);
+        message.mMessageText.setVisibility(View.VISIBLE);
 
-        String time = StringUtils.getSmartTimeText(context, messageItem.getTimestamp());
+        String time = StringUtils.getSmartTimeText(mContext, messageItem.getTimestamp());
 
         Date delayTimestamp = messageItem.getDelayTimestamp();
         if (delayTimestamp != null) {
-            String delay = context.getString(messageItem.isIncoming() ? R.string.chat_delay : R.string.chat_typed,
-                    StringUtils.getSmartTimeText(context, delayTimestamp));
+            String delay = mContext.getString(messageItem.isIncoming() ? R.string.chat_delay : R.string.chat_typed,
+                    StringUtils.getSmartTimeText(mContext, delayTimestamp));
             time += " (" + delay + ")";
         }
 
-        message.messageTime.setText(time);
+        message.mMessageTime.setText(time);
     }
 
     private void setStatusIcon(MessageItem messageItem, OutgoingMessage message) {
-        message.statusIcon.setVisibility(View.VISIBLE);
-        message.progressBar.setVisibility(View.GONE);
+        message.mStatusIcon.setVisibility(View.VISIBLE);
+        message.mProgressBar.setVisibility(View.GONE);
 
         if (messageItem.isUploadFileMessage() && !messageItem.isError()) {
-            message.progressBar.setVisibility(View.VISIBLE);
+            message.mProgressBar.setVisibility(View.VISIBLE);
         }
 
         int messageIcon = R.drawable.ic_message_delivered_18dp;
@@ -410,10 +411,10 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         } else if (!messageItem.isUploadFileMessage() && !messageItem.isSent()) {
             messageIcon = R.drawable.ic_message_not_sent_18dp;
         } else if (!messageItem.isDelivered()) {
-            message.statusIcon.setVisibility(View.GONE);
+            message.mStatusIcon.setVisibility(View.GONE);
         }
 
-        message.statusIcon.setImageResource(messageIcon);
+        message.mStatusIcon.setImageResource(messageIcon);
     }
 
     private void setUpAvatar(MessageItem messageItem, IncomingMessage message) {
@@ -422,29 +423,38 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             final String user = messageItem.getChat().getUser();
             final String resource = messageItem.getResource();
 
-            message.avatar.setVisibility(View.VISIBLE);
-            if ((isMUC && MUCManager.getInstance().getNickname(account, user).equalsIgnoreCase(resource))) {
-                message.avatar.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(account));
+            message.mAvatar.setVisibility(View.VISIBLE);
+            if ((mIsMUC && MUCManager.getInstance().getNickname(account, user).equalsIgnoreCase(resource))) {
+                message.mAvatar.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(account));
             } else {
-                if (isMUC) {
+                if (mIsMUC) {
                     if ("".equals(resource)) {
-                        message.avatar.setImageDrawable(AvatarManager.getInstance().getRoomAvatar(user));
+                        message.mAvatar.setImageDrawable(AvatarManager.getInstance().getRoomAvatar(user));
                     } else {
-                        message.avatar.setImageDrawable(AvatarManager.getInstance().getUserAvatar(user + "/" + resource));
+                        message.mAvatar.setImageDrawable(AvatarManager.getInstance().getUserAvatar(user + "/" + resource));
                     }
                 } else {
-                    message.avatar.setImageDrawable(AvatarManager.getInstance().getUserAvatar(user));
+                    message.mAvatar.setImageDrawable(AvatarManager.getInstance().getUserAvatar(user));
                 }
             }
         } else {
-            message.avatar.setVisibility(View.GONE);
+            message.mAvatar.setVisibility(View.GONE);
+        }
+    }
+
+    private void setUpAvatar(MessageItem messageItem, OutgoingMessage message) {
+        if (SettingsManager.chatsShowAvatars()) {
+            message.mAvatar.setVisibility(View.VISIBLE);
+            message.mAvatar.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(mAccount));
+        } else {
+            message.mAvatar.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void onChange() {
-        messages = new ArrayList<>(MessageManager.getInstance().getMessages(account, user));
-        hint = getHint();
+        mMessages = new ArrayList<>(MessageManager.getInstance().getMessages(mAccount, mUser));
+        mHint = getHint();
         notifyDataSetChanged();
     }
 
@@ -452,20 +462,20 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
      * @return New hint.
      */
     private String getHint() {
-        AccountItem accountItem = AccountManager.getInstance().getAccount(account);
+        AccountItem accountItem = AccountManager.getInstance().getAccount(mAccount);
         boolean online = accountItem != null && accountItem.getState().isConnected();
-        final AbstractContact abstractContact = RosterManager.getInstance().getBestContact(account, user);
+        final AbstractContact abstractContact = RosterManager.getInstance().getBestContact(mAccount, mUser);
         if (!online) {
             if (abstractContact instanceof RoomContact) {
-                return context.getString(R.string.muc_is_unavailable);
+                return mContext.getString(R.string.muc_is_unavailable);
             } else {
-                return context.getString(R.string.account_is_offline);
+                return mContext.getString(R.string.account_is_offline);
             }
         } else if (!abstractContact.getStatusMode().isOnline()) {
             if (abstractContact instanceof RoomContact) {
-                return context.getString(R.string.muc_is_unavailable);
+                return mContext.getString(R.string.muc_is_unavailable);
             } else {
-                return context.getString(R.string.contact_is_offline, abstractContact.getName());
+                return mContext.getString(R.string.contact_is_offline, abstractContact.getName());
             }
         }
         return null;
@@ -473,82 +483,81 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public static class BasicMessage extends RecyclerView.ViewHolder {
 
-        public TextView messageText;
+        public TextView mMessageText;
 
         public BasicMessage(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.message_text);
+            mMessageText = (TextView) itemView.findViewById(R.id.message_text);
         }
     }
 
     public static abstract class Message extends BasicMessage implements View.OnClickListener {
 
-        public TextView messageTime;
-        public TextView messageHeader;
-        public TextView messageUnencrypted;
-        public View messageBalloon;
+        public TextView mMessageTime;
+        public TextView mMessageHeader;
+        public TextView mMessageUnencrypted;
+        public View mMessageBalloon;
 
-        MessageClickListener onClickListener;
+        MessageClickListener mOnClickListener;
 
-        public ImageButton downloadButton;
-        public ImageButton attachmentButton;
-        public ProgressBar downloadProgressBar;
-        public ImageView messageImage;
-        public TextView messageFileInfo;
-        public TextView messageTextForFileName;
-
+        public ImageButton mDownloadButton;
+        public ImageButton mAttachmentButton;
+        public ProgressBar mDownloadProgressBar;
+        public ImageView mMessageImage;
+        public TextView mMessageFileInfo;
+        public TextView mMessageTextForFileName;
 
         public Message(View itemView, MessageClickListener onClickListener) {
             super(itemView);
-            this.onClickListener = onClickListener;
+            mOnClickListener = onClickListener;
 
+            mMessageTime = (TextView) itemView.findViewById(R.id.message_time);
+            mMessageHeader = (TextView) itemView.findViewById(R.id.message_header);
+            mMessageUnencrypted = (TextView) itemView.findViewById(R.id.message_unencrypted);
+            mMessageBalloon = itemView.findViewById(R.id.message_balloon);
 
-            messageTime = (TextView) itemView.findViewById(R.id.message_time);
-            messageHeader = (TextView) itemView.findViewById(R.id.message_header);
-            messageUnencrypted = (TextView) itemView.findViewById(R.id.message_unencrypted);
-            messageBalloon = itemView.findViewById(R.id.message_balloon);
-
-            downloadButton = (ImageButton) itemView.findViewById(R.id.message_download_button);
-            attachmentButton = (ImageButton) itemView.findViewById(R.id.message_attachment_button);
-            downloadProgressBar = (ProgressBar) itemView.findViewById(R.id.message_download_progress_bar);
-            messageImage = (ImageView) itemView.findViewById(R.id.message_image);
-            messageFileInfo = (TextView) itemView.findViewById(R.id.message_file_info);
-            messageTextForFileName = (TextView) itemView.findViewById(R.id.message_text_for_filenames);
+            mDownloadButton = (ImageButton) itemView.findViewById(R.id.message_download_button);
+            mAttachmentButton = (ImageButton) itemView.findViewById(R.id.message_attachment_button);
+            mDownloadProgressBar = (ProgressBar) itemView.findViewById(R.id.message_download_progress_bar);
+            mMessageImage = (ImageView) itemView.findViewById(R.id.message_image);
+            mMessageFileInfo = (TextView) itemView.findViewById(R.id.message_file_info);
+            mMessageTextForFileName = (TextView) itemView.findViewById(R.id.message_text_for_filenames);
 
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            onClickListener.onMessageClick(messageBalloon, getPosition());
+            mOnClickListener.onMessageClick(mMessageBalloon, getPosition());
         }
 
         public interface MessageClickListener {
             void onMessageClick(View caller, int position);
         }
-
     }
 
     public static class IncomingMessage extends Message {
 
-        public ImageView avatar;
+        public ImageView mAvatar;
 
         public IncomingMessage(View itemView, MessageClickListener listener) {
             super(itemView, listener);
-            avatar = (ImageView) itemView.findViewById(R.id.avatar);
+            mAvatar = (ImageView) itemView.findViewById(R.id.incoming_avatar);
         }
     }
 
     public static class OutgoingMessage extends Message {
 
-        public ImageView statusIcon;
-        public ProgressBar progressBar;
+        public ImageView mAvatar;
+        public ImageView mStatusIcon;
+        public ProgressBar mProgressBar;
 
         public OutgoingMessage(View itemView, MessageClickListener listener) {
             super(itemView, listener);
-            statusIcon = (ImageView) itemView.findViewById(R.id.message_status_icon);
-            progressBar = (ProgressBar) itemView.findViewById(R.id.message_progress_bar);
+            mAvatar = (ImageView) itemView.findViewById(R.id.outgoing_avatar);
+            mStatusIcon = (ImageView) itemView.findViewById(R.id.message_status_icon);
+            mProgressBar = (ProgressBar) itemView.findViewById(R.id.message_progress_bar);
         }
     }
 }
