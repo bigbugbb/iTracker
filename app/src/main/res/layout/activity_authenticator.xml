@@ -47,10 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <FrameLayout
-                android:id="@+id/auth_signin_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            <include layout="@layout/sign_in_view" />
 
         </ScrollView>
 
@@ -66,15 +63,6 @@
         </ScrollView>
 
     </ViewAnimator>
-
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/facebook_login_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="16dp"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/auth_views" />
 
     <ProgressBar
         android:id="@+id/authenticate_progress"

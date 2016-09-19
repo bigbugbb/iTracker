@@ -1,13 +1,18 @@
 package com.itracker.android.ui.activity;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.app.FragmentTransaction;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
@@ -20,6 +25,16 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -27,6 +42,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.itracker.android.Application;
 import com.itracker.android.Config;
 import com.itracker.android.R;
@@ -37,17 +53,23 @@ import com.itracker.android.ui.fragment.SignUpFragment;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
+import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
 
-public class AuthenticatorActivity extends AccountAuthenticatorActivity
-        implements SignInFragment.OnAccountSignInListener, SignUpFragment.OnAccountSignUpListener {
+public class AuthenticatorActivity extends AccountAuthenticatorActivity implements
+        SignInFragment.OnAccountSignInListener,
+        SignUpFragment.OnAccountSignUpListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = makeLogTag(AuthenticatorActivity.class);
 
     private final static int SIGN_IN_FRAGMENT = 0;
     private final static int SIGN_UP_FRAGMENT = 1;
+
+    private final static int GOOGLE_SIGN_IN = 1000;
 
     public final static String USERNAME = "username";
     public final static String CREATE_ACCOUNT = "create_account";
@@ -57,6 +79,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
 
     private LoginButton mFacebookLoginButton;
     private CallbackManager mCallbackManager;
+
+    private SignInButton mGoogleSignInButton;
+    private GoogleApiClient mGoogleApiClient;
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -99,6 +124,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
         initializeFacebookLogin();
+        initializeGoogleSignIn();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -129,6 +155,33 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
                 LOGD(TAG, "facebook:onError", exception);
             }
         });
+    }
+
+    private void initializeGoogleSignIn() {
+        // Setup google sign in button
+        mGoogleSignInButton = (SignInButton) findViewById(R.id.google_sign_in_button);
+        mGoogleSignInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+                startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
+            }
+        });
+
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        // Build a GoogleApiClient with access to the Google Sign-In API and the
+        // options specified by gso.
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
     }
 
     /**
@@ -170,6 +223,19 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == GOOGLE_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+            } else {
+                // Google Sign In failed, update UI appropriately
+                // ...
+            }
+        }
     }
 
     @Override
@@ -214,7 +280,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
-    private void onFinishLogin(Intent intent) {
+    private void onFinishLogin(final Intent intent) {
         LOGD(TAG, "finish login");
         String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
         String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
@@ -241,9 +307,26 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
             LOGD(TAG, "finish login > setPassword");
             mAccountManager.setPassword(account, accountPassword);
         }
-        setAccountAuthenticatorResult(intent.getExtras());
-        setResult(RESULT_OK, intent);
-        finish();
+
+        mFirebaseAuth.createUserWithEmailAndPassword(accountName, accountPassword)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        LOGD(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(AuthenticatorActivity.this, R.string.auth_failed,
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            setAccountAuthenticatorResult(intent.getExtras());
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        }
+                    }
+                });
     }
 
     public void addAccount(String accountName, String password, boolean createAccount) {
@@ -267,6 +350,22 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        LOGI(TAG, "Connected to GoogleApiClient");
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        LOGI(TAG, "Connection suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in onConnectionFailed.
+        LOGI(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+    }
+
     private void handleFacebookAccessToken(AccessToken token) {
         LOGD(TAG, "handleFacebookAccessToken:" + token);
 
@@ -282,8 +381,37 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             LOGW(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
                         }
+                    }
+                });
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        LOGD(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        // [START_EXCLUDE silent]
+//        showProgressDialog();
+        // [END_EXCLUDE]
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mFirebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        LOGD(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            LOGW(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        // [START_EXCLUDE]
+//                        hideProgressDialog();
+                        // [END_EXCLUDE]
                     }
                 });
     }
