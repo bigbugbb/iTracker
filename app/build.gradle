@@ -39,6 +39,10 @@ ext {
     smackVersion = '4.1.5'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
@@ -79,4 +83,5 @@ dependencies {
     compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
     compile 'com.android.support:multidex:1.0.1'
     compile 'io.realm:realm-android:0.85.0'
+    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
 }

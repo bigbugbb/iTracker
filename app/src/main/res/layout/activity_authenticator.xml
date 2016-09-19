@@ -67,6 +67,15 @@
 
     </ViewAnimator>
 
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/facebook_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/auth_views" />
+
     <ProgressBar
         android:id="@+id/authenticate_progress"
         android:layout_width="wrap_content"

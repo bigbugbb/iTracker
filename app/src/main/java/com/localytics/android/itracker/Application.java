@@ -7,6 +7,12 @@ import android.content.res.TypedArray;
 import android.os.Handler;
 import android.support.multidex.MultiDex;
 
+import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
+import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
+import com.facebook.appevents.AppEventsLogger;
 import com.localytics.android.itracker.data.BaseManagerInterface;
 import com.localytics.android.itracker.data.BaseUIListener;
 import com.localytics.android.itracker.data.LogManager;
@@ -38,6 +44,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
 
 public class Application extends android.support.multidex.MultiDexApplication {
 
@@ -103,6 +111,9 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     private Future<Void> mLoadFuture;
 
+    private AccessTokenTracker mAccessTokenTracker;
+    private ProfileTracker mProfileTracker;
+
     public Application() {
         sInstance = this;
         mServiceStarted = false;
@@ -147,9 +158,44 @@ public class Application extends android.support.multidex.MultiDexApplication {
         return checkCallingOrSelfPermission("android.permission.READ_CONTACTS") == PackageManager.PERMISSION_GRANTED;
     }
 
+    private void integrateFacebook() {
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(this);
+
+        mAccessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(
+                    AccessToken oldAccessToken,
+                    AccessToken currentAccessToken) {
+                if (currentAccessToken != null) {
+                    LOGD(TAG, currentAccessToken.toString());
+                }
+            }
+        };
+
+        mProfileTracker = new ProfileTracker() {
+            @Override
+            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                if (currentProfile != null) {
+                    LOGD(TAG, "Facebook profile:");
+                    LOGD(TAG, currentProfile.getId());
+                    LOGD(TAG, currentProfile.getFirstName());
+                    LOGD(TAG, currentProfile.getMiddleName());
+                    LOGD(TAG, currentProfile.getLastName());
+                    LOGD(TAG, currentProfile.getName());
+                    LOGD(TAG, currentProfile.getLinkUri().toString());
+                    LOGD(TAG, currentProfile.getProfilePictureUri(320, 320).toString());
+                }
+            }
+        };
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+
+        integrateFacebook();
+
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
         ArrayList<String> contactManager = new ArrayList<>();
@@ -303,6 +349,8 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     public void requestToClose() {
         mClosing = true;
+        mAccessTokenTracker.stopTracking();
+        mProfileTracker.stopTracking();
         stopService(AppPersistentService.createIntent(this));
     }
 

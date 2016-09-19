@@ -13,6 +13,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.localytics.android.itracker.Application;
 import com.localytics.android.itracker.Config;
 import com.localytics.android.itracker.R;
@@ -21,13 +27,15 @@ import com.localytics.android.itracker.data.account.AccountType;
 import com.localytics.android.itracker.ui.fragment.SignInFragment;
 import com.localytics.android.itracker.ui.fragment.SignUpFragment;
 import com.localytics.android.itracker.utils.AccountUtils;
-import com.localytics.android.itracker.utils.LogUtils;
+
+import static com.localytics.android.itracker.utils.LogUtils.LOGD;
+import static com.localytics.android.itracker.utils.LogUtils.makeLogTag;
 
 
 public class AuthenticatorActivity extends AccountAuthenticatorActivity
         implements SignInFragment.OnAccountSignInListener, SignUpFragment.OnAccountSignUpListener {
 
-    private static final String TAG = LogUtils.makeLogTag(AuthenticatorActivity.class);
+    private static final String TAG = makeLogTag(AuthenticatorActivity.class);
 
     private final static int SIGN_IN_FRAGMENT = 0;
     private final static int SIGN_UP_FRAGMENT = 1;
@@ -37,6 +45,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
 
     private ViewAnimator mAnimator;
     private AccountManager mAccountManager;
+
+    private LoginButton mFacebookLoginButton;
+    private CallbackManager mCallbackManager;
 
     private ProgressBar mProgressBar;
 
@@ -58,6 +69,28 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         }
 
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
+
+        mFacebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
+        mFacebookLoginButton.setReadPermissions("email");
+
+        // Callback registration
+        mCallbackManager = CallbackManager.Factory.create();
+        mFacebookLoginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                // App code
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                // App code
+            }
+        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -83,6 +116,12 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         mAnimator = (ViewAnimator) findViewById(R.id.auth_views);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -128,7 +167,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
     }
 
     private void onFinishLogin(Intent intent) {
-        LogUtils.LOGD(TAG, "finish login");
+        LOGD(TAG, "finish login");
         String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
         String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
         String accountPassword = intent.getStringExtra(AccountManager.KEY_PASSWORD);
@@ -143,7 +182,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         addAccount(accountName, accountPassword, createAccount);
 
         if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
-            LogUtils.LOGD(TAG, "finish login > addAccountExplicitly");
+            LOGD(TAG, "finish login > addAccountExplicitly");
             String authTokenType = getIntent().getStringExtra(AccountUtils.ARG_AUTHTOKEN_TYPE); // we currently ignore the auth token type
 
             // Creating the account on the device and setting the auth token we got
@@ -151,7 +190,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
             mAccountManager.addAccountExplicitly(account, accountPassword, intent.getBundleExtra(AccountManager.KEY_USERDATA));
             mAccountManager.setAuthToken(account, authTokenType, authToken);
         } else {
-            LogUtils.LOGD(TAG, "finish login > setPassword");
+            LOGD(TAG, "finish login > setPassword");
             mAccountManager.setPassword(account, accountPassword);
         }
         setAccountAuthenticatorResult(intent.getExtras());

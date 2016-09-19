@@ -27,6 +27,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.localytics.android.itracker.R;
 import com.localytics.android.itracker.ui.fragment.ActionFragment;
 import com.localytics.android.itracker.ui.fragment.FriendFragment;
@@ -130,8 +131,6 @@ public class TrackerActivity extends SingleActivity implements
         if (savedInstanceState != null) {
             mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
         }
-
-
     }
 
     @Override
