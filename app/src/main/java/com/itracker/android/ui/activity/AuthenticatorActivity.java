@@ -36,6 +36,7 @@ import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.account.AccountType;
 import com.itracker.android.ui.fragment.SignInFragment;
 import com.itracker.android.ui.fragment.SignUpFragment;
+import com.itracker.android.ui.listener.OnAuthenticateResult;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -68,6 +69,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+
+    private OnAuthenticateResult[] mAuthenticateResult;
 
     private ProgressBar mProgressBar;
 
@@ -103,6 +106,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             transaction.replace(R.id.auth_signup_fragment, new SignUpFragment());
             transaction.commit();
         }
+
+        mAuthenticateResult = new OnAuthenticateResult[2];
+        mAuthenticateResult[0] = (OnAuthenticateResult) getFragmentManager().findFragmentById(R.id.auth_signin_fragment);
+        mAuthenticateResult[1] = (OnAuthenticateResult) getFragmentManager().findFragmentById(R.id.auth_signup_fragment);
 
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
@@ -186,9 +193,11 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
+
+                mAuthenticateResult[0].onAuthenticateSuccess();
             } else {
                 // Google Sign In failed, update UI appropriately
-                // ...
+                mAuthenticateResult[0].onAuthenticateFailed();
             }
         }
     }

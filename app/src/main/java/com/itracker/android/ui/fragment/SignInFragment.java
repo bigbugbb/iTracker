@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 import com.itracker.android.ui.activity.AuthenticatorActivity;
+import com.itracker.android.ui.listener.OnAuthenticateResult;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -32,7 +33,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
  * {@link SignInFragment.OnAccountSignInListener} interface
  * to handle interaction events.
  */
-public class SignInFragment extends Fragment {
+public class SignInFragment extends Fragment implements OnAuthenticateResult {
 
     private static final String TAG = makeLogTag(SignInFragment.class);
 
@@ -215,6 +216,17 @@ public class SignInFragment extends Fragment {
         if (isAdded() && view.requestFocus()) {
             getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
+    }
+
+    @Override
+    public void onAuthenticateSuccess() {
+        LOGD(TAG, "authenticate success");
+    }
+
+    @Override
+    public void onAuthenticateFailed() {
+        LOGD(TAG, "authenticate failed");
+        enableUi(false);
     }
 
     private class AuthTextWatcher implements TextWatcher {
