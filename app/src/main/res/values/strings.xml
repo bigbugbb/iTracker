@@ -135,7 +135,7 @@
     <string name="others">Others</string>
 
     <!-- Button text for sign in and sign up buttons -->
-    <string name="sign_in">Sign in</string>
+    <string name="sign_in">Sign In</string>
     <string name="new_user">New user?</string>
     <string name="sign_up">Create Account</string>
     <string name="already_a_memeber">Already a member?</string>

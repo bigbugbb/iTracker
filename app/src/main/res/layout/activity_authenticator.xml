@@ -2,39 +2,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingLeft="48dp"
+    android:paddingRight="48dp"
+    android:paddingStart="48dp"
+    android:paddingEnd="48dp"
+    android:background="@mipmap/screen_background"
     tools:mContext=".ui.AuthenticatorActivity">
 
-    <LinearLayout
+    <include
         android:id="@+id/app_title"
-        android:layout_width="wrap_content"
-        android:layout_height="80dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="40dp"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/logo_image"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scaleType="fitCenter"
-            android:src="@mipmap/ic_launcher"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="5"
-            android:paddingLeft="24dp"
-            android:text="@string/app_name"
-            android:textSize="40sp"
-            android:textStyle="bold"
-            android:textColor="@color/body_text_2"
-            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-            android:gravity="left|center_vertical"/>
-
-    </LinearLayout>
+        layout="@layout/app_logo_with_title" />
 
     <ViewAnimator
         android:id="@+id/auth_views"
@@ -43,24 +20,12 @@
         android:layout_below="@id/app_title"
         android:layout_centerInParent="true">
 
-        <ScrollView
+        <include layout="@layout/sign_in_view" />
+
+        <FrameLayout
+            android:id="@+id/auth_signup_fragment"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <include layout="@layout/sign_in_view" />
-
-        </ScrollView>
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:id="@+id/auth_signup_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </ScrollView>
+            android:layout_height="wrap_content" />
 
     </ViewAnimator>
 

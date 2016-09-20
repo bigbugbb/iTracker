@@ -4,19 +4,16 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:layout_centerInParent="true"
     tools:mContext=".ui.fragment.SignInFragment">
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/input_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         app:errorEnabled="true">
 
-        <EditText android:id="@+id/edit_email"
+        <EditText
+            android:id="@+id/edit_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email address"
@@ -32,7 +29,6 @@
         android:id="@+id/input_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/input_email"
         app:errorEnabled="true">
 
@@ -51,13 +47,18 @@
     <Button
         android:id="@+id/sign_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:padding="4dp"
+        android:layout_height="48dp"
+        android:paddingLeft="8dp"
+        android:paddingStart="8dp"
+        android:paddingRight="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:text="@string/sign_in"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
         android:textColor="@android:color/white"
         android:background="@color/colorAccent"
+        android:alpha="0.9"
         android:elevation="4dp"
         android:layout_below="@+id/input_password" />
 
@@ -66,7 +67,6 @@
         android:id="@+id/new_account"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:gravity="center"
         android:text="@string/new_user"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"

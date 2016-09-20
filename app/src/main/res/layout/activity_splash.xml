@@ -2,64 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@mipmap/screen_background"
     android:weightSum="10"
+    android:orientation="vertical"
     tools:mContext="com.itracker.android.ui.activity.SplashActivity">
 
     <android.support.v4.widget.Space
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2.5"/>
+        android:layout_weight="3.5" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.5"
-        android:weightSum="4"
-        android:orientation="horizontal">
-
-        <android.support.v4.widget.Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.4"/>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.2"
-            android:layout_gravity="center"
-            android:src="@drawable/splash_logo"/>
-
-        <android.support.v4.widget.Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.4"/>
-    </LinearLayout>
-
-    <TextView
-        style="@style/SplashTitle"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:keepScreenOn="true"
-        android:text="@string/app_name"/>
-
-    <android.support.v4.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="5"/>
-
-    <!--<TextView-->
-        <!--android:id="@+id/fullscreen_content"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:gravity="center"-->
-        <!--android:keepScreenOn="true"-->
-        <!--android:text="@string/dummy_content"-->
-        <!--android:textColor="#33b5e5"-->
-        <!--android:textSize="50sp"-->
-        <!--android:textStyle="bold"/>-->
+    <include layout="@layout/app_logo_with_title" />
 
 </LinearLayout>

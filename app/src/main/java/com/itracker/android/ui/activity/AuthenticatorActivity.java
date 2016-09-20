@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
@@ -62,7 +63,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private ViewAnimator mAnimator;
     private AccountManager mAccountManager;
 
-    private SignInButton mGoogleSignInButton;
+    private Button mGoogleSignInButton;
     private GoogleApiClient mGoogleApiClient;
 
     private FirebaseAuth mFirebaseAuth;
@@ -114,7 +115,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     private void initializeGoogleSignIn() {
         // Setup google sign in button
-        mGoogleSignInButton = (SignInButton) findViewById(R.id.google_sign_in_button);
+        mGoogleSignInButton = (Button) findViewById(R.id.google_sign_in_button);
         mGoogleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

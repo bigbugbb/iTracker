@@ -4,8 +4,6 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     tools:mContext=".ui.fragment.SignUpFragment">
 
     <android.support.design.widget.TextInputLayout
@@ -83,11 +81,17 @@
     <Button
         android:id="@+id/sign_up"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
+        android:layout_height="48dp"
+        android:paddingLeft="8dp"
+        android:paddingStart="8dp"
+        android:paddingRight="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:text="@string/sign_up"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
         android:textColor="@android:color/white"
+        android:alpha="0.9"
         android:background="@color/colorAccent"
         android:elevation="4dp"/>
 
