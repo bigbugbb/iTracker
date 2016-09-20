@@ -69,16 +69,13 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private final static int SIGN_IN_FRAGMENT = 0;
     private final static int SIGN_UP_FRAGMENT = 1;
 
-    private final static int GOOGLE_SIGN_IN = 1000;
+    private final static int GOOGLE_SIGN_IN = 100;
 
     public final static String USERNAME = "username";
     public final static String CREATE_ACCOUNT = "create_account";
 
     private ViewAnimator mAnimator;
     private AccountManager mAccountManager;
-
-    private LoginButton mFacebookLoginButton;
-    private CallbackManager mCallbackManager;
 
     private SignInButton mGoogleSignInButton;
     private GoogleApiClient mGoogleApiClient;
@@ -123,38 +120,11 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
-        initializeFacebookLogin();
         initializeGoogleSignIn();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-    }
-
-    private void initializeFacebookLogin() {
-        // Setup facebook login button
-        mFacebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
-        mFacebookLoginButton.setReadPermissions("email", "public_profile");
-
-        // Callback registration
-        mCallbackManager = CallbackManager.Factory.create();
-        mFacebookLoginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                LOGD(TAG, "facebook:onSuccess:" + loginResult);
-                handleFacebookAccessToken(loginResult.getAccessToken());
-            }
-
-            @Override
-            public void onCancel() {
-                LOGD(TAG, "facebook:onCancel");
-            }
-
-            @Override
-            public void onError(FacebookException exception) {
-                LOGD(TAG, "facebook:onError", exception);
-            }
-        });
     }
 
     private void initializeGoogleSignIn() {
@@ -222,7 +192,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        mCallbackManager.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == GOOGLE_SIGN_IN) {
@@ -364,28 +333,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     public void onConnectionFailed(ConnectionResult connectionResult) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in onConnectionFailed.
         LOGI(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
-    }
-
-    private void handleFacebookAccessToken(AccessToken token) {
-        LOGD(TAG, "handleFacebookAccessToken:" + token);
-
-        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mFirebaseAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        LOGD(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
-
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            LOGW(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {

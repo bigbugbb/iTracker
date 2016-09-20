@@ -50,8 +50,6 @@
         android:theme="@style/AppTheme"
         tools:replace="allowBackup, label, icon">
 
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -66,22 +64,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
-        <activity
-            android:name="com.facebook.FacebookActivity"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:label="@string/app_name" />
-        <activity
-            android:name="com.facebook.CustomTabActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/fb_login_protocol_scheme" />
-            </intent-filter>
-        </activity>
 
         <activity
             android:name="com.itracker.android.ui.activity.TrackerActivity"
@@ -240,22 +222,7 @@
             </intent-filter>
         </service>
 
-        <!-- GCM related service -->
-        <service
-            android:name="com.itracker.android.service.fcm.GcmListenerService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </service>
-        <service
-            android:name="com.itracker.android.service.fcm.InstanceIDListenerService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID" />
-            </intent-filter>
-        </service>
-
+        <!-- FCM related service -->
         <service
             android:name=".service.fcm.AppMessagingService">
             <intent-filter>
@@ -280,41 +247,9 @@
             <intent-filter>
                 <action android:name="com.itracker.android.intent.action.START_SENSOR_MONITOR" />
                 <action android:name="com.itracker.android.intent.action.BOOTSTRAP_MONITOR_ALARM" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.ACTION_USER_PRESENT" />
-                <action android:name="android.intent.action.ACTION_SCREEN_OFF" />
-                <action android:name="android.intent.action.ACTION_SCREEN_ON" />
-                <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
-                <action android:name="android.intent.action.ACTION_BATTERY_CHANGED" />
-                <action android:name="android.intent.action.AIRPLANE_MODE" />
-                <action android:name="android.intent.action.ACTION_ANSWER" />
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <action android:name="android.intent.action.CALL_BUTTON" />
-                <action android:name="android.intent.action.CAMERA_BUTTON" />
-                <action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
-                <action android:name="android.intent.action.DOCK_STATE" />
-                <action android:name="android.intent.action.HEADSET_PLUG" />
-                <action android:name="android.intent.action.MEDIA_BAD_REMOVAL" />
-                <action android:name="android.intent.action.MEDIA_REMOVED" />
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-                <action android:name="android.intent.action.POWER_CONNECTED" />
-                <action android:name="android.intent.action.POWER_DISCONNECTED" />
-                <action android:name="android.intent.action.SHUTDOWN" />
-                <action android:name="android.intent.action.DATE_CHANGED" />
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-                <action android:name="android.intent.action.LOCALE_CHANGED" />
-
-                <category android:name="android.intent.category.HOME" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
-
-                <data android:scheme="package" />
-            </intent-filter>
-            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" /> />
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
 

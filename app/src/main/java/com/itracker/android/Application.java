@@ -112,9 +112,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     private Future<Void> mLoadFuture;
 
-    private AccessTokenTracker mAccessTokenTracker;
-    private ProfileTracker mProfileTracker;
-
     public Application() {
         sInstance = this;
         mServiceStarted = false;
@@ -159,43 +156,9 @@ public class Application extends android.support.multidex.MultiDexApplication {
         return checkCallingOrSelfPermission("android.permission.READ_CONTACTS") == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void integrateFacebook() {
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(this);
-
-        mAccessTokenTracker = new AccessTokenTracker() {
-            @Override
-            protected void onCurrentAccessTokenChanged(
-                    AccessToken oldAccessToken,
-                    AccessToken currentAccessToken) {
-                if (currentAccessToken != null) {
-                    LOGD(TAG, currentAccessToken.toString());
-                }
-            }
-        };
-
-        mProfileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                if (currentProfile != null) {
-                    LOGD(TAG, "Facebook profile:");
-                    LOGD(TAG, currentProfile.getId());
-                    LOGD(TAG, currentProfile.getFirstName());
-                    LOGD(TAG, currentProfile.getMiddleName());
-                    LOGD(TAG, currentProfile.getLastName());
-                    LOGD(TAG, currentProfile.getName());
-                    LOGD(TAG, currentProfile.getLinkUri().toString());
-                    LOGD(TAG, currentProfile.getProfilePictureUri(320, 320).toString());
-                }
-            }
-        };
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
-
-        integrateFacebook();
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
@@ -350,8 +313,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     public void requestToClose() {
         mClosing = true;
-        mAccessTokenTracker.stopTracking();
-        mProfileTracker.stopTracking();
         stopService(AppPersistentService.createIntent(this));
     }
 

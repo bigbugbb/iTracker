@@ -76,11 +76,6 @@
     <string name="auth_code_fmt">Auth Code: %s</string>
     <string name="id_token_fmt">ID Token: %s</string>
 
-    <!-- Facebook Login -->
-    <string name="facebook_app_id">1766261953629810</string>
-    <!-- if your App ID is 1234567, you should use fb1234567 -->
-    <string name="fb_login_protocol_scheme">fb1766261953629810</string>
-
     <!-- Google Play Services error for Toast -->
     <string name="play_services_error_fmt">Google Play Services Error: %i</string>
 
