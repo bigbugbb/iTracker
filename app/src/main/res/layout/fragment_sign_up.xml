@@ -93,7 +93,7 @@
         android:textColor="@android:color/white"
         android:alpha="0.9"
         android:background="@color/colorAccent"
-        android:elevation="4dp"/>
+        android:elevation="2dp"/>
 
     <Button
         style="?attr/borderlessButtonStyle"

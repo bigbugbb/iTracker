@@ -59,7 +59,7 @@
         android:textColor="@android:color/white"
         android:background="@color/colorAccent"
         android:alpha="0.9"
-        android:elevation="4dp"
+        android:elevation="2dp"
         android:layout_below="@+id/input_password" />
 
     <Button
