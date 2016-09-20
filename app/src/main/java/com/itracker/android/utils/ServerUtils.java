@@ -18,8 +18,6 @@ package com.itracker.android.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 
@@ -60,7 +58,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
 public final class ServerUtils {
     private static final String TAG = makeLogTag(ServerUtils.class);
 
-    private static final String PREFERENCES = "com.itracker.android.service.gcm";
+    private static final String PREFERENCES = "com.itracker.android.service.fcm";
     private static final String PROPERTY_REGISTERED_TS = "registered_ts";
     private static final String PROPERTY_SENDER_ID = "sender_id";
     private static final String PROPERTY_PUSH_TOKEN = "push_token";
@@ -70,34 +68,16 @@ public final class ServerUtils {
     private static final int MAX_ATTEMPTS = 5;
     private static final int BACKOFF_SECONDS = 2;
 
-    private static boolean checkGcmEnabled() {
-        if (TextUtils.isEmpty(Config.GCM_SERVER_URL)) {
-            LOGD(TAG, "GCM feature disabled (no URL configured)");
-            return false;
-        } else if (TextUtils.isEmpty(Config.GCM_API_KEY)) {
-            LOGD(TAG, "GCM feature disabled (no API key configured)");
-            return false;
-        } else if (TextUtils.isEmpty(Config.GCM_SENDER_ID)) {
-            LOGD(TAG, "GCM feature disabled (no sender ID configured)");
-            return false;
-        }
-        return true;
-    }
-
     /**
      * Register this account/device pair within the server.
      *
      * @param context   Current context
-     * @param pushToken The GCM registration ID for this device
+     * @param pushToken The FCM registration ID for this device
      * @return whether the registration succeeded or not.
      */
     public static boolean register(final Context context, final String pushToken) {
-        if (!checkGcmEnabled()) {
-            return false;
-        }
-
         LOGI(TAG, "registering device (push_token = " + pushToken + ")");
-        String registerUrl = Config.GCM_SERVER_URL + "/register";
+        String registerUrl = Config.FCM_SERVER_URL + "/register";
 
         for (int i = 1; i <= MAX_ATTEMPTS; ++i) {
             try {
@@ -156,18 +136,14 @@ public final class ServerUtils {
      * Unregister this account/device pair within the server.
      *
      * @param context Current context
-     * @param gcmId   The GCM registration ID for this device
+     * @param registrationId   The GCM registration ID for this device
      */
-    static void unregister(final Context context, final String gcmId) {
-        if (!checkGcmEnabled()) {
-            return;
-        }
-
-        LOGI(TAG, "unregistering device (gcmId = " + gcmId + ")");
-        String serverUrl = Config.GCM_SERVER_URL + "/unregister";
+    static void unregister(final Context context, final String registrationId) {
+        LOGI(TAG, "unregistering device (registrationId = " + registrationId + ")");
+        String serverUrl = Config.FCM_SERVER_URL + "/unregister";
         String authToken = AccountUtils.getAuthToken(context);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("reg_id", gcmId);
+        params.put("reg_id", registrationId);
         try {
             post(serverUrl, authToken, params);
         } catch (IOException e) {
@@ -184,51 +160,16 @@ public final class ServerUtils {
     }
 
     /**
-     * @return Application's version code from the {@code PackageManager}.
-     */
-    private static int getAppVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
-        }
-    }
-
-    /**
-     * Request user data sync.
-     *
-     * @param context Current context
-     */
-//    public static void notifyUserDataChanged(final Context context) {
-//        if (!checkGcmEnabled()) {
-//            return;
-//        }
-//
-//        LOGI(TAG, "Notifying GCM that user data changed");
-//        String serverUrl = Config.GCM_SERVER_URL + "/send/self/sync_user";
-//        try {
-//            String gcmKey = AccountUtils.getGcmKey(context, AccountUtils.getActiveAccountName(context));
-//            if (gcmKey != null) {
-//                post(serverUrl, new HashMap<String, String>(), gcmKey);
-//            }
-//        } catch (IOException e) {
-//            LOGE(TAG, "Unable to notify GCM about user data change", e);
-//        }
-//    }
-
-    /**
      * Sets whether the device was successfully registered in the server side.
      *
      * @param context   Current context
      * @param flag      True if registration was successful, false otherwise
      * @param senderId  The push sender id, which equals the project id from google dev console
-     * @param pushToken The push registration token from google gcm api
+     * @param pushToken The push registration token from google fcm api
      */
     private static void setRegisteredOnServer(Context context, boolean flag, String senderId, String pushToken) {
         final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        LOGD(TAG, "Setting registered on server status as: " + flag + ", gcmKey=" + AccountUtils.sanitizeGcmKey(senderId));
+        LOGD(TAG, "Setting registered on server status as: " + flag + ", fcmKey=" + AccountUtils.sanitizeFcmKey(senderId));
         Editor editor = prefs.edit();
         if (flag) {
             editor.putLong(PROPERTY_REGISTERED_TS, new Date().getTime());
@@ -262,12 +203,12 @@ public final class ServerUtils {
             final String registeredPushToken = prefs.getString(PROPERTY_PUSH_TOKEN, "");
             if (registeredPushToken.equals(pushToken)) {
                 LOGD(TAG, "GCM registration is valid and for the correct gcm key: "
-                        + AccountUtils.sanitizeGcmKey(registeredPushToken));
+                        + AccountUtils.sanitizeFcmKey(registeredPushToken));
                 return true;
             }
             LOGD(TAG, "GCM registration is for DIFFERENT gcm key "
-                    + AccountUtils.sanitizeGcmKey(registeredPushToken) + ". We were expecting "
-                    + AccountUtils.sanitizeGcmKey(pushToken));
+                    + AccountUtils.sanitizeFcmKey(registeredPushToken) + ". We were expecting "
+                    + AccountUtils.sanitizeFcmKey(pushToken));
             return false;
         } else {
             LOGV(TAG, "GCM registration expired. regTS=" + regTS + " yesterdayTS=" + yesterdayTS);
@@ -275,25 +216,25 @@ public final class ServerUtils {
         }
     }
 
-    public static String getGcmId(Context context) {
+    public static String getFcmId(Context context) {
         final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         return prefs.getString(PROPERTY_PUSH_TOKEN, null);
     }
 
     /**
-     *  Unregister the current GCM ID when we sign-out
+     *  Unregister the current FCM ID when we sign-out
      *
      * @param context Current context
      */
     public static void onSignOut(Context context) {
-        String gcmId = getGcmId(context);
-        if (gcmId != null) {
-            unregister(context, gcmId);
+        String fcmId = getFcmId(context);
+        if (fcmId != null) {
+            unregister(context, fcmId);
         }
     }
 
     public static void ping(Context context) {
-        String pushSendUrl = Config.GCM_SERVER_URL;
+        String pushSendUrl = Config.FCM_SERVER_URL;
         try {
             Map<String, String> params = new HashMap<>();
             params.put(PROPERTY_MESSAGE, "pong");
@@ -330,6 +271,7 @@ public final class ServerUtils {
             }
         }
         String body = bodyBuilder.toString();
+
         LOGV(TAG, "Posting '" + body + "' to " + url);
         HttpURLConnection conn = null;
         try {
@@ -342,10 +284,12 @@ public final class ServerUtils {
             conn.setRequestProperty("Content-Length", Integer.toString(body.length()));
             conn.setRequestProperty("Accept", "application/vnd.itracker.v1");
             conn.setRequestProperty("Authorization", authToken);
+
             // post the request
             OutputStream out = conn.getOutputStream();
             out.write(body.getBytes());
             out.close();
+
             // handle the response
             int status = conn.getResponseCode();
             if (status / 100 != 2) {

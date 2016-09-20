@@ -65,7 +65,7 @@ public class HTTPUserDataSyncHelper extends AbstractUserDataSyncHelper {
                 toRemove.add(s);
                 remoteGcmKey = s.substring(GCM_KEY_PREFIX.length());
 //                LOGD(TAG, "Remote data came with GCM key: "
-//                        + AccountUtils.sanitizeGcmKey(remoteGcmKey));
+//                        + AccountUtils.sanitizeFcmKey(remoteGcmKey));
             }
         }
         for (String s : toRemove) {
@@ -91,9 +91,9 @@ public class HTTPUserDataSyncHelper extends AbstractUserDataSyncHelper {
 
             String remoteGcmKey = extractGcmKey(remote);
             String localGcmKey = "";//AccountUtils.getGcmKey(mContext, mAccountName);
-//            LOGD(TAG, "Local GCM key: " + AccountUtils.sanitizeGcmKey(localGcmKey));
+//            LOGD(TAG, "Local GCM key: " + AccountUtils.sanitizeFcmKey(localGcmKey));
 //            LOGD(TAG, "Remote GCM key: " + (remoteGcmKey == null ? "(null)"
-//                    : AccountUtils.sanitizeGcmKey(remoteGcmKey)));
+//                    : AccountUtils.sanitizeFcmKey(remoteGcmKey)));
 
             // if the remote data came with a GCM key, it should override ours
             if (!TextUtils.isEmpty(remoteGcmKey)) {
@@ -127,7 +127,7 @@ public class HTTPUserDataSyncHelper extends AbstractUserDataSyncHelper {
                 merged.add(GCM_KEY_PREFIX + localGcmKey);
                 // save to remote
 //                LOGD(TAG, "Sending user data to Drive, gcm key "
-//                        + AccountUtils.sanitizeGcmKey(localGcmKey));
+//                        + AccountUtils.sanitizeFcmKey(localGcmKey));
 //                new UpdateFileDriveTask(getDriveService()).execute(
 //                        UserDataHelper.toSessionsString(merged));
             } else {

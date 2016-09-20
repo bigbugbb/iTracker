@@ -28,10 +28,8 @@ public class Config {
     public static final String MANIFEST_FORMAT = "itracker-api-json-v1";
     public static final String API_HEADER_ACCEPT = "application/vnd.itracker.v1";
 
-    // GCM config
-    public static final String GCM_SERVER_URL = MANIFEST_URL + "/pushes";
-    public static final String GCM_SENDER_ID = "476535703027";
-    public static final String GCM_API_KEY = "AIzaSyCybHo5-n3EpJb2RIVTVzCC2TxhTMRuVcY";
+    // FCM config
+    public static final String FCM_SERVER_URL = MANIFEST_URL + "/pushes";
 
     // XMPP config
     public static final String XMPP_SERVER_HOST = "ec2-54-165-238-247.compute-1.amazonaws.com";

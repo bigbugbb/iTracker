@@ -177,7 +177,7 @@ public class AccountUtils {
     public static void setGcmKey(final Context context, final String accountName, final String gcmKey) {
         SharedPreferences sp = getSharedPreferences(context);
         sp.edit().putString(makeAccountSpecificPrefKey(accountName, PREFIX_PREF_GCM_KEY), gcmKey).commit();
-        LOGD(TAG, "GCM key of account " + accountName + " set to: " + sanitizeGcmKey(gcmKey));
+        LOGD(TAG, "GCM key of account " + accountName + " set to: " + sanitizeFcmKey(gcmKey));
     }
 
     public static String getGcmKey(final Context context, final String accountName) {
@@ -187,14 +187,14 @@ public class AccountUtils {
         // if there is no current GCM key, generate a new random one
         if (TextUtils.isEmpty(gcmKey)) {
             gcmKey = UUID.randomUUID().toString();
-            LOGD(TAG, "No GCM key on account " + accountName + ". Generating random one: " + sanitizeGcmKey(gcmKey));
+            LOGD(TAG, "No GCM key on account " + accountName + ". Generating random one: " + sanitizeFcmKey(gcmKey));
             setGcmKey(context, accountName, gcmKey);
         }
 
         return gcmKey;
     }
 
-    public static String sanitizeGcmKey(String key) {
+    public static String sanitizeFcmKey(String key) {
         if (key == null) {
             return "(null)";
         } else if (key.length() > 8) {

@@ -7,13 +7,6 @@ import android.content.res.TypedArray;
 import android.os.Handler;
 import android.support.multidex.MultiDex;
 
-import com.facebook.AccessToken;
-import com.facebook.AccessTokenTracker;
-import com.facebook.FacebookSdk;
-import com.facebook.Profile;
-import com.facebook.ProfileTracker;
-import com.facebook.appevents.AppEventsLogger;
-import com.itracker.android.R;
 import com.itracker.android.data.BaseManagerInterface;
 import com.itracker.android.data.BaseUIListener;
 import com.itracker.android.data.LogManager;
