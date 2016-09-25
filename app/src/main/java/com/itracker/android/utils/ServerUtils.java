@@ -101,7 +101,7 @@ public final class ServerUtils {
                     }
                 };
                 request.setRetryPolicy(new DefaultRetryPolicy(10000, 2, 2));
-                RequestUtils.getRequestQueue(context).add(request);
+                RequestUtils.addToRequestQueue(request);
 
                 String response = future.get(10, TimeUnit.SECONDS);
                 if (!TextUtils.isEmpty(response)) {

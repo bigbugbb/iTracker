@@ -88,8 +88,6 @@ public class SyncHelper {
     private AmazonS3Client mS3Client;
     private TransferUtility mTransferUtility;
 
-    private RequestQueue mRequestQueue;
-
     private String mAuthToken;
     private String mAccountName;
 
@@ -109,7 +107,6 @@ public class SyncHelper {
         mRemoteDataFetcher = new RemoteTrackerDataFetcher(mContext);
         mDataChanged = new AtomicBoolean(false);
         mTrackDataUploadLatch = new CountDownLatch(3);
-        mRequestQueue = RequestUtils.getRequestQueue(mContext);
     }
 
     public static void requestManualSync(Account chosenAccount) {
@@ -345,7 +342,7 @@ public class SyncHelper {
             }
         };
         request.setRetryPolicy(new DefaultRetryPolicy(20000, 2, 2));
-        mRequestQueue.add(request);
+        RequestUtils.addToRequestQueue(request);
 
         try {
             String response = future.get(30, TimeUnit.SECONDS);

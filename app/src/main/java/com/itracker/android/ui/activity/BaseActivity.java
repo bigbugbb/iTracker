@@ -60,8 +60,6 @@ public class BaseActivity extends ManagedActivity implements
 
     protected Menu mOptionsMenu;
 
-    protected RequestQueue mRequestQueue;
-
     // handle to our sync observer (that notifies us about changes in our sync state)
     private Object mSyncObserverHandle;
 
@@ -78,8 +76,6 @@ public class BaseActivity extends ManagedActivity implements
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         sp.registerOnSharedPreferenceChangeListener(this);
-
-        mRequestQueue = RequestUtils.getRequestQueue(context);
 
         // Verifies the proper version of Google Play Services exists on the device.
         PlayServicesUtils.checkGooglePlaySevices(this);

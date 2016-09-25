@@ -24,6 +24,8 @@ public class Config {
     public static final String USERS_URL = URL_BASE + "/api/users";
     public static final String SESSIONS_URL = URL_BASE + "/api/sessions";
     public static final String BACKUPS_URL = URL_BASE + "/api/backups";
+    public static final String FIREBASE_TOKENS_URL = URL_BASE + "/api/firebase_tokens";
+    public static final String GOOGLE_SESSIONS_URL = URL_BASE + "/api/google_sessions";
 
     public static final String MANIFEST_FORMAT = "itracker-api-json-v1";
     public static final String API_HEADER_ACCEPT = "application/vnd.itracker.v1";

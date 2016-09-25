@@ -9,8 +9,6 @@ import com.itracker.android.data.model.DataManifest;
 import com.itracker.android.utils.DataFileUtils;
 import com.itracker.android.utils.HashUtils;
 
-import org.apache.http.HttpResponse;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -355,16 +353,6 @@ public class RemoteTrackerDataFetcher {
 
     public long getTotalBytesReadFromCache() {
         return mBytesReadFromCache;
-    }
-
-    private String getLastModified(HttpResponse resp) {
-//        if (!resp.getHeaders().containsKey("Last-Modified")) {
-//            return "";
-//        }
-//
-//        List<String> s = resp.getHeaders().get("Last-Modified");
-//        return s.isEmpty() ? "" : s.get(0);
-        return "";
     }
 
     /**

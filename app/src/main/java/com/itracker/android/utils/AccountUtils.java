@@ -44,6 +44,9 @@ public class AccountUtils {
     /** current active account */
     private static final String PREF_ACTIVE_ACCOUNT = "_chosen_account";
 
+    private static final String PREF_ACCOUNT_TYPE = "account_type";
+    private static final String PREF_AUTHTOKEN_TYPE = "authtoken_type";
+
     /** these names are are prefixes; the account is appended to them */
     private static final String PREFIX_PREF_AUTH_TOKEN = "auth_token_";
     private static final String PREFIX_PREF_GCM_KEY = "gcm_key_";
@@ -85,6 +88,30 @@ public class AccountUtils {
         LOGD(TAG, "Set active account to: " + accountName);
         SharedPreferences sp = getSharedPreferences(context);
         sp.edit().putString(PREF_ACTIVE_ACCOUNT, accountName).commit();
+        return true;
+    }
+
+    public static String getAccountType(final Context context) {
+        SharedPreferences sp = getSharedPreferences(context);
+        return sp.getString(PREF_ACCOUNT_TYPE, "com.itracker.android");
+    }
+
+    public static boolean setAccountType(final Context context, final String accountType) {
+        LOGD(TAG, "Set account type to: " + accountType);
+        SharedPreferences sp = getSharedPreferences(context);
+        sp.edit().putString(PREF_ACCOUNT_TYPE, accountType).commit();
+        return true;
+    }
+
+    public static String getAuthTokenType(final Context context) {
+        SharedPreferences sp = getSharedPreferences(context);
+        return sp.getString(PREF_AUTHTOKEN_TYPE, "com.itracker.android");
+    }
+
+    public static boolean setAuthTokenType(final Context context, final String authTokenType) {
+        LOGD(TAG, "Set auth token type to: " + authTokenType);
+        SharedPreferences sp = getSharedPreferences(context);
+        sp.edit().putString(PREF_AUTHTOKEN_TYPE, authTokenType).commit();
         return true;
     }
 
@@ -277,10 +304,6 @@ public class AccountUtils {
             }
 
             User user = new Gson().fromJson(responseString, User.class);
-
-            // Create a openfire user
-
-
             return user;
         } catch (IOException e) {
             e.printStackTrace();

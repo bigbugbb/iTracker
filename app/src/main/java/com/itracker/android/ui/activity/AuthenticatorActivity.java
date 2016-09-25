@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Base64;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -15,12 +17,18 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -34,12 +42,35 @@ import com.itracker.android.Config;
 import com.itracker.android.R;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.account.AccountType;
+import com.itracker.android.data.model.User;
 import com.itracker.android.ui.fragment.SignInFragment;
 import com.itracker.android.ui.fragment.SignUpFragment;
 import com.itracker.android.ui.listener.OnAuthenticateResult;
 import com.itracker.android.utils.AccountUtils;
+import com.itracker.android.utils.PasswordAuthentication;
+import com.itracker.android.utils.RequestUtils;
+
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.joda.time.DateTime;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.crypto.SecretKey;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.crypto.MacProvider;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
+import static com.itracker.android.utils.LogUtils.LOGE;
 import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
@@ -49,7 +80,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         SignInFragment.OnAccountSignInListener,
         SignUpFragment.OnAccountSignUpListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        View.OnClickListener {
 
     private static final String TAG = makeLogTag(AuthenticatorActivity.class);
 
@@ -60,6 +92,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     public final static String USERNAME = "username";
     public final static String CREATE_ACCOUNT = "create_account";
+
+    private final static String UID = "uid";
+    private final static String FIREBASE_CUSTOM_TOKEN = "firebase_custom_token";
 
     private ViewAnimator mAnimator;
     private AccountManager mAccountManager;
@@ -123,13 +158,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private void initializeGoogleSignIn() {
         // Setup google sign in button
         mGoogleSignInButton = (Button) findViewById(R.id.google_sign_in_button);
-        mGoogleSignInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-                startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
-            }
-        });
+        mGoogleSignInButton.setOnClickListener(this);
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -179,26 +208,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         super.onStop();
         if (mAuthListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthListener);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == GOOGLE_SIGN_IN) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            if (result.isSuccess()) {
-                // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = result.getSignInAccount();
-                firebaseAuthWithGoogle(account);
-
-                mAuthenticateResult[0].onAuthenticateSuccess();
-            } else {
-                // Google Sign In failed, update UI appropriately
-                mAuthenticateResult[0].onAuthenticateFailed();
-            }
         }
     }
 
@@ -257,7 +266,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         // Update preference with auth token and account name
         AccountUtils.setActiveAccount(getApplicationContext(), accountName);
 
-        addAccount(accountName, accountPassword, createAccount);
+        String secret = getString(R.string.ejabberd_account_secret);
+        PasswordAuthentication authentication = new PasswordAuthentication();
+        String xmppAccountPassword = authentication.hash((accountName + secret).toCharArray());
+        addAccount(accountName, xmppAccountPassword, createAccount);
 
         if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
             LOGD(TAG, "finish login > addAccountExplicitly");
@@ -272,25 +284,49 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             mAccountManager.setPassword(account, accountPassword);
         }
 
-        mFirebaseAuth.createUserWithEmailAndPassword(accountName, accountPassword)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        LOGD(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+        // Sign in firebase with the custom token
+        JSONObject params = createFirebaseTokenRequestParams(accountName);
+        int method = com.android.volley.Request.Method.POST;
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (method, Config.FIREBASE_TOKENS_URL, params, new Response.Listener<JSONObject>() {
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            Toast.makeText(AuthenticatorActivity.this, R.string.auth_failed,
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            setAccountAuthenticatorResult(intent.getExtras());
-                            setResult(RESULT_OK, intent);
-                            finish();
-                        }
-                    }
-                });
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    final String customToken = response.getString(FIREBASE_CUSTOM_TOKEN);
+                    mFirebaseAuth.signInWithCustomToken(customToken)
+                            .addOnCompleteListener(AuthenticatorActivity.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    LOGD(TAG, "signInWithCustomToken:onComplete:" + task.isSuccessful());
+
+                                    // If sign in fails, display a message to the user. If sign in succeeds
+                                    // the auth state listener will be notified and logic to handle the
+                                    // signed in user can be handled in the listener.
+                                    if (!task.isSuccessful()) {
+                                        LOGW(TAG, "signInWithCustomToken", task.getException());
+                                        Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
+                                                Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        setAccountAuthenticatorResult(intent.getExtras());
+                                        setResult(RESULT_OK, intent);
+                                        finish();
+                                    }
+                                }
+                            });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                LOGD(TAG, "Failed to get firebase custom token.");
+            }
+        });
+
+        RequestUtils.addToRequestQueue(jsObjRequest);
     }
 
     public void addAccount(String accountName, String password, boolean createAccount) {
@@ -308,6 +344,26 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         } catch (NetworkException e) {
             Application.getInstance().onError(e);
         }
+    }
+
+    private JSONObject createFirebaseTokenRequestParams(String uid) {
+        JSONObject params = new JSONObject();
+        try {
+            params.put("uid", uid);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return params;
+    }
+
+    private JSONObject createGoogleSessionRequestParams(String jwt) {
+        JSONObject params = new JSONObject();
+        try {
+            params.put("jwt", jwt);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return params;
     }
 
     private String jidFromAccountName(String accountName) {
@@ -330,13 +386,36 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         LOGI(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        LOGD(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-        // [START_EXCLUDE silent]
-//        showProgressDialog();
-        // [END_EXCLUDE]
+    @Override
+    public void onClick(View v) {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
+    }
 
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == GOOGLE_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+
+//                mAuthenticateResult[0].onAuthenticateSuccess();
+            } else {
+                // Google Sign In failed, update UI appropriately
+//                mAuthenticateResult[0].onAuthenticateFailed();
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(final GoogleSignInAccount account) {
+        LOGD(TAG, "firebaseAuthWithGoogle:" + account.getId());
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         mFirebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -350,11 +429,92 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                             LOGW(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+                        } else {
+                            createSessionFromGoogleAccount(account);
                         }
-                        // [START_EXCLUDE]
-//                        hideProgressDialog();
-                        // [END_EXCLUDE]
                     }
                 });
+    }
+
+    private void createSessionFromGoogleAccount(final GoogleSignInAccount account) {
+        // Build the jwt with the google sign in account
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("email", account.getEmail());
+            payload.put("display_name", account.getDisplayName());
+            payload.put("family_name", account.getFamilyName());
+            payload.put("given_name", account.getGivenName());
+            payload.put("photo_url", account.getPhotoUrl());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String secretKey = getString(R.string.google_session_jwt_secret);
+        String base64EncodedSecretKey = new String(Base64.encode(secretKey.getBytes(), Base64.NO_PADDING));
+        final String compactJwt = Jwts.builder()
+                .setPayload(payload.toString())
+                .signWith(SignatureAlgorithm.HS256, base64EncodedSecretKey)
+                .compact();
+
+        // Create a google sign in session with the generated jwt.
+        // If the user identified by the email doesn't exist, the api will create the user.
+        JSONObject params = createGoogleSessionRequestParams(compactJwt);
+        int method = com.android.volley.Request.Method.POST;
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (method, Config.GOOGLE_SESSIONS_URL, params, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            handleGoogleSignInSessionResponse(response);
+                        } catch (JSONException e) {
+                            LOGD(TAG, "Failed to parse json object: ", e);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        LOGD(TAG, "Failed to create the google sign in session.");
+                    }
+                });
+
+        RequestUtils.addToRequestQueue(jsObjRequest);
+    }
+
+    private void handleGoogleSignInSessionResponse(JSONObject response) throws JSONException {
+        // The api will response with a new auth token and it should be stored locally until expired.
+        // If the user is newly created, the app have to register an ejabberd account as well.
+        String authToken = response.getString("auth_token");
+        String accountName = response.getString("email");
+        boolean createAccount = response.getBoolean("new_account");
+
+        // Update preference with auth token and account name
+        AccountUtils.setActiveAccount(getApplicationContext(), accountName);
+
+        String secret = getString(R.string.ejabberd_account_secret);
+        PasswordAuthentication authentication = new PasswordAuthentication();
+        String accountPassword = authentication.hash((accountName + secret).toCharArray());
+        addAccount(accountName, accountPassword, createAccount);
+
+        final String accountType = AccountUtils.getAccountType(Application.getInstance());
+        final Account account = new Account(accountName, accountType);
+        if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
+            // Creating the account on the device and setting the auth token we got
+            // (Not setting the auth token will cause another call to the server to authenticate the user)
+            final String authTokenType = AccountUtils.getAuthTokenType(Application.getInstance());
+            mAccountManager.addAccountExplicitly(account, null, null);
+            mAccountManager.setAuthToken(account, authTokenType, authToken);
+        } else {
+            mAccountManager.setPassword(account, null);
+        }
+
+        final Intent intent = new Intent();
+        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, accountName);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, accountType);
+        intent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+        finish();
     }
 }

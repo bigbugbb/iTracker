@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 import com.itracker.android.ui.activity.AuthenticatorActivity;
@@ -102,6 +103,11 @@ public class SignInFragment extends Fragment implements OnAuthenticateResult {
                 }
             }
         });
+
+        final String accountType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_ACCOUNT_TYPE);
+        final String authTokenType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_AUTHTOKEN_TYPE);
+        AccountUtils.setAccountType(Application.getInstance(), accountType);
+        AccountUtils.setAuthTokenType(Application.getInstance(), authTokenType);
     }
 
     @Override
@@ -157,7 +163,6 @@ public class SignInFragment extends Fragment implements OnAuthenticateResult {
                 }
 
                 final Intent intent = new Intent();
-                intent.putExtra(AuthenticatorActivity.CREATE_ACCOUNT, false);
                 intent.putExtras(data);
                 return intent;
             }
