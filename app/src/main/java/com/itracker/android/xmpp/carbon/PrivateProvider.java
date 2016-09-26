@@ -1,8 +1,8 @@
 package com.itracker.android.xmpp.carbon;
 
-import org.xmlpull.v1.XmlPullParser;
-
 import com.itracker.android.xmpp.AbstractExtensionProvider;
+
+import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Packet extension for XEP-0280: Message Carbons. This class implements

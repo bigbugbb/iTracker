@@ -14,12 +14,12 @@
  */
 package com.itracker.android.data.extension.archive;
 
+import com.itracker.android.xmpp.archive.CollectionHeader;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import com.itracker.android.xmpp.archive.CollectionHeader;
 
 /**
  * Store received sequence of the chat collection headers.

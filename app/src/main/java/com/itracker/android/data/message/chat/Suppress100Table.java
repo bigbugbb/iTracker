@@ -3,6 +3,7 @@ package com.itracker.android.data.message.chat;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+
 import com.itracker.android.data.DatabaseManager;
 
 /**

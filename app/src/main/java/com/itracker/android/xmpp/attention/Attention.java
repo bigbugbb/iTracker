@@ -14,11 +14,11 @@
  */
 package com.itracker.android.xmpp.attention;
 
-import java.io.IOException;
+import com.itracker.android.xmpp.PacketExtension;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.PacketExtension;
+import java.io.IOException;
 
 /**
  * Packet extension for XEP-0224: Attention.

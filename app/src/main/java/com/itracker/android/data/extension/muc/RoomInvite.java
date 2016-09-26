@@ -22,8 +22,9 @@ import com.itracker.android.data.account.AccountManager;
 import com.itracker.android.data.entity.BaseEntity;
 import com.itracker.android.data.notification.EntityNotificationItem;
 import com.itracker.android.data.roster.RosterManager;
-//import com.itracker.android.ui.activity.ContactList;
 import com.itracker.android.xmpp.address.Jid;
+
+//import com.itracker.android.ui.activity.ContactList;
 
 /**
  * Invite to join the room.

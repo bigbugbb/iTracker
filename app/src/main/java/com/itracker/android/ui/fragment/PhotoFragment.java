@@ -37,11 +37,11 @@ import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.Photo;
 import com.itracker.android.ui.activity.PhotoDetailActivity;
-import com.itracker.android.ui.widget.TimeRangeController;
 import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.ui.widget.CollectionView;
 import com.itracker.android.ui.widget.CollectionViewCallbacks;
 import com.itracker.android.ui.widget.PhotoCoordinatorLayout;
+import com.itracker.android.ui.widget.TimeRangeController;
 import com.itracker.android.utils.ThrottledContentObserver;
 
 import org.joda.time.DateTime;

@@ -44,10 +44,6 @@ import com.itracker.android.data.message.MessageManager;
 import com.itracker.android.data.message.chat.ChatManager;
 import com.itracker.android.data.message.phrase.PhraseManager;
 import com.itracker.android.data.roster.RosterManager;
-//import com.itracker.android.ui.activity.ClearNotifications;
-//import com.itracker.android.ui.activity.ContactList;
-//import com.itracker.android.ui.activity.ReconnectionActivity;
-//import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -55,6 +51,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+//import com.itracker.android.ui.activity.ClearNotifications;
+//import com.itracker.android.ui.activity.ContactList;
+//import com.itracker.android.ui.activity.ReconnectionActivity;
+//import com.itracker.android.ui.color.ColorManager;
 
 /**
  * Manage notifications about message, subscription and authentication.

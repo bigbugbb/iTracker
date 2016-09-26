@@ -14,9 +14,9 @@
  */
 package com.itracker.android.xmpp.attention;
 
-import org.xmlpull.v1.XmlPullParser;
-
 import com.itracker.android.xmpp.AbstractExtensionProvider;
+
+import org.xmlpull.v1.XmlPullParser;
 
 public class AttentionProvider extends AbstractExtensionProvider<Attention> {
 

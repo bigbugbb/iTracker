@@ -1,11 +1,11 @@
 package com.itracker.android.data.extension.avatar;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import android.content.Context;
 
 import com.itracker.android.Application;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Helper class to create shortcuts under Android >= 3.

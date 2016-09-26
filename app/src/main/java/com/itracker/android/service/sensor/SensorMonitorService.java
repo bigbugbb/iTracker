@@ -36,12 +36,12 @@ import com.google.android.gms.location.LocationServices;
 import com.itracker.android.Application;
 import com.itracker.android.Config;
 import com.itracker.android.R;
-import com.itracker.android.service.sensor.processor.SensorDataProcessor;
-import com.itracker.android.service.sensor.processor.SensorDataProcessorFactory;
 import com.itracker.android.provider.TrackerContract;
 import com.itracker.android.provider.TrackerContract.Activities;
 import com.itracker.android.provider.TrackerContract.Locations;
 import com.itracker.android.receiver.SensorMonitorReceiver;
+import com.itracker.android.service.sensor.processor.SensorDataProcessor;
+import com.itracker.android.service.sensor.processor.SensorDataProcessorFactory;
 import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.utils.PlayServicesUtils;
 

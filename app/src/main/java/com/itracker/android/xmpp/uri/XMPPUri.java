@@ -14,14 +14,14 @@
  */
 package com.itracker.android.xmpp.uri;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.regex.Pattern;
-
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.util.Linkify;
 import android.util.Patterns;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /**
  * Helper class to parse xmpp uri.

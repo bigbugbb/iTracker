@@ -1,10 +1,10 @@
 package com.itracker.android.xmpp.carbon;
 
-import java.io.IOException;
+import com.itracker.android.xmpp.PacketExtension;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.PacketExtension;
+import java.io.IOException;
 
 /**
  * Packet extension for XEP-0280: Message Carbons. This class implements

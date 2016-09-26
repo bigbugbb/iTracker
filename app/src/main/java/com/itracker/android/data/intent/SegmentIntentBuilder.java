@@ -14,13 +14,13 @@
  */
 package com.itracker.android.data.intent;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class SegmentIntentBuilder<T extends SegmentIntentBuilder<?>> extends
         BaseIntentBuilder<T> {

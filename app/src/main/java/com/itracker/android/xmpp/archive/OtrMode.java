@@ -14,12 +14,12 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import java.util.Collection;
-import java.util.NoSuchElementException;
-
 import com.itracker.android.xmpp.ssn.DisclosureValue;
 import com.itracker.android.xmpp.ssn.LoggingValue;
 import com.itracker.android.xmpp.ssn.SecurityValue;
+
+import java.util.Collection;
+import java.util.NoSuchElementException;
 
 /**
  * User's default setting for OTR Mode.

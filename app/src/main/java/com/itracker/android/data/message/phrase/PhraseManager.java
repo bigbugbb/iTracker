@@ -14,10 +14,6 @@
  */
 package com.itracker.android.data.message.phrase;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -25,6 +21,10 @@ import com.itracker.android.Application;
 import com.itracker.android.data.OnLoadListener;
 import com.itracker.android.data.message.chat.ChatManager;
 import com.itracker.android.data.roster.RosterManager;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Manage custom notification based on message.

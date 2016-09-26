@@ -14,12 +14,12 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import java.util.NoSuchElementException;
+import com.itracker.android.xmpp.AbstractProvider;
+import com.itracker.android.xmpp.ProviderUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 
-import com.itracker.android.xmpp.AbstractProvider;
-import com.itracker.android.xmpp.ProviderUtils;
+import java.util.NoSuchElementException;
 
 public class SessionProvider extends AbstractProvider<Session> {
 

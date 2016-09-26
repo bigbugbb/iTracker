@@ -15,12 +15,12 @@
 package com.itracker.android.data.entity;
 
 
-import com.itracker.android.data.AbstractTable;
-import com.itracker.android.data.DatabaseManager;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
+
+import com.itracker.android.data.AbstractTable;
+import com.itracker.android.data.DatabaseManager;
 
 /**
  * Table with account related information.

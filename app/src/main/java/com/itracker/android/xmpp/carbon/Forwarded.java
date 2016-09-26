@@ -1,14 +1,14 @@
 package com.itracker.android.xmpp.carbon;
 
-import java.io.IOException;
+import com.itracker.android.xmpp.Container;
+import com.itracker.android.xmpp.PacketExtension;
 
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.Container;
-import com.itracker.android.xmpp.PacketExtension;
+import java.io.IOException;
 
 /**
  * Packet extension for XEP-0297: Stanza Forwarding. This class implements

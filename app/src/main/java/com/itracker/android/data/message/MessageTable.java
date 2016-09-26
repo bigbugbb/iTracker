@@ -14,9 +14,6 @@
  */
 package com.itracker.android.data.message;
 
-import java.util.Collection;
-import java.util.Date;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,6 +21,9 @@ import android.database.sqlite.SQLiteStatement;
 
 import com.itracker.android.data.DatabaseManager;
 import com.itracker.android.data.entity.AbstractEntityTable;
+
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * Storage with messages.

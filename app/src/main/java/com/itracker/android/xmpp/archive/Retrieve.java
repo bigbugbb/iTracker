@@ -14,11 +14,11 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import java.io.IOException;
+import com.itracker.android.xmpp.rsm.Set;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.rsm.Set;
+import java.io.IOException;
 
 /**
  * Retrieve message archive collection.

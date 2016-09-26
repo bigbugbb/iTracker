@@ -14,9 +14,9 @@
  */
 package com.itracker.android.data.account;
 
-import java.util.Collection;
-
 import com.itracker.android.data.BaseUIListener;
+
+import java.util.Collection;
 
 /**
  * Listener for any account state change.

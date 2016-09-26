@@ -14,21 +14,21 @@
  */
 package com.itracker.android.data.extension.archive;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-
-import net.java.otr4j.io.SerializationUtils;
-import net.java.otr4j.io.messages.PlainTextMessage;
-
 import com.itracker.android.data.message.AbstractChat;
 import com.itracker.android.data.message.MessageItem;
 import com.itracker.android.xmpp.address.Jid;
 import com.itracker.android.xmpp.archive.AbstractMessage;
 import com.itracker.android.xmpp.archive.Chat;
 import com.itracker.android.xmpp.archive.From;
+
+import net.java.otr4j.io.SerializationUtils;
+import net.java.otr4j.io.messages.PlainTextMessage;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 
 /**
  * Collect messages for the chat collection received from the message archive.

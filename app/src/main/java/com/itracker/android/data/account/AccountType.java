@@ -14,10 +14,10 @@
  */
 package com.itracker.android.data.account;
 
+import android.graphics.drawable.Drawable;
+
 import java.util.Collections;
 import java.util.List;
-
-import android.graphics.drawable.Drawable;
 
 /**
  * Account presets.

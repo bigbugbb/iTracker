@@ -14,13 +14,13 @@
  */
 package com.itracker.android.xmpp.avatar;
 
-import java.io.IOException;
-
-import org.xmlpull.v1.XmlSerializer;
-
 import com.itracker.android.data.extension.avatar.AvatarManager;
 import com.itracker.android.xmpp.PacketExtension;
 import com.itracker.android.xmpp.SerializerUtils;
+
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.IOException;
 
 /**
  * vCard update packet.

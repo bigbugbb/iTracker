@@ -33,10 +33,6 @@ import com.itracker.android.data.extension.otr.OTRManager;
 import com.itracker.android.data.message.MessageManager;
 import com.itracker.android.data.notification.NotificationManager;
 import com.itracker.android.data.roster.AbstractContact;
-//import com.itracker.android.service.AppPersistentService;
-//import com.itracker.android.ui.adapter.ComparatorByName;
-//import com.itracker.android.ui.adapter.ComparatorByStatus;
-//import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.ui.adapter.ComparatorByName;
 import com.itracker.android.ui.adapter.ComparatorByStatus;
 import com.itracker.android.utils.Emoticons;
@@ -46,6 +42,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+//import com.itracker.android.service.AppPersistentService;
+//import com.itracker.android.ui.adapter.ComparatorByName;
+//import com.itracker.android.ui.adapter.ComparatorByStatus;
+//import com.itracker.android.ui.color.ColorManager;
 
 /**
  * Manage operations with common settings.

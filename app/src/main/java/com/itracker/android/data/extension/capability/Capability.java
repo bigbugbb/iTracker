@@ -14,13 +14,12 @@
  */
 package com.itracker.android.data.extension.capability;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-
 import com.itracker.android.data.entity.BaseEntity;
 
 import org.jivesoftware.smack.util.stringencoder.Base64;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 class Capability extends BaseEntity {
 

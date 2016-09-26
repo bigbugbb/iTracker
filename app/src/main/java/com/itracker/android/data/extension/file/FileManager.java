@@ -19,13 +19,13 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.itracker.android.Application;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.itracker.android.R;
 import com.itracker.android.data.LogManager;
 import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.message.MessageItem;
 import com.itracker.android.data.message.MessageManager;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

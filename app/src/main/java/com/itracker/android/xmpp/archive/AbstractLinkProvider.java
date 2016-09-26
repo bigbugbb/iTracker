@@ -14,10 +14,10 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import org.xmlpull.v1.XmlPullParser;
-
 import com.itracker.android.xmpp.AbstractProvider;
 import com.itracker.android.xmpp.ProviderUtils;
+
+import org.xmlpull.v1.XmlPullParser;
 
 public abstract class AbstractLinkProvider<T extends AbstractLink> extends
         AbstractProvider<T> {

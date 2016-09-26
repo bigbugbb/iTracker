@@ -14,17 +14,17 @@
  */
 package com.itracker.android.xmpp.archive;
 
+import com.itracker.android.xmpp.IQ;
+import com.itracker.android.xmpp.SerializerUtils;
+import com.itracker.android.xmpp.rsm.Set;
+
+import org.xmlpull.v1.XmlSerializer;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-
-import org.xmlpull.v1.XmlSerializer;
-
-import com.itracker.android.xmpp.IQ;
-import com.itracker.android.xmpp.SerializerUtils;
-import com.itracker.android.xmpp.rsm.Set;
 
 /**
  * Represents list of modified collection.

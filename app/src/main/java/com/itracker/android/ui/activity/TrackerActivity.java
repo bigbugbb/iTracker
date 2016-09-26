@@ -28,12 +28,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.itracker.android.R;
+import com.itracker.android.ui.adapter.FragmentPagerAdapter;
 import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
 import com.itracker.android.ui.fragment.MediaFragment;
 import com.itracker.android.ui.fragment.PhotoFragment;
 import com.itracker.android.ui.fragment.TrackerFragment;
-import com.itracker.android.ui.adapter.FragmentPagerAdapter;
 import com.itracker.android.utils.LogUtils;
 
 import java.lang.ref.WeakReference;

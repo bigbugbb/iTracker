@@ -63,11 +63,11 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.Video;
 import com.itracker.android.provider.TrackerContract;
 import com.itracker.android.ui.activity.MediaDownloadActivity;
-import com.itracker.android.ui.listener.MediaPlaybackDelegate;
-import com.itracker.android.ui.listener.OnMediaSelectModeChangedListener;
 import com.itracker.android.ui.activity.PlayerActivity;
 import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.ui.adapter.MediaAdapter;
+import com.itracker.android.ui.listener.MediaPlaybackDelegate;
+import com.itracker.android.ui.listener.OnMediaSelectModeChangedListener;
 import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ThrottledContentObserver;
 

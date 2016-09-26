@@ -14,12 +14,12 @@
  */
 package com.itracker.android.xmpp.rsm;
 
+import com.itracker.android.xmpp.AbstractExtensionProvider;
+import com.itracker.android.xmpp.ProviderUtils;
+
 import org.jivesoftware.smack.SmackException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import com.itracker.android.xmpp.AbstractExtensionProvider;
-import com.itracker.android.xmpp.ProviderUtils;
 
 import java.io.IOException;
 

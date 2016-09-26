@@ -14,16 +14,16 @@
  */
 package com.itracker.android.xmpp.time;
 
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.itracker.android.xmpp.AbstractIQProvider;
+import com.itracker.android.xmpp.ProviderUtils;
 
 import org.jivesoftware.smack.SmackException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.itracker.android.xmpp.AbstractIQProvider;
-import com.itracker.android.xmpp.ProviderUtils;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TimeProvider extends AbstractIQProvider<Time> {
 

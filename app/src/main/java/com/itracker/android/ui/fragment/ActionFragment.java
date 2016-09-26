@@ -29,13 +29,13 @@ import com.itracker.android.data.model.Motion;
 import com.itracker.android.data.model.Track;
 import com.itracker.android.provider.TrackerContract;
 import com.itracker.android.ui.activity.FootprintActivity;
+import com.itracker.android.ui.adapter.TrackItemAdapter;
 import com.itracker.android.ui.listener.OnTrackItemSelectedListener;
-import com.itracker.android.ui.widget.TimeRangeController;
 import com.itracker.android.ui.widget.ActionFrameLayout;
 import com.itracker.android.ui.widget.MotionsView;
+import com.itracker.android.ui.widget.TimeRangeController;
 import com.itracker.android.ui.widget.TimelineItem;
 import com.itracker.android.ui.widget.TimelinesView;
-import com.itracker.android.ui.adapter.TrackItemAdapter;
 import com.itracker.android.utils.ThrottledContentObserver;
 
 import static com.itracker.android.utils.LogUtils.LOGD;

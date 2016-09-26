@@ -14,14 +14,14 @@
  */
 package com.itracker.android.data.connection;
 
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import com.itracker.android.Application;
 import com.itracker.android.data.OnTimerListener;
 import com.itracker.android.data.account.AccountItem;
 import com.itracker.android.data.account.AccountManager;
 import com.itracker.android.data.account.OnAccountRemovedListener;
+
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class ReconnectionManager implements OnConnectionListener,
         OnConnectedListener, OnAccountRemovedListener, OnTimerListener {

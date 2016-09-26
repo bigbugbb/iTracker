@@ -14,15 +14,15 @@
  */
 package com.itracker.android.data.account;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import android.net.Uri;
 
 import com.itracker.android.Application;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.connection.ConnectionItem;
 import com.itracker.android.data.connection.OnAuthorizedListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Manager for OAuth authorization and account's name mapping.

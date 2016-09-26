@@ -14,15 +14,15 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import java.io.IOException;
-import java.util.NoSuchElementException;
+import com.itracker.android.xmpp.AbstractIQProvider;
+import com.itracker.android.xmpp.ProviderUtils;
 
 import org.jivesoftware.smack.SmackException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.itracker.android.xmpp.AbstractIQProvider;
-import com.itracker.android.xmpp.ProviderUtils;
+import java.io.IOException;
+import java.util.NoSuchElementException;
 
 public class PrefProvider extends AbstractIQProvider<Pref> {
 

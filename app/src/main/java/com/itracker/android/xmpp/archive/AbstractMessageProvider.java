@@ -14,11 +14,11 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import com.itracker.android.xmpp.AbstractProvider;
 import com.itracker.android.xmpp.ProviderUtils;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 

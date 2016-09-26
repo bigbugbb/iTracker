@@ -13,8 +13,8 @@ import android.view.View;
 
 import com.itracker.android.R;
 import com.itracker.android.data.model.Photo;
-import com.itracker.android.ui.listener.OnContentClickListener;
 import com.itracker.android.ui.fragment.PhotoDetailFragment;
+import com.itracker.android.ui.listener.OnContentClickListener;
 
 import java.util.ArrayList;
 

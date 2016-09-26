@@ -2,9 +2,6 @@ package com.itracker.android.data.extension.httpfileupload;
 
 
 import com.itracker.android.Application;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.itracker.android.R;
 import com.itracker.android.data.LogManager;
 import com.itracker.android.data.NetworkException;
@@ -18,6 +15,9 @@ import com.itracker.android.data.message.MessageItem;
 import com.itracker.android.data.message.MessageManager;
 import com.itracker.android.xmpp.httpfileupload.Request;
 import com.itracker.android.xmpp.httpfileupload.Slot;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;

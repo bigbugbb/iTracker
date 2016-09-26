@@ -14,12 +14,13 @@ import com.itracker.android.data.extension.muc.MUCManager;
 import com.itracker.android.data.message.MessageItem;
 import com.itracker.android.data.message.chat.ChatManager;
 import com.itracker.android.data.roster.RosterManager;
-//import com.itracker.android.ui.activity.ChatViewer;
-//import com.itracker.android.ui.activity.ContactList;
-//import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.utils.StringUtils;
 
 import java.util.List;
+
+//import com.itracker.android.ui.activity.ChatViewer;
+//import com.itracker.android.ui.activity.ContactList;
+//import com.itracker.android.ui.color.ColorManager;
 
 public class MessageNotificationCreator {
 

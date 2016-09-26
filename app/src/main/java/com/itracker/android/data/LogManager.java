@@ -14,15 +14,15 @@
  */
 package com.itracker.android.data;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import org.jivesoftware.smack.SmackConfiguration;
-
 import android.content.pm.ApplicationInfo;
 import android.util.Log;
 
 import com.itracker.android.Application;
+
+import org.jivesoftware.smack.SmackConfiguration;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * Manager to write to the log.

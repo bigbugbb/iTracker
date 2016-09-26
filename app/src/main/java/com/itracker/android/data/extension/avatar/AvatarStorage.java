@@ -14,16 +14,16 @@
  */
 package com.itracker.android.data.extension.avatar;
 
+import com.itracker.android.Application;
+import com.itracker.android.data.LogManager;
+import com.itracker.android.data.OnClearListener;
+import com.itracker.android.data.OnLoadListener;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import com.itracker.android.Application;
-import com.itracker.android.data.LogManager;
-import com.itracker.android.data.OnClearListener;
-import com.itracker.android.data.OnLoadListener;
 
 /**
  * Manager for avatar files.

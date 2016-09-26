@@ -14,14 +14,14 @@
  */
 package com.itracker.android.data.notification;
 
-import java.util.Date;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
 import com.itracker.android.data.DatabaseManager;
 import com.itracker.android.data.entity.AbstractEntityTable;
+
+import java.util.Date;
 
 /**
  * Storage with notifications.

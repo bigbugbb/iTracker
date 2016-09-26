@@ -14,9 +14,9 @@
  */
 package com.itracker.android.data.notification;
 
-import java.util.Date;
-
 import com.itracker.android.data.entity.BaseEntity;
+
+import java.util.Date;
 
 /**
  * Notification for the contact.

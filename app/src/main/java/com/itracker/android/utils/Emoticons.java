@@ -14,12 +14,6 @@
  */
 package com.itracker.android.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.text.Spannable;
@@ -28,8 +22,14 @@ import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
 import android.widget.TextView;
 
-import com.itracker.android.data.SettingsManager;
 import com.itracker.android.R;
+import com.itracker.android.data.SettingsManager;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Emoticons.

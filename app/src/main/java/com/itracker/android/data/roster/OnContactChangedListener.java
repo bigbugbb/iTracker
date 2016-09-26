@@ -14,10 +14,10 @@
  */
 package com.itracker.android.data.roster;
 
-import java.util.Collection;
-
 import com.itracker.android.data.BaseUIListener;
 import com.itracker.android.data.entity.BaseEntity;
+
+import java.util.Collection;
 
 /**
  * Listener for contact change.

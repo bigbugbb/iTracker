@@ -14,9 +14,9 @@
  */
 package com.itracker.android.data.notification;
 
-import java.util.Collection;
-
 import android.net.Uri;
+
+import java.util.Collection;
 
 /**
  * Provides list of notifications first of which should be shown.

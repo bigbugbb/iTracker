@@ -19,8 +19,8 @@ import com.itracker.android.data.model.Video;
 import com.itracker.android.provider.TrackerContract;
 import com.itracker.android.provider.TrackerContract.DownloadStatus;
 import com.itracker.android.provider.TrackerContract.FileDownloads;
-import com.itracker.android.ui.listener.MediaPlaybackDelegate;
 import com.itracker.android.ui.fragment.MediaDownloadFragment;
+import com.itracker.android.ui.listener.MediaPlaybackDelegate;
 import com.itracker.android.utils.ConnectivityUtils;
 
 import org.joda.time.DateTime;

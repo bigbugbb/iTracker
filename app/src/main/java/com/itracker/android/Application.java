@@ -9,6 +9,7 @@ import android.support.multidex.MultiDex;
 
 import com.itracker.android.data.BaseManagerInterface;
 import com.itracker.android.data.BaseUIListener;
+import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.data.LogManager;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.OnCloseListener;
@@ -17,7 +18,6 @@ import com.itracker.android.data.OnLoadListener;
 import com.itracker.android.data.OnLowMemoryListener;
 import com.itracker.android.data.OnTimerListener;
 import com.itracker.android.data.OnUnloadListener;
-import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.data.connection.ConnectionManager;
 import com.itracker.android.receiver.SensorMonitorReceiver;
 import com.itracker.android.service.sensor.AppPersistentService;
@@ -38,8 +38,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-
-import static com.itracker.android.utils.LogUtils.LOGD;
 
 public class Application extends android.support.multidex.MultiDexApplication {
 

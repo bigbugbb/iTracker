@@ -16,9 +16,9 @@ package com.itracker.android.xmpp;
 
 import com.itracker.android.data.LogManager;
 
-import java.io.IOException;
-
 import org.xmlpull.v1.XmlSerializer;
+
+import java.io.IOException;
 
 /**
  * IQ packet.

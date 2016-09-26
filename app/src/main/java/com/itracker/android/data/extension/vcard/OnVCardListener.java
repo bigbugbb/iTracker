@@ -15,6 +15,7 @@
 package com.itracker.android.data.extension.vcard;
 
 import com.itracker.android.data.BaseUIListener;
+
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 /**

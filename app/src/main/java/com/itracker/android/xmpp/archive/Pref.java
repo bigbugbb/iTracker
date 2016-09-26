@@ -14,6 +14,11 @@
  */
 package com.itracker.android.xmpp.archive;
 
+import com.itracker.android.xmpp.IQ;
+import com.itracker.android.xmpp.SerializerUtils;
+
+import org.xmlpull.v1.XmlSerializer;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,11 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.xmlpull.v1.XmlSerializer;
-
-import com.itracker.android.xmpp.IQ;
-import com.itracker.android.xmpp.SerializerUtils;
 
 /**
  * Message archive preferences.

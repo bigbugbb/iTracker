@@ -14,14 +14,14 @@
  */
 package com.itracker.android.data.notification;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import android.media.AudioManager;
+import android.net.Uri;
 
 import com.itracker.android.data.SettingsManager;
 
-import android.media.AudioManager;
-import android.net.Uri;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Base provider for the notifications to be displayed.

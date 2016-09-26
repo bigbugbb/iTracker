@@ -8,7 +8,6 @@ import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ServerUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
-import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
 public class AppInstanceIdService extends FirebaseInstanceIdService {

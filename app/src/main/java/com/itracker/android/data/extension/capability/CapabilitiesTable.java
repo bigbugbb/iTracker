@@ -14,8 +14,6 @@
  */
 package com.itracker.android.data.extension.capability;
 
-import java.util.Collection;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
@@ -23,6 +21,8 @@ import android.provider.BaseColumns;
 
 import com.itracker.android.data.AbstractTable;
 import com.itracker.android.data.DatabaseManager;
+
+import java.util.Collection;
 
 /**
  * Storage with hashed entity capabilities.

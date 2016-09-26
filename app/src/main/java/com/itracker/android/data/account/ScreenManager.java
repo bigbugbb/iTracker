@@ -14,8 +14,6 @@
  */
 package com.itracker.android.data.account;
 
-import java.util.Calendar;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -31,6 +29,8 @@ import com.itracker.android.data.extension.csi.ClientStateManager;
 import com.itracker.android.receiver.GoAwayReceiver;
 import com.itracker.android.receiver.GoXaReceiver;
 import com.itracker.android.receiver.ScreenReceiver;
+
+import java.util.Calendar;
 
 /**
  * Manage screen on / off.

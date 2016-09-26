@@ -14,12 +14,12 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import java.io.IOException;
-import java.util.Date;
+import com.itracker.android.xmpp.SerializerUtils;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.SerializerUtils;
+import java.io.IOException;
+import java.util.Date;
 
 /**
  * Packet to remove collection from the message archive.

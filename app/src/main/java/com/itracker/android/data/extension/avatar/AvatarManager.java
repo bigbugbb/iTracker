@@ -35,7 +35,6 @@ import com.itracker.android.data.account.OAuthManager;
 import com.itracker.android.data.connection.ConnectionItem;
 import com.itracker.android.data.connection.OnPacketListener;
 import com.itracker.android.data.extension.vcard.VCardManager;
-//import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.xmpp.address.Jid;
 import com.itracker.android.xmpp.avatar.VCardUpdate;
@@ -47,6 +46,8 @@ import org.jivesoftware.smack.packet.Stanza;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+//import com.itracker.android.ui.color.ColorManager;
 
 /**
  * Provides information about avatars (hashes and values). Store and retrieve

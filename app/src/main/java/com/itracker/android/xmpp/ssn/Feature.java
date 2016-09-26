@@ -14,19 +14,19 @@
  */
 package com.itracker.android.xmpp.ssn;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.NoSuchElementException;
+import com.itracker.android.xmpp.PacketExtension;
+import com.itracker.android.xmpp.ProviderUtils;
+import com.itracker.android.xmpp.form.DataFormType;
 
 import org.jivesoftware.smackx.xdata.FormField;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
 import org.xmlpull.v1.XmlSerializer;
 
-import com.itracker.android.xmpp.PacketExtension;
-import com.itracker.android.xmpp.ProviderUtils;
-import com.itracker.android.xmpp.form.DataFormType;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Packet extension for Stanza Session Negotiation.

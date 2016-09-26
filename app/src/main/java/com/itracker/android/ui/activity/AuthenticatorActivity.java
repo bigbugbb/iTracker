@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
 import android.view.WindowManager;
@@ -17,13 +16,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -42,7 +37,6 @@ import com.itracker.android.Config;
 import com.itracker.android.R;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.account.AccountType;
-import com.itracker.android.data.model.User;
 import com.itracker.android.ui.fragment.SignInFragment;
 import com.itracker.android.ui.fragment.SignUpFragment;
 import com.itracker.android.ui.listener.OnAuthenticateResult;
@@ -50,27 +44,13 @@ import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.PasswordAuthentication;
 import com.itracker.android.utils.RequestUtils;
 
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import javax.crypto.SecretKey;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.crypto.MacProvider;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
-import static com.itracker.android.utils.LogUtils.LOGE;
 import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;

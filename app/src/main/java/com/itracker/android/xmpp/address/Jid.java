@@ -14,9 +14,9 @@
  */
 package com.itracker.android.xmpp.address;
 
-import java.util.Locale;
-
 import org.jxmpp.util.XmppStringUtils;
+
+import java.util.Locale;
 
 /**
  * Provides methods to process Jabber Identifier.

@@ -14,9 +14,9 @@
  */
 package com.itracker.android.xmpp.archive;
 
-import org.xmlpull.v1.XmlPullParser;
-
 import com.itracker.android.xmpp.ProviderUtils;
+
+import org.xmlpull.v1.XmlPullParser;
 
 public class DefaultProvider extends AbstractSettingsProvider<Default> {
 

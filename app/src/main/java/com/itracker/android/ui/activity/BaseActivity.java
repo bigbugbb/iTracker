@@ -5,7 +5,6 @@ import android.accounts.Account;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SyncStatusObserver;
@@ -26,7 +25,6 @@ import android.view.Menu;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.itracker.android.R;
@@ -35,7 +33,6 @@ import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PlayServicesUtils;
 import com.itracker.android.utils.PrefUtils;
-import com.itracker.android.utils.RequestUtils;
 
 import java.util.ArrayList;
 
