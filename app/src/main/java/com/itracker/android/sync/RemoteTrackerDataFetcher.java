@@ -127,7 +127,7 @@ public class RemoteTrackerDataFetcher {
      */
     private String getManifestUrl() {
 
-        String manifestUrl = Config.MANIFEST_URL;
+        String apibaseUrl = Config.API_BASE;
 
         // check for an override file
         File urlOverrideFile = new File(mContext.getFilesDir(), URL_OVERRIDE_FILE_NAME);
@@ -137,10 +137,10 @@ public class RemoteTrackerDataFetcher {
                 LOGW(TAG, "Debug URL override active: " + overrideUrl);
                 return overrideUrl;
             } catch (IOException ex) {
-                return manifestUrl;
+                return apibaseUrl;
             }
         } else {
-            return manifestUrl;
+            return apibaseUrl;
         }
     }
 

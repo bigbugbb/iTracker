@@ -41,8 +41,8 @@ import io.realm.RealmConfiguration;
 public class DatabaseManager extends SQLiteOpenHelper implements
         OnLoadListener, OnClearListener {
 
-    private static final String DATABASE_NAME = "xabber.db";
-    private static final String REALM_DATABASE_NAME = "xabber.realm";
+    private static final String DATABASE_NAME = "itracker_chat.db";
+    private static final String REALM_DATABASE_NAME = "itracker_chat.realm";
     private static final int DATABASE_VERSION = 68;
     private static final int REALM_DATABASE_VERSION = 1;
 
