@@ -1,30 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
 
     defaultConfig {
         applicationId "com.itracker.android"
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 100
         versionName '1.0.0'
         multiDexEnabled true
+        jackOptions {
+            enabled true
+        }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     lintOptions {
         // problems with generated "applicationId" string resource
         disable 'MissingTranslation'
-    }
-
-    dexOptions {
-        incremental true
     }
 
     productFlavors {
@@ -45,41 +44,50 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
 
-ext {
-    smackVersion = '4.1.5'
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.google.api-client:google-api-client-android:1.19.0' exclude module: 'httpclient'
-    compile "org.igniterealtime.smack:smack-android-extensions:$smackVersion"
-    compile "org.igniterealtime.smack:smack-experimental:$smackVersion"
-    compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+    compile "org.igniterealtime.smack:smack-android-extensions:${project.SMACK_VERSION}"
+    compile "org.igniterealtime.smack:smack-experimental:${project.SMACK_VERSION}"
+    compile "org.igniterealtime.smack:smack-tcp:${project.SMACK_VERSION}"
     compile project('otr4j')
     compile project('MemorizingTrustManager')
     compile project('emojicon')
-    compile 'com.android.support:support-v4:23.4.0'
-    compile 'com.android.support:cardview-v7:23.4.0'
-    compile 'com.android.support:recyclerview-v7:23.4.0'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:support-v13:23.4.0'
-    compile 'com.android.support:design:23.4.0'
+    compile "com.android.support:support-v4:${project.ANDROID_SUPPORT_VERSION}" exclude module: 'support-media-compat'
+    compile "com.android.support:cardview-v7:${project.ANDROID_SUPPORT_VERSION}"
+    compile "com.android.support:recyclerview-v7:${project.ANDROID_SUPPORT_VERSION}"
+    compile "com.android.support:appcompat-v7:${project.ANDROID_SUPPORT_VERSION}"
+    compile "com.android.support:support-v13:${project.ANDROID_SUPPORT_VERSION}"
+    compile "com.android.support:design:${project.ANDROID_SUPPORT_VERSION}"
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.apache.directory.studio:org.apache.commons.io:2.4'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'com.opencsv:opencsv:3.5'
     compile 'joda-time:joda-time:2.9.1'
     compile 'com.loopj.android:android-async-http:1.4.9'
-    compile 'com.google.android.gms:play-services-base:9.4.0'
-    compile 'com.google.android.gms:play-services-plus:9.4.0'
-    compile 'com.google.android.gms:play-services-auth:9.4.0'
-    compile 'com.google.android.gms:play-services-maps:9.4.0'
-    compile 'com.google.android.gms:play-services-location:9.4.0'
-    compile 'com.google.firebase:firebase-messaging:9.4.0'
-    compile 'com.google.firebase:firebase-auth:9.4.0'
+    compile "com.google.android.gms:play-services-base:${project.PLAY_SERVICES_VERSION}"
+    compile "com.google.android.gms:play-services-plus:${project.PLAY_SERVICES_VERSION}"
+    compile "com.google.android.gms:play-services-auth:${project.PLAY_SERVICES_VERSION}"
+    compile "com.google.android.gms:play-services-maps:${project.PLAY_SERVICES_VERSION}"
+    compile "com.google.android.gms:play-services-location:${project.PLAY_SERVICES_VERSION}"
+    compile "com.google.firebase:firebase-messaging:${project.FIREBASE_VERSION}"
+    compile "com.google.firebase:firebase-auth:${project.FIREBASE_VERSION}"
     compile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'

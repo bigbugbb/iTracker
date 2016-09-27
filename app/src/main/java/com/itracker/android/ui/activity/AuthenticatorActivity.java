@@ -128,6 +128,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
+        // Setup google sign in button
+        mGoogleSignInButton = (Button) findViewById(R.id.google_sign_in_button);
+        mGoogleSignInButton.setOnClickListener(this);
+
         initializeGoogleSignIn();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -136,24 +140,22 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     }
 
     private void initializeGoogleSignIn() {
-        // Setup google sign in button
-        mGoogleSignInButton = (Button) findViewById(R.id.google_sign_in_button);
-        mGoogleSignInButton.setOnClickListener(this);
-
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
+        if (mGoogleApiClient == null) {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build();
 
-        // Build a GoogleApiClient with access to the Google Sign-In API and the
-        // options specified by gso.
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
+            // Build a GoogleApiClient with access to the Google Sign-In API and the
+            // options specified by gso.
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                    .build();
+        }
     }
 
     /**
@@ -181,6 +183,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     public void onStart() {
         super.onStart();
         mFirebaseAuth.addAuthStateListener(mAuthListener);
+        if (!mGoogleApiClient.isConnected() && !mGoogleApiClient.isConnecting()) {
+            mGoogleApiClient.connect();
+        }
     }
 
     @Override
@@ -189,6 +194,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         if (mAuthListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthListener);
         }
+        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -368,6 +374,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     @Override
     public void onClick(View v) {
+        if (mGoogleApiClient.isConnected()) {
+            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+        }
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
     }
