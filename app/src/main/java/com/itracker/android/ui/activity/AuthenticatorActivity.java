@@ -253,8 +253,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         AccountUtils.setActiveAccount(getApplicationContext(), accountName);
 
         String secret = getString(R.string.ejabberd_account_secret);
-        PasswordAuthentication authentication = new PasswordAuthentication();
-        String xmppAccountPassword = authentication.hash((accountName + secret).toCharArray());
+        String xmppAccountPassword = (accountName + secret).hashCode() + "";
         addAccount(accountName, xmppAccountPassword, createAccount);
 
         if (getIntent().getBooleanExtra(AccountUtils.ARG_IS_ADDING_NEW_ACCOUNT, false)) {
@@ -482,8 +481,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         AccountUtils.setActiveAccount(getApplicationContext(), accountName);
 
         String secret = getString(R.string.ejabberd_account_secret);
-        PasswordAuthentication authentication = new PasswordAuthentication();
-        String accountPassword = authentication.hash((accountName + secret).toCharArray());
+        String accountPassword = (accountName + secret).hashCode() + "";
         addAccount(accountName, accountPassword, createAccount);
 
         final String accountType = AccountUtils.getAccountType(Application.getInstance());
