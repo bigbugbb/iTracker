@@ -73,7 +73,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     public final static String USERNAME = "username";
     public final static String CREATE_ACCOUNT = "create_account";
 
-    private final static String UID = "uid";
     private final static String FIREBASE_CUSTOM_TOKEN = "firebase_custom_token";
 
     private ViewAnimator mAnimator;
@@ -84,8 +83,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
-    private OnAuthenticateResult[] mAuthenticateResult;
 
     private ProgressBar mProgressBar;
 
@@ -121,10 +118,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             transaction.replace(R.id.auth_signup_fragment, new SignUpFragment());
             transaction.commit();
         }
-
-        mAuthenticateResult = new OnAuthenticateResult[2];
-        mAuthenticateResult[0] = (OnAuthenticateResult) getFragmentManager().findFragmentById(R.id.auth_signin_fragment);
-        mAuthenticateResult[1] = (OnAuthenticateResult) getFragmentManager().findFragmentById(R.id.auth_signup_fragment);
 
         mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
@@ -392,8 +385,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-
-//                mAuthenticateResult[0].onAuthenticateSuccess();
             } else {
                 // Google Sign In failed, update UI appropriately
 //                mAuthenticateResult[0].onAuthenticateFailed();

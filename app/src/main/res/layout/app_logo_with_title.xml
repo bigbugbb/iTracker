@@ -24,7 +24,7 @@
         android:text="@string/app_name"
         android:textSize="40sp"
         android:textStyle="bold"
-        android:textColor="@color/body_text_2"
+        android:textColor="@color/splash_app_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:gravity="left|center_vertical"/>
 

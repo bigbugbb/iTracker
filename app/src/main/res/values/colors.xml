@@ -28,6 +28,8 @@
 
     <color name="timelines_border">#808080</color>
 
+    <color name="splash_app_title">#b0000000</color>
+
     <color name="body_text_1">#de000000</color>
     <color name="body_text_2">#8a000000</color>
     <color name="body_text_3">#60000000</color>
