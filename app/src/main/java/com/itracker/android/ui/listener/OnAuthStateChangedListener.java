@@ -12,9 +12,9 @@ public interface OnAuthStateChangedListener  extends BaseUIListener {
         REGULAR_AUTH_SUCCEED,
         REGULAR_AUTH_FAIL,
         // OAuth states
-        GOOGLE_SIGN_IN_START,
-        GOOGLE_SIGN_IN_SUCCEED,
-        GOOGLE_SIGN_IN_FAIL,
+        GOOGLE_AUTH_START,
+        GOOGLE_AUTH_SUCCEED,
+        GOOGLE_AUTH_FAIL,
     }
 
     /**

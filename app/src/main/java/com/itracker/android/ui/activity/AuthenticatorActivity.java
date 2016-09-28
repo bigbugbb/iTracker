@@ -7,18 +7,14 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,10 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.itracker.android.Application;
@@ -51,19 +44,17 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
+import static com.itracker.android.utils.LogUtils.LOGE;
 import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
 
 public class AuthenticatorActivity extends AccountAuthenticatorActivity implements
-        SignInFragment.OnAccountSignInListener,
-        SignUpFragment.OnAccountSignUpListener,
         OnAuthStateChangedListener,
         OnSignInSignUpSwitchedListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        View.OnClickListener {
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = makeLogTag(AuthenticatorActivity.class);
 
@@ -82,8 +73,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     private Button mGoogleSignInButton;
     private GoogleApiClient mGoogleApiClient;
-
-    private ProgressBar mProgressBar;
 
     /**
      * Called when the activity is first created.
@@ -104,13 +93,18 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             transaction.commit();
         }
 
-        mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
-
         mAccountManager = AccountManager.get(this);
 
         // Setup google sign in button
         mGoogleSignInButton = (Button) findViewById(R.id.google_sign_in_button);
-        mGoogleSignInButton.setOnClickListener(this);
+        mGoogleSignInButton.setOnClickListener(v -> {
+            for (OnAuthStateChangedListener listener
+                    : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_START, null);
+            }
+            Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+            startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
+        });
 
         // Build a GoogleApiClient with access to the Google Sign-In API and the
         // options specified by gso.
@@ -169,12 +163,22 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     @Override
     public void onAuthStateChanged(AuthState state, Bundle extra) {
-
-    }
-
-    @Override
-    public void onAccountSignInSuccess(Intent intent) {
-        onFinishLogin(intent);
+        switch (state) {
+            case REGULAR_AUTH_START:
+            case GOOGLE_AUTH_START:
+                enableUi(false);
+                break;
+            case REGULAR_AUTH_FAIL:
+            case GOOGLE_AUTH_FAIL:
+                enableUi(true);
+                break;
+            case REGULAR_AUTH_SUCCEED:
+                onFinishLogin(extra);
+                break;
+            case GOOGLE_AUTH_SUCCEED:
+                finishAuthenticatorActivity(extra);
+                break;
+        }
     }
 
     @Override
@@ -187,58 +191,31 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         mAnimator.setDisplayedChild(SIGN_UP_FRAGMENT);
     }
 
-    @Override
-    public void onAccountSignInError(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        mProgressBar.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void onAccountStartSignIn() {
-        mProgressBar.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onAccountSignUpSuccess(Intent intent) {
-        onFinishLogin(intent);
-    }
-
-    @Override
-    public void onAccountSignUpError(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        mProgressBar.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void onAccountStartSignUp() {
-        mProgressBar.setVisibility(View.VISIBLE);
+    private void enableUi(boolean enabled) {
+        mGoogleSignInButton.setEnabled(enabled);
+        findViewById(R.id.authenticate_progress).setVisibility(enabled ? View.INVISIBLE : View.VISIBLE);
     }
 
     // User sign in/up by typing username and password
-    private void onFinishLogin(final Intent intent) {
+    private void onFinishLogin(Bundle data) {
         LOGD(TAG, "finish login");
-        String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-        String accountPassword = intent.getStringExtra(AccountManager.KEY_PASSWORD);
-        Bundle userdata = intent.getBundleExtra(AccountManager.KEY_USERDATA);
-        boolean createAccount = intent.getBooleanExtra(CREATE_ACCOUNT, false);
-        String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+        String accountName = data.getString(AccountManager.KEY_ACCOUNT_NAME);
+        String accountPassword = data.getString(AccountManager.KEY_PASSWORD);
+        Bundle userdata = data.getBundle(AccountManager.KEY_USERDATA);
+        boolean createAccount = data.getBoolean(CREATE_ACCOUNT, false);
+        String authToken = data.getString(AccountManager.KEY_AUTHTOKEN);
 
         updateChatAccount(accountName, null, createAccount);
         updateAppAccount(accountName, accountPassword, authToken, userdata);
 
-        // Sign in firebase with the custom token from the app api
+        // Sign in Firebase with the custom token from the app backend
         JSONObject jsonRequest = createFirebaseTokenRequestParams(accountName);
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Config.FIREBASE_TOKENS_URL, jsonRequest, new Response.Listener<JSONObject>() {
-
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    final String customToken = response.getString(FIREBASE_CUSTOM_TOKEN);
-                    FirebaseAuth.getInstance().signInWithCustomToken(customToken)
-                            .addOnCompleteListener(AuthenticatorActivity.this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.FIREBASE_TOKENS_URL, jsonRequest,
+                response -> {
+                    try {
+                        final String customToken = response.getString(FIREBASE_CUSTOM_TOKEN);
+                        FirebaseAuth.getInstance().signInWithCustomToken(customToken)
+                                .addOnCompleteListener(AuthenticatorActivity.this, task -> {
                                     LOGD(TAG, "signInWithCustomToken:onComplete:" + task.isSuccessful());
                                     // If sign in fails, display a message to the user. If sign in succeeds
                                     // the auth state listener will be notified and logic to handle the
@@ -249,21 +226,15 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                                                 Toast.LENGTH_SHORT).show();
                                     }
 
-                                    finishAuthenticatorActivity(intent);
-                                }
-                            });
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                LOGD(TAG, "Failed to get firebase custom token.");
-                finishAuthenticatorActivity(intent);
-            }
-        });
+                                    finishAuthenticatorActivity(data);
+                                });
+                    } catch (JSONException e) {
+                        LOGE(TAG, "This should never happen.", e);
+                    }
+                }, error -> {
+                    LOGD(TAG, "Failed to get Firebase custom token.");
+                    finishAuthenticatorActivity(data);
+                });
 
         RequestUtils.addToRequestQueue(jsObjRequest);
     }
@@ -293,28 +264,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     }
 
     @Override
-    public void onConnected(Bundle bundle) {
-        LOGI(TAG, "Connected to GoogleApiClient");
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        LOGI(TAG, "Connection suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in onConnectionFailed.
-        LOGI(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
-    }
-
-    @Override
-    public void onClick(View v) {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -327,6 +276,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                 firebaseAuthWithGoogle(account);
             } else {
                 // Google Sign In failed, update UI appropriately
+                for (OnAuthStateChangedListener listener
+                        : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                    listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null);
+                }
             }
         }
     }
@@ -336,22 +289,18 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         FirebaseAuth.getInstance().signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        LOGD(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+                .addOnCompleteListener(this, task -> {
+                    LOGD(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            LOGW(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(AuthenticatorActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            createSessionFromGoogleAccount(account);
-                        }
+                    // If sign in fails, display a message to the user. If sign in succeeds
+                    // the auth state listener will be notified and logic to handle the
+                    // signed in user can be handled in the listener.
+                    if (!task.isSuccessful()) {
+                        LOGW(TAG, "signInWithCredential", task.getException());
+                        Toast.makeText(AuthenticatorActivity.this, "Firebase authentication failed.", Toast.LENGTH_SHORT).show();
                     }
+
+                    createSessionFromGoogleAccount(account);
                 });
     }
 
@@ -378,23 +327,18 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         // Create a google sign in session with the generated jwt.
         // If the user identified by the email doesn't exist, the api will create the user.
         JSONObject params = createGoogleSignInRequestParams(compactJwt);
-        int method = com.android.volley.Request.Method.POST;
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (method, Config.GOOGLE_SESSIONS_URL, params, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            handleGoogleSignInSessionResponse(response);
-                        } catch (JSONException e) {
-                            LOGD(TAG, "Failed to parse json object: ", e);
-                        }
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.GOOGLE_SESSIONS_URL, params,
+                response -> {
+                    try {
+                        handleGoogleSignInSessionResponse(response);
+                    } catch (JSONException e) {
+                        LOGE(TAG, "This should never happen", e);
                     }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        LOGD(TAG, "Failed to create the google sign in session.");
+                }, error -> {
+                    LOGD(TAG, "Failed to create the google sign in session.");
+                    for (OnAuthStateChangedListener listener
+                            : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                        listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null);
                     }
                 });
 
@@ -412,11 +356,15 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         updateChatAccount(accountName, null, createAccount);
         updateAppAccount(accountName, null, authToken, null);
 
-        final Intent intent = new Intent();
-        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, accountName);
-        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, accountType);
-        intent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
-        finishAuthenticatorActivity(intent);
+        Bundle data = new Bundle();
+        data.putString(AccountManager.KEY_ACCOUNT_NAME, accountName);
+        data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
+        data.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+
+        for (OnAuthStateChangedListener listener
+                : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_SUCCEED, data);
+        }
     }
 
     private void updateChatAccount(String accountName, String accountPassword, boolean createAccount) {
@@ -457,9 +405,28 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         }
     }
 
-    private void finishAuthenticatorActivity(Intent resultIntent) {
-        setAccountAuthenticatorResult(resultIntent.getExtras());
-        setResult(RESULT_OK, resultIntent);
+    private void finishAuthenticatorActivity(Bundle result) {
+        setAccountAuthenticatorResult(result);
+        Intent intent = new Intent();
+        intent.putExtras(result);
+        setResult(RESULT_OK, intent);
         finish();
+        enableUi(true);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        LOGI(TAG, "Connected to GoogleApiClient");
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        LOGI(TAG, "Connection suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in onConnectionFailed.
+        LOGI(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 }

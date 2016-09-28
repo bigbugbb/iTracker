@@ -3,8 +3,6 @@ package com.itracker.android.ui.fragment;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.text.Editable;
@@ -29,20 +27,11 @@ import com.itracker.android.utils.AccountUtils;
 import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SignInFragment.OnAccountSignInListener} interface
- * to handle interaction events.
- */
+
 public class SignInFragment extends Fragment implements OnAuthStateChangedListener {
 
     private static final String TAG = makeLogTag(SignInFragment.class);
-
     private static final String KEY_ERROR_MESSAGE = "ERR_MSG";
-
-    private OnAccountSignInListener mListener;
-    private OnSignInSignUpSwitchedListener mSwitchListener;
 
     private Button mSignIn;
     private TextView mNewAccount;
@@ -50,6 +39,8 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     private EditText mPassword;
     private TextInputLayout mEmailInputLayout;
     private TextInputLayout mPasswordInputLayout;
+
+    private OnSignInSignUpSwitchedListener mSwitchListener;
 
     public SignInFragment() {
         // Required empty public constructor
@@ -86,23 +77,17 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         mPassword.addTextChangedListener(new AuthTextWatcher(mPassword));
 
         mSignIn = (Button) view.findViewById(R.id.sign_in);
-        mSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                enableUi(false);
-                if (mListener != null) {
-                    mListener.onAccountStartSignIn();
-                }
-                signIn();
+        mSignIn.setOnClickListener(v -> {
+            for (OnAuthStateChangedListener listener
+                    : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_START, null);
             }
+            signIn();
         });
         mNewAccount = (TextView) view.findViewById(R.id.new_account);
-        mNewAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mSwitchListener != null) {
-                    mSwitchListener.onSwitchToSignUp();
-                }
+        mNewAccount.setOnClickListener(v -> {
+            if (mSwitchListener != null) {
+                mSwitchListener.onSwitchToSignUp();
             }
         });
 
@@ -116,7 +101,6 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnAccountSignInListener) activity;
             mSwitchListener = (OnSignInSignUpSwitchedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnAccountSignInListener");
@@ -126,7 +110,6 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
         mSwitchListener = null;
     }
 
@@ -142,61 +125,67 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         Application.getInstance().removeUIListener(OnAuthStateChangedListener.class, this);
     }
 
-    public void signIn() {
+    @Override
+    public void onAuthStateChanged(AuthState state, Bundle extra) {
+        switch (state) {
+        case REGULAR_AUTH_START:
+        case GOOGLE_AUTH_START:
+            enableUi(false);
+            break;
+        case REGULAR_AUTH_FAIL:
+        case REGULAR_AUTH_SUCCEED:
+        case GOOGLE_AUTH_FAIL:
+        case GOOGLE_AUTH_SUCCEED:
+            enableUi(true);
+            break;
+        }
+    }
+
+    private void signIn() {
         final String email = mEmail.getText().toString().trim();
         final String password = mPassword.getText().toString().trim();
         final String accountType = getActivity().getIntent().getStringExtra(AccountUtils.ARG_ACCOUNT_TYPE);
 
         if (!validateEmail(email) || !validatePassword(password)) {
-            enableUi(true);
-            if (mListener != null) {
-                mListener.onAccountSignInError("Invalid input, please try again");
+            for (OnAuthStateChangedListener listener
+                    : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, null);
             }
             return;
         }
 
-        new AsyncTask<String, Void, Intent>() {
+        Application.getInstance().runInBackground(() -> {
+            LOGD(TAG, "Started authenticating");
+            Bundle data = new Bundle();
+            try {
+                User user = AccountUtils.signInUser(email, password);
 
-            @Override
-            protected Intent doInBackground(String... params) {
-                LOGD(TAG, "Started authenticating");
+                data.putString(AccountManager.KEY_ACCOUNT_NAME, email);
+                data.putString(AuthenticatorActivity.USERNAME, user.username);
+                data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
+                data.putString(AccountManager.KEY_PASSWORD, password);
+                data.putString(AccountManager.KEY_AUTHTOKEN, user.auth_token);
 
-                Bundle data = new Bundle();
-                try {
-                    User user = AccountUtils.signInUser(email, password);
-
-                    data.putString(AccountManager.KEY_ACCOUNT_NAME, email);
-                    data.putString(AuthenticatorActivity.USERNAME, user.username);
-                    data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
-                    data.putString(AccountManager.KEY_PASSWORD, password);
-                    data.putString(AccountManager.KEY_AUTHTOKEN, user.auth_token);
-
-                    Bundle userData = new Bundle();
-                    userData.putString(AccountUtils.USERDATA_USER_ID, user != null ? user.id : null);
-                    data.putBundle(AccountManager.KEY_USERDATA, userData);
-                } catch (Exception e) {
-                    data.putString(KEY_ERROR_MESSAGE, e.getMessage());
-                }
-
-                final Intent intent = new Intent();
-                intent.putExtras(data);
-                return intent;
+                Bundle userData = new Bundle();
+                userData.putString(AccountUtils.USERDATA_USER_ID, user != null ? user.id : null);
+                data.putBundle(AccountManager.KEY_USERDATA, userData);
+            } catch (Exception e) {
+                data.putString(KEY_ERROR_MESSAGE, e.getMessage());
             }
 
-            @Override
-            protected void onPostExecute(Intent intent) {
-                if (intent.hasExtra(KEY_ERROR_MESSAGE)) {
-                    if (mListener != null) {
-                        mListener.onAccountSignInError(intent.getStringExtra(KEY_ERROR_MESSAGE));
-                    }
-                    enableUi(true);
-                } else {
-                    if (mListener != null) {
-                        mListener.onAccountSignInSuccess(intent);
+            Application.getInstance().runOnUiThread(() -> {
+                String errMsg = data.getString(KEY_ERROR_MESSAGE);
+                for (OnAuthStateChangedListener listener
+                        : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                    if (TextUtils.isEmpty(errMsg)) {
+                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_SUCCEED, data);
+                    } else {
+                        LOGD(TAG, errMsg);
+                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, null);
                     }
                 }
-            }
-        }.execute();
+            });
+        });
     }
 
     private void enableUi(boolean enabled) {
@@ -239,11 +228,6 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         }
     }
 
-    @Override
-    public void onAuthStateChanged(AuthState state, Bundle extra) {
-
-    }
-
     private class AuthTextWatcher implements TextWatcher {
 
         private View mView;
@@ -260,29 +244,13 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
 
         public void afterTextChanged(Editable editable) {
             switch (mView.getId()) {
-                case R.id.input_email:
-                    validateEmail(editable.toString().trim());
-                    break;
-                case R.id.input_password:
-                    validatePassword(editable.toString().trim());
-                    break;
+            case R.id.input_email:
+                validateEmail(editable.toString().trim());
+                break;
+            case R.id.input_password:
+                validatePassword(editable.toString().trim());
+                break;
             }
         }
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnAccountSignInListener {
-        void onAccountSignInSuccess(Intent intent);
-        void onAccountSignInError(String message);
-        void onAccountStartSignIn();
     }
 }
