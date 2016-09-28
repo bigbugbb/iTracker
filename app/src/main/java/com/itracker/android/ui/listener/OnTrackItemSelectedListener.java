@@ -2,9 +2,8 @@ package com.itracker.android.ui.listener;
 
 import android.view.View;
 
-/**
- * Created by bbo on 1/21/16.
- */
-public interface OnTrackItemSelectedListener {
+import com.itracker.android.data.BaseUIListener;
+
+public interface OnTrackItemSelectedListener extends BaseUIListener {
     void onTrackItemSelected(View itemView, int position);
 }

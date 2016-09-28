@@ -149,32 +149,29 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
 
         final Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), R.style.Theme);
         LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
-        View view = localInflater.inflate(R.layout.fragment_chat_viewer, container, false);
+        View root = localInflater.inflate(R.layout.fragment_chat_viewer, container, false);
 
-        mContactTitleView = view.findViewById(R.id.contact_title);
+        mContactTitleView = root.findViewById(R.id.contact_title);
 
         mAbstractContact = RosterManager.getInstance().getBestContact(mAccount, mUser);
 
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) root.findViewById(R.id.toolbar);
         mToolbar.inflateMenu(R.menu.menu_chat);
         mToolbar.setOnMenuItemClickListener(this);
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
-        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavUtils.navigateUpFromSameTask(getActivity());
-                getActivity().overridePendingTransition(R.anim.slide_in_reverse, R.anim.slide_out_reverse);
-            }
+        mToolbar.setNavigationOnClickListener(v -> {
+            NavUtils.navigateUpFromSameTask(getActivity());
+            getActivity().overridePendingTransition(R.anim.slide_in_reverse, R.anim.slide_out_reverse);
         });
 
         setHasOptionsMenu(true);
 
-        mSendButton = (ImageButton) view.findViewById(R.id.button_send_message);
+        mSendButton = (ImageButton) root.findViewById(R.id.button_send_message);
         mSendButton.setColorFilter(ColorManager.getInstance().getAccountPainter().getGreyMain());
 
         mChatMessageAdapter = new ChatMessageAdapter(getActivity(), mAccount, mUser, this, this);
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.chat_messages_recycler_view);
+        mRecyclerView = (RecyclerView) root.findViewById(R.id.chat_messages_recycler_view);
         mRecyclerView.setAdapter(mChatMessageAdapter);
 
         mLayoutManager = new LinearLayoutManager(getActivity());
@@ -182,31 +179,20 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // to avoid strange bug on some 4.x androids
-        view.findViewById(R.id.input_layout).setBackgroundColor(ColorManager.getInstance().getChatInputBackgroundColor());
+        root.findViewById(R.id.input_layout).setBackgroundColor(ColorManager.getInstance().getChatInputBackgroundColor());
 
-        mInputView = (EditText) view.findViewById(R.id.chat_input);
+        mInputView = (EditText) root.findViewById(R.id.chat_input);
 
-        view.findViewById(R.id.button_send_message).setOnClickListener(
-                new View.OnClickListener() {
+        root.findViewById(R.id.button_send_message).setOnClickListener(v -> sendMessage());
 
-                    @Override
-                    public void onClick(View v) {
-                        sendMessage();
-                    }
-
-                });
-
-        mInputView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int keyCode, KeyEvent event) {
-                if (SettingsManager.chatsSendByEnter()
-                        && event.getAction() == KeyEvent.ACTION_DOWN
-                        && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    sendMessage();
-                    return true;
-                }
-                return false;
+        mInputView.setOnKeyListener((view, keyCode, event) -> {
+            if (SettingsManager.chatsSendByEnter()
+                    && event.getAction() == KeyEvent.ACTION_DOWN
+                    && keyCode == KeyEvent.KEYCODE_ENTER) {
+                sendMessage();
+                return true;
             }
+            return false;
         });
 
         mInputView.addTextChangedListener(new TextWatcher() {
@@ -250,8 +236,8 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         });
 
 
-        final ImageButton mEmojiButton = (ImageButton) view.findViewById(R.id.button_emoticon);
-        final View rootView = view.findViewById(R.id.root_view);
+        final ImageButton mEmojiButton = (ImageButton) root.findViewById(R.id.button_emoticon);
+        final View rootView = root.findViewById(R.id.root_view);
 
 
         // Give the topmost view of your activity layout hierarchy. This will be used to measure soft keyboard height
@@ -261,13 +247,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         mPopup.setSizeForSoftKeyboard();
 
         // If the emoji popup is dismissed, change emojiButton to smiley icon
-        mPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
-
-            @Override
-            public void onDismiss() {
-                changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_mood_black_32dp);
-            }
-        });
+        mPopup.setOnDismissListener(() -> changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_mood_black_32dp));
 
         // If the text keyboard closes, also dismiss the emoji popup
         mPopup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener() {
@@ -285,82 +265,66 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         });
 
         // On emoji clicked, add it to edittext
-        mPopup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
+        mPopup.setOnEmojiconClickedListener(emojicon -> {
+            if (mInputView == null || emojicon == null) {
+                return;
+            }
 
-            @Override
-            public void onEmojiconClicked(Emojicon emojicon) {
-                if (mInputView == null || emojicon == null) {
-                    return;
-                }
-
-                int start = mInputView.getSelectionStart();
-                int end = mInputView.getSelectionEnd();
-                if (start < 0) {
-                    mInputView.append(emojicon.getEmoji());
-                } else {
-                    mInputView.getText().replace(Math.min(start, end),
-                            Math.max(start, end), emojicon.getEmoji(), 0,
-                            emojicon.getEmoji().length());
-                }
+            int start = mInputView.getSelectionStart();
+            int end = mInputView.getSelectionEnd();
+            if (start < 0) {
+                mInputView.append(emojicon.getEmoji());
+            } else {
+                mInputView.getText().replace(Math.min(start, end),
+                        Math.max(start, end), emojicon.getEmoji(), 0,
+                        emojicon.getEmoji().length());
             }
         });
 
         // On backspace clicked, emulate the KEYCODE_DEL key event
-        mPopup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener() {
-
-            @Override
-            public void onEmojiconBackspaceClicked(View v) {
-                KeyEvent event = new KeyEvent(
-                        0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
-                mInputView.dispatchKeyEvent(event);
-            }
+        mPopup.setOnEmojiconBackspaceClickedListener(v -> {
+            KeyEvent event = new KeyEvent(
+                    0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
+            mInputView.dispatchKeyEvent(event);
         });
 
         // To toggle between text keyboard and emoji keyboard (Popup)
-        mEmojiButton.setOnClickListener(new View.OnClickListener() {
+        mEmojiButton.setOnClickListener(v -> {
 
-            @Override
-            public void onClick(View v) {
+            // If popup is not showing => emoji keyboard is not visible, we need to show it
+            if (!mPopup.isShowing()) {
 
-                // If popup is not showing => emoji keyboard is not visible, we need to show it
-                if (!mPopup.isShowing()) {
-
-                    // If keyboard is visible, simply show the emoji popup
-                    if (mPopup.isKeyBoardOpen()) {
-                        mPopup.showAtBottom();
-                        changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_keyboard_black_32dp);
-                    }
-
-                    // else, open the text keyboard first and immediately after that show the emoji popup
-                    else {
-                        mInputView.setFocusableInTouchMode(true);
-                        mInputView.requestFocus();
-                        mPopup.showAtBottomPending();
-                        final InputMethodManager inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                        inputMethodManager.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
-                        changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_keyboard_black_32dp);
-                    }
+                // If keyboard is visible, simply show the emoji popup
+                if (mPopup.isKeyBoardOpen()) {
+                    mPopup.showAtBottom();
+                    changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_keyboard_black_32dp);
                 }
 
-                // If popup is showing, simply dismiss it to show the undelying text keyboard
+                // else, open the text keyboard first and immediately after that show the emoji popup
                 else {
-                    mPopup.dismiss();
+                    mInputView.setFocusableInTouchMode(true);
+                    mInputView.requestFocus();
+                    mPopup.showAtBottomPending();
+                    final InputMethodManager inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
+                    changeEmojiKeyboardIcon(mEmojiButton, R.drawable.ic_keyboard_black_32dp);
                 }
+            }
+
+            // If popup is showing, simply dismiss it to show the undelying text keyboard
+            else {
+                mPopup.dismiss();
             }
         });
 
-        mAttachButton = (ImageButton) view.findViewById(R.id.button_attach);
-        mAttachButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (PermissionsRequester.requestFileReadPermissionIfNeeded(ChatViewerFragment.this, PERMISSIONS_REQUEST_ATTACH_FILE)) {
-                    startFileSelection();
-                }
-
+        mAttachButton = (ImageButton) root.findViewById(R.id.button_attach);
+        mAttachButton.setOnClickListener(v -> {
+            if (PermissionsRequester.requestFileReadPermissionIfNeeded(ChatViewerFragment.this, PERMISSIONS_REQUEST_ATTACH_FILE)) {
+                startFileSelection();
             }
         });
 
-        return view;
+        return root;
     }
 
     private void startFileSelection() {
@@ -792,26 +756,15 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
     }
 
     private void saveFileToDownloads() {
-        Application.getInstance().runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    FileManager.saveFileToDownloads(mClickedMessageItem.getFile());
-                    Application.getInstance().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getActivity(), R.string.file_saved_successfully, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Application.getInstance().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getActivity(), R.string.could_not_save_file, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+        Application.getInstance().runInBackground(() -> {
+            try {
+                FileManager.saveFileToDownloads(mClickedMessageItem.getFile());
+                Application.getInstance().runOnUiThread(() ->
+                        Toast.makeText(getActivity(), R.string.file_saved_successfully, Toast.LENGTH_SHORT).show());
+            } catch (IOException e) {
+                e.printStackTrace();
+                Application.getInstance().runOnUiThread(() ->
+                        Toast.makeText(getActivity(), R.string.could_not_save_file, Toast.LENGTH_SHORT).show());
             }
         });
     }

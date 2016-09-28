@@ -2,32 +2,27 @@ package com.itracker.android.ui.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.Track;
 import com.itracker.android.ui.listener.OnTrackItemSelectedListener;
 
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class TrackItemAdapter extends BaseAbstractRecyclerCursorAdapter<TrackItemAdapter.ViewHolder> {
     private Context mContext;
-    private List<OnTrackItemSelectedListener> mListeners = new ArrayList<>();
 
     public TrackItemAdapter(Context context) {
         super(context, null);
         mContext = context;
-    }
-
-    public void addOnItemSelectedListener(OnTrackItemSelectedListener listener) {
-        mListeners.add(listener);
     }
 
     @Override
@@ -48,7 +43,8 @@ public class TrackItemAdapter extends BaseAbstractRecyclerCursorAdapter<TrackIte
         holder.bindData(track);
 
         if (cursor.isFirst()) {
-            for (OnTrackItemSelectedListener listener : mListeners) {
+            for (OnTrackItemSelectedListener listener :
+                    Application.getInstance().getUIListeners(OnTrackItemSelectedListener.class)) {
                 listener.onTrackItemSelected(holder.itemView, holder.getLayoutPosition());
             }
         }
@@ -73,12 +69,10 @@ public class TrackItemAdapter extends BaseAbstractRecyclerCursorAdapter<TrackIte
 
         ViewHolder(final View view) {
             super(view);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    for (OnTrackItemSelectedListener listener : mListeners) {
-                        listener.onTrackItemSelected(view, getLayoutPosition());
-                    }
+            view.setOnClickListener(v -> {
+                for (OnTrackItemSelectedListener listener :
+                        Application.getInstance().getUIListeners(OnTrackItemSelectedListener.class)) {
+                    listener.onTrackItemSelected(view, getLayoutPosition());
                 }
             });
             mDate = (TextView) view.findViewById(R.id.track_date);

@@ -74,12 +74,7 @@ public class ContactListFragment extends TrackerFragment implements
         LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
         ViewGroup contactsViewHeader = (ViewGroup) localInflater.inflate(R.layout.header_contact_list, mContactsView, false);
         mContactsView.addHeaderView(contactsViewHeader, null, false);
-        contactsViewHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(ContactAddActivity.createIntent(getActivity()));
-            }
-        });
+        contactsViewHeader.setOnClickListener(v -> startActivity(ContactAddActivity.createIntent(getActivity())));
 
         ImageView imageAddContacts = (ImageView) contactsViewHeader.findViewById(R.id.image_add_contacts);
         imageAddContacts.setColorFilter(ContextCompat.getColor(getActivity(), R.color.orange_500), PorterDuff.Mode.SRC_OUT);

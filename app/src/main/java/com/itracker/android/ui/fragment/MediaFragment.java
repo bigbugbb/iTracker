@@ -68,6 +68,7 @@ import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.ui.adapter.MediaAdapter;
 import com.itracker.android.ui.listener.MediaPlaybackDelegate;
 import com.itracker.android.ui.listener.OnMediaSelectModeChangedListener;
+import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ThrottledContentObserver;
 
@@ -139,13 +140,10 @@ public class MediaFragment extends TrackerFragment implements
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        // Should be triggered after we taking a new photo
-        mVideosObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (videos). Content changed.");
-                // do nothing here
-            }
+        // Should be triggered after we taking a new videos
+        mVideosObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (videos). Content changed.");
+            // do nothing here
         });
         activity.getContentResolver().registerContentObserver(TrackerContract.Videos.CONTENT_URI, true, mVideosObserver);
 
@@ -225,12 +223,9 @@ public class MediaFragment extends TrackerFragment implements
 
         mMediaSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.media_swipe_refresh);
         mMediaSwipeRefresh.setColorSchemeResources(R.color.colorAccent);
-        mMediaSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mLoading = true;
-                reloadYouTubeMedia(true);
-            }
+        mMediaSwipeRefresh.setOnRefreshListener(() -> {
+            mLoading = true;
+            reloadYouTubeMedia(true);
         });
 
         mProgressView = (ProgressBar) view.findViewById(R.id.progress_view);
@@ -360,18 +355,18 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     @Override
-    public void onFragmentSelected() {
-        super.onFragmentSelected();
+    public void onSelected() {
         if (isAdded()) {
-            if (mGoogleApiClient != null && !mGoogleApiClient.isConnecting()) {
-                mGoogleApiClient.connect();
+            if (mGoogleApiClient != null) {
+                if (!mGoogleApiClient.isConnected() && !mGoogleApiClient.isConnecting()) {
+                    mGoogleApiClient.connect();
+                }
             }
         }
     }
 
     @Override
-    public void onFragmentUnselected() {
-        super.onFragmentUnselected();
+    public void onUnselected() {
         if (isAdded()) {
             if (mGoogleApiClient != null) {
                 mGoogleApiClient.disconnect();
@@ -425,6 +420,7 @@ public class MediaFragment extends TrackerFragment implements
         }
 
         new AsyncTask<Void, Void, List<Video>>() {
+
             @Override
             protected List<Video> doInBackground(Void... voids) {
                 if (!isAdded()) {
@@ -520,6 +516,7 @@ public class MediaFragment extends TrackerFragment implements
                     mMediaSwipeRefresh.setRefreshing(false);
                 }
             }
+
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -614,7 +611,7 @@ public class MediaFragment extends TrackerFragment implements
                 break;
             case TrackerActivity.REQUEST_AUTHORIZATION:
                 if (resultCode != Activity.RESULT_OK) {
-                    chooseAccount();
+                    startActivityForResult(mCredential.newChooseAccountIntent(), TrackerActivity.REQUEST_ACCOUNT_PICKER);
                 }
                 break;
             case TrackerActivity.REQUEST_ACCOUNT_PICKER:
@@ -650,17 +647,11 @@ public class MediaFragment extends TrackerFragment implements
     }
 
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
-        getActivity().runOnUiThread(new Runnable() {
-            public void run() {
-                Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
-                        connectionStatusCode, getActivity(), TrackerActivity.REQUEST_GOOGLE_PLAY_SERVICES);
-                dialog.show();
-            }
+        Application.getInstance().runOnUiThread(() -> {
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
+                    connectionStatusCode, getActivity(), TrackerActivity.REQUEST_GOOGLE_PLAY_SERVICES);
+            dialog.show();
         });
-    }
-
-    private void chooseAccount() {
-        startActivityForResult(mCredential.newChooseAccountIntent(), TrackerActivity.REQUEST_ACCOUNT_PICKER);
     }
 
     public void recordVideo(View view) {

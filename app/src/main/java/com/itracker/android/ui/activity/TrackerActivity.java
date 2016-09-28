@@ -27,6 +27,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
 import com.itracker.android.ui.fragment.ActionFragment;
@@ -34,7 +35,9 @@ import com.itracker.android.ui.fragment.FriendFragment;
 import com.itracker.android.ui.fragment.MediaFragment;
 import com.itracker.android.ui.fragment.PhotoFragment;
 import com.itracker.android.ui.fragment.TrackerFragment;
+import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.utils.LogUtils;
+import com.itracker.android.utils.PrefUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -59,8 +62,6 @@ public class TrackerActivity extends SingleActivity implements
     private Handler mHandler = new Handler();
 
     private boolean mReadyToFinish;
-
-    private final static String SELECTED_TAB = "selected_tab";
 
     final int[] TAB_NAMES = new int[] {
             R.string.tab_name_action,
@@ -126,10 +127,6 @@ public class TrackerActivity extends SingleActivity implements
         // Build the binding between view pager and tab layout.
         mTabLayout.setOnTabSelectedListener(this);
         mViewPager.addOnPageChangeListener(new TrackerOnPageChangeListener(mTabLayout));
-
-        if (savedInstanceState != null) {
-            mViewPager.setCurrentItem(savedInstanceState.getInt(SELECTED_TAB));
-        }
     }
 
     @Override
@@ -141,17 +138,14 @@ public class TrackerActivity extends SingleActivity implements
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
         // Sync the toggle state after onRestoreInstanceState has occurred.
         mDrawerToggle.syncState();
-
-        int position = mViewPager.getCurrentItem();
-        mTabLayout.getTabAt(position).select(); // Switch to the current fragment
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mViewPager.setCurrentItem(PrefUtils.getLastSelectedTab(this));
     }
 
     @Override
@@ -167,17 +161,12 @@ public class TrackerActivity extends SingleActivity implements
     @Override
     protected void onStop() {
         super.onStop();
+        PrefUtils.setLastSelectedTab(this, mViewPager.getCurrentItem());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(SELECTED_TAB, mViewPager.getCurrentItem());
     }
 
     @Override
@@ -219,25 +208,6 @@ public class TrackerActivity extends SingleActivity implements
     }
 
     /**
-     * This is the same as {@link #onSaveInstanceState} but is called for activities
-     * created with the attribute {@link android.R.attr#persistableMode} set to
-     * <code>persistAcrossReboots</code>. The {@link PersistableBundle} passed
-     * in will be saved and presented in {@link #onCreate(Bundle, PersistableBundle)}
-     * the first time that this activity is restarted following the next device reboot.
-     *
-     * @param outState           Bundle in which to place your saved state.
-     * @param outPersistentState State which will be saved across reboots.
-     * @see #onSaveInstanceState(Bundle)
-     * @see #onCreate
-     * @see #onRestoreInstanceState(Bundle, PersistableBundle)
-     * @see #onPause
-     */
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-    }
-
-    /**
      * Take care of popping the fragment back stack or finishing the activity
      * as appropriate.
      */
@@ -248,16 +218,7 @@ public class TrackerActivity extends SingleActivity implements
             return;
         } else if (!mReadyToFinish) {
             mReadyToFinish = true;
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mReadyToFinish = false;
-                }
-            }, 2000);
-
-//            Snackbar.make(findViewById(android.R.id.content), "Press again to quit", Snackbar.LENGTH_LONG)
-//                    .setActionTextColor(Color.BLACK)
-//                    .show();
+            mHandler.postDelayed(() -> mReadyToFinish = false, 2000);
             Toast.makeText(this, getString(R.string.back_pressed_prompt), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -313,8 +274,8 @@ public class TrackerActivity extends SingleActivity implements
     public void onTabUnselected(TabLayout.Tab tab) {
         LOGD(TAG, String.format("tab %d is unselected", tab.getPosition()));
         ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
-        TrackerFragment fragment = (TrackerFragment) adapter.getItem(tab.getPosition());
-        fragment.onFragmentUnselected();
+        OnSelectedStateChangedListener listener = (OnSelectedStateChangedListener) adapter.getItem(tab.getPosition());
+        listener.onUnselected();
     }
 
     /**
@@ -363,8 +324,8 @@ public class TrackerActivity extends SingleActivity implements
         }
 
         ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
-        TrackerFragment fragment = (TrackerFragment) adapter.getItem(tab.getPosition());
-        fragment.onFragmentSelected();
+        OnSelectedStateChangedListener listener = (OnSelectedStateChangedListener) adapter.getItem(tab.getPosition());
+        listener.onSelected();
     }
 
     private static class TrackerOnPageChangeListener extends SimpleOnPageChangeListener {

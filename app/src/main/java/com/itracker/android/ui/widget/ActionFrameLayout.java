@@ -23,6 +23,7 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.Track;
 import com.itracker.android.ui.adapter.TrackItemAdapter;
@@ -36,7 +37,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
 /**
  * Created by bbo on 1/15/16.
  */
-public class ActionFrameLayout extends FrameLayout {
+public class ActionFrameLayout extends FrameLayout implements OnTrackItemSelectedListener {
 
     private static final String TAG = makeLogTag(ActionFrameLayout.class);
 
@@ -46,7 +47,7 @@ public class ActionFrameLayout extends FrameLayout {
     private TimelinesView mTimelinesView;
     private MotionsView   mMotionsView;
     private FrameLayout   mSTContainer;
-    private TextView      mShowTimelines;
+    private TextView      mShowTimeline;
     private TextView      mDatePopupView;
     private ProgressBar   mLoadingProgress;
 
@@ -89,37 +90,30 @@ public class ActionFrameLayout extends FrameLayout {
         mFootprintFabClickedListener = listener;
     }
 
-    private OnTrackItemSelectedListener mOnTrackItemSelectedListener = new OnTrackItemSelectedListener() {
-        @Override
-        public void onTrackItemSelected(View itemView, int position) {
-            TrackItemAdapter adapter = (TrackItemAdapter) mTracksView.getAdapter();
-            Track selectedTrack = adapter.getItem(position);
-            DateTime dateTime = new DateTime(selectedTrack.date);
-            String date = new StringBuilder()
-                    .append(dateTime.year().getAsText())
-                    .append(", ")
-                    .append(dateTime.monthOfYear().getAsText())
-                    .append(" ")
-                    .append(dateTime.dayOfMonth().getAsText())
-                    .append(", ")
-                    .append(dateTime.dayOfWeek().getAsShortText())
-                    .toString();
-            SpannableString text = new SpannableString(date);
-            text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
+    @Override
+    public void onTrackItemSelected(View itemView, int position) {
+        TrackItemAdapter adapter = (TrackItemAdapter) mTracksView.getAdapter();
+        Track selectedTrack = adapter.getItem(position);
+        DateTime dateTime = new DateTime(selectedTrack.date);
+        String date = new StringBuilder()
+                .append(dateTime.year().getAsText())
+                .append(", ")
+                .append(dateTime.monthOfYear().getAsText())
+                .append(" ")
+                .append(dateTime.dayOfMonth().getAsText())
+                .append(", ")
+                .append(dateTime.dayOfWeek().getAsShortText())
+                .toString();
+        SpannableString text = new SpannableString(date);
+        text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), 0);
 
-            if (mDatePopupView.getText().equals(text)) {
-                showDateViewWithAnimation();
-            } else {
-                mDatePopupView.setText(text);
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        showDateViewWithAnimation();
-                    }
-                }, 50);
-            }
+        if (mDatePopupView.getText().equals(text)) {
+            showDateViewWithAnimation();
+        } else {
+            mDatePopupView.setText(text);
+            postDelayed(() -> showDateViewWithAnimation(), 50);
         }
-    };
+    }
 
     @Override
     protected void onAttachedToWindow() {
@@ -129,28 +123,17 @@ public class ActionFrameLayout extends FrameLayout {
         mTimelinesView = (TimelinesView) findViewById(R.id.activities_view);
         mMotionsView   = (MotionsView) findViewById(R.id.motions_view);
         mSTContainer   = (FrameLayout) findViewById(R.id.show_timeline_container);
-        mShowTimelines = (TextView) findViewById(R.id.show_timeline);
+        mShowTimeline  = (TextView) findViewById(R.id.show_timeline);
         mDatePopupView = (TextView) findViewById(R.id.date_popup_view);
         mTimelinesFab  = (FloatingActionButton) findViewById(R.id.fab_timeline);
         mFootprintFab  = (FloatingActionButton) findViewById(R.id.fab_footprint);
         mLoadingProgress = (ProgressBar) findViewById(R.id.motions_loading_progress);
 
-        TrackItemAdapter adapter = (TrackItemAdapter) mTracksView.getAdapter();
-        adapter.addOnItemSelectedListener(mOnTrackItemSelectedListener);
+        mShowTimeline.setOnClickListener(v -> showOrHideTimelinesWithAnimation());
 
-        mShowTimelines.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showOrHideTimelinesWithAnimation();
-            }
-        });
-
-        mFootprintFab.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mFootprintFabClickedListener != null) {
-                    mFootprintFabClickedListener.onFootprintFabClicked();
-                }
+        mFootprintFab.setOnClickListener(v -> {
+            if (mFootprintFabClickedListener != null) {
+                mFootprintFabClickedListener.onFootprintFabClicked();
             }
         });
 
@@ -160,7 +143,7 @@ public class ActionFrameLayout extends FrameLayout {
                 Rect hitRect = new Rect();
                 mMotionsView.getGlobalVisibleRect(hitRect);
                 if (hitRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
-                    mFootprintFab.removeCallbacks(mShowFootprintFab);
+                    mFootprintFab.removeCallbacks(() -> mFootprintFab.show());
                     mFootprintFab.hide();
                     showDateViewWithAnimation();
                 }
@@ -181,6 +164,8 @@ public class ActionFrameLayout extends FrameLayout {
                 return false;
             }
         });
+
+        Application.getInstance().addUIListener(OnTrackItemSelectedListener.class, this);
     }
 
     private void showOrHideTimelinesWithAnimation() {
@@ -262,7 +247,7 @@ public class ActionFrameLayout extends FrameLayout {
         ObjectAnimator animTimelinesFab = ObjectAnimator.ofFloat(mTimelinesFab, "y", timelinesFabTranslationY)
                 .setDuration(TIMELINE_FAB_DOWN_ANIM_TIME);
 
-        mShowTimelines.setText(getContext().getString(R.string.hide_timeline));
+        mShowTimeline.setText(getContext().getString(R.string.hide_timeline));
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -280,7 +265,7 @@ public class ActionFrameLayout extends FrameLayout {
         ObjectAnimator animTimelinesFab = ObjectAnimator.ofFloat(mTimelinesFab, "y", timelinesFabTranslationY)
                 .setDuration(TIMELINE_FAB_UP_ANIM_TIME);
 
-        mShowTimelines.setText(getContext().getString(R.string.show_timeline));
+        mShowTimeline.setText(getContext().getString(R.string.show_timeline));
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -292,8 +277,9 @@ public class ActionFrameLayout extends FrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mFootprintFab.removeCallbacks(mShowFootprintFab);  // Remove all message in the message queue to prevent memory leak
+        mFootprintFab.removeCallbacks(() -> mFootprintFab.show());  // Remove all message in the message queue to prevent memory leak
         mDatePopupView.removeCallbacks(null);
+        Application.getInstance().removeUIListener(OnTrackItemSelectedListener.class, this);
     }
 
     @Override
@@ -308,7 +294,7 @@ public class ActionFrameLayout extends FrameLayout {
             return true;
         } else {
             if (MotionEventCompat.getActionMasked(ev) == MotionEvent.ACTION_UP) {
-                mFootprintFab.postDelayed(mShowFootprintFab, FOOTPRINT_FAB_SHOW_DELAY);
+                mFootprintFab.postDelayed(() -> mFootprintFab.show(), FOOTPRINT_FAB_SHOW_DELAY);
                 mDragging = false;
             }
         }
@@ -401,13 +387,6 @@ public class ActionFrameLayout extends FrameLayout {
                 (parentWidth + mDatePopupView.getWidth()) / 2,
                 0);
     }
-
-    private Runnable mShowFootprintFab = new Runnable() {
-        @Override
-        public void run() {
-            mFootprintFab.show();
-        }
-    };
 
     private int dpToPx(int dps) {
         return Math.round(getResources().getDisplayMetrics().density * dps);

@@ -26,6 +26,8 @@ public class PrefUtils {
      */
     public static final String PREF_DATA_BOOTSTRAP_DONE = "_pref_data_bootstrap_done";
 
+    public static final String PREF_LAST_SELECTED_TAB = "_pref_last_selected_tab";
+
     /** Long indicating when a sync was last ATTEMPTED (not necessarily succeeded) */
     public static final String PREF_LAST_SYNC_ATTEMPTED = "_pref_last_sync_attempted";
 
@@ -64,6 +66,16 @@ public class PrefUtils {
     public static boolean isFirstUsage(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getBoolean(PREF_FIRST_USAGE, true);
+    }
+
+    public static int getLastSelectedTab(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getInt(PREF_LAST_SELECTED_TAB, 0);
+    }
+
+    public static void setLastSelectedTab(final Context context, int tab) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putInt(PREF_LAST_SELECTED_TAB, tab).apply();
     }
 
     public static long getLastSyncAttemptedTime(final Context context) {

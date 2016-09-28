@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -16,7 +17,7 @@ import android.view.View;
 
 import com.itracker.android.data.model.Track;
 import com.itracker.android.provider.TrackerContract;
-import com.itracker.android.ui.activity.TrackerActivity;
+import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
@@ -26,15 +27,13 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
  * It defines the common communication between each fragment and the TrackerActivity.
  */
 public abstract class TrackerFragment extends Fragment
-        implements LoaderCallbacks<Cursor>, View.OnKeyListener {
+        implements LoaderCallbacks<Cursor>, OnSelectedStateChangedListener, View.OnKeyListener {
     protected static final String TAG = makeLogTag(TrackerFragment.class);
 
     public static final String SELECTED_TRACK = "selected_track";
     public static final String BEGIN_DATE = "begin_date";
     public static final String END_DATE = "end_date";
     public static final String VIDEO_TITLE = "video_title";
-
-    protected boolean mSelected;
 
     protected int mPosition;
 
@@ -43,6 +42,16 @@ public abstract class TrackerFragment extends Fragment
 
     public TrackerFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     @Override
@@ -57,18 +66,12 @@ public abstract class TrackerFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
         view.setFocusableInTouchMode(true);
         view.requestFocus();
-        view.setOnKeyListener(this);
-    }
-
-    @Override
-    public boolean onKey(View v, int keyCode, KeyEvent event) {
-        return false;
+        view.setOnKeyListener((View v, int keyCode, KeyEvent event) -> false);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-//        updateSelected();
     }
 
     @Override
@@ -77,12 +80,17 @@ public abstract class TrackerFragment extends Fragment
         mHandler.removeCallbacksAndMessages(null);
     }
 
-    public void onFragmentSelected() {
-        mSelected = true;
+    @Override
+    public void onSelected() {
     }
 
-    public void onFragmentUnselected() {
-        mSelected = false;
+    @Override
+    public void onUnselected() {
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return false;
     }
 
     public static void reloadTracks(LoaderManager loaderManager, long beginTime, long endTime, LoaderCallbacks callbacks) {
@@ -129,14 +137,6 @@ public abstract class TrackerFragment extends Fragment
 
     public static void reloadMediaDownloads(LoaderManager loaderManager, LoaderCallbacks callbacks) {
         loaderManager.restartLoader(MediaDownloadsQuery.TOKEN_NORMAL, null, callbacks);
-    }
-
-    protected void updateSelected() {
-        Activity activity = getActivity();
-        if (activity instanceof TrackerActivity) {
-            TrackerActivity trackerActivity = (TrackerActivity) activity;
-            mSelected = trackerActivity.getSelectedTab() == mPosition;
-        }
     }
 
     @Override

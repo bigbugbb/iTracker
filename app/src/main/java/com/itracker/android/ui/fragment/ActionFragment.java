@@ -24,6 +24,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.Motion;
 import com.itracker.android.data.model.Track;
@@ -41,8 +42,7 @@ import com.itracker.android.utils.ThrottledContentObserver;
 import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
-public class ActionFragment extends TrackerFragment implements
-        OnTrackItemSelectedListener {
+public class ActionFragment extends TrackerFragment implements OnTrackItemSelectedListener {
 
     private static final String TAG = makeLogTag(ActionFragment.class);
 
@@ -74,43 +74,34 @@ public class ActionFragment extends TrackerFragment implements
 
         mTimeRangeController = new TimeRangeController(this);
 
-        mTracksObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (tracks). Content changed.");
-                if (isAdded()) {
-                    LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
-                    long beginTime = mTimeRangeController.getBeginDate().getMillis();
-                    long endtime = mTimeRangeController.getEndDate().getMillis();
-                    reloadTracks(getLoaderManager(), beginTime, endtime, ActionFragment.this);
-                }
+        mTracksObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (tracks). Content changed.");
+            if (isAdded()) {
+                LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
+                long beginTime = mTimeRangeController.getBeginDate().getMillis();
+                long endtime = mTimeRangeController.getEndDate().getMillis();
+                reloadTracks(getLoaderManager(), beginTime, endtime, ActionFragment.this);
             }
         });
         activity.getContentResolver().registerContentObserver(TrackerContract.Tracks.CONTENT_URI, true, mTracksObserver);
 
-        mMotionsObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (motions). Content changed.");
-                if (isAdded()) {
-                    if (mSelectedTrack != null) {
-                        LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
-                        reloadMotions(getLoaderManager(), mSelectedTrack, ActionFragment.this);
-                    }
+        mMotionsObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (motions). Content changed.");
+            if (isAdded()) {
+                if (mSelectedTrack != null) {
+                    LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
+                    reloadMotions(getLoaderManager(), mSelectedTrack, ActionFragment.this);
                 }
             }
         });
         activity.getContentResolver().registerContentObserver(TrackerContract.Motions.CONTENT_URI, true, mMotionsObserver);
 
-        mActivitiesObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (activities). Content changed.");
-                if (isAdded()) {
-                    if (mSelectedTrack != null) {
-                        LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
-                        reloadActivities(getLoaderManager(), mSelectedTrack, ActionFragment.this);
-                    }
+        mActivitiesObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (activities). Content changed.");
+            if (isAdded()) {
+                if (mSelectedTrack != null) {
+                    LOGD(TAG, "Requesting motions cursor reload as a result of ContentObserver firing.");
+                    reloadActivities(getLoaderManager(), mSelectedTrack, ActionFragment.this);
                 }
             }
         });
@@ -146,45 +137,32 @@ public class ActionFragment extends TrackerFragment implements
         mLoadingView   = (ProgressBar) layout.findViewById(R.id.motions_loading_progress);
         mShowTimelinesView = (TextView) layout.findViewById(R.id.show_timeline);
 
-        layout.setOnFootprintFabClickedListener(new ActionFrameLayout.OnFootprintFabClickedListener() {
-            @Override
-            public void onFootprintFabClicked() {
-                Intent intent = new Intent(getActivity(), FootprintActivity.class);
-                intent.putExtra(SELECTED_TRACK, mSelectedTrack);
-                startActivity(intent);
-            }
+        layout.setOnFootprintFabClickedListener(() -> {
+            Intent intent = new Intent(getActivity(), FootprintActivity.class);
+            intent.putExtra(SELECTED_TRACK, mSelectedTrack);
+            startActivity(intent);
         });
 
         mTrackItemAdapter = new TrackItemAdapter(getActivity());
-        mTrackItemAdapter.addOnItemSelectedListener(this);
-
         mTracksView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         mTracksView.setItemAnimator(new DefaultItemAnimator());
         mTracksView.setAdapter(mTrackItemAdapter);
 
         ListView listView = mTimelinesView.getListView();
         listView.setAdapter(new TimelinesView.TimelineItemAdapter(getActivity()));
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                TimelinesView.TimelineItemAdapter adapter = (TimelinesView.TimelineItemAdapter) parent.getAdapter();
-                adapter.selectItem(position);
+        listView.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id) -> {
+            TimelinesView.TimelineItemAdapter adapter = (TimelinesView.TimelineItemAdapter) parent.getAdapter();
+            adapter.selectItem(position);
 
-                for (int i = 0; i < parent.getChildCount(); ++i) {
-                    TimelineItem item = (TimelineItem) parent.getChildAt(i);
-                    item.setTimelineDrawable(item == view);
-                }
+            for (int i = 0; i < parent.getChildCount(); ++i) {
+                TimelineItem item = (TimelineItem) parent.getChildAt(i);
+                item.setTimelineDrawable(item == view);
+            }
 
-                TimelineItem.Timeline timeline = adapter.getItem(position);
-                mMotionsView.moveViewport(timeline.getStartTime(), timeline.getStopTime());
-            }
+            TimelineItem.Timeline timeline = adapter.getItem(position);
+            mMotionsView.moveViewport(timeline.getStartTime(), timeline.getStopTime());
         });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                return false;
-            }
-        });
+        listView.setOnItemLongClickListener((AdapterView<?> parent, View view, int position, long id) -> false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mShowTimelinesView.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ripple_effect));
@@ -248,6 +226,7 @@ public class ActionFragment extends TrackerFragment implements
     public void onStart() {
         super.onStart();
         mTimeRangeController.updateTimeRange();
+        Application.getInstance().addUIListener(OnTrackItemSelectedListener.class, this);
     }
 
     @Override
@@ -269,18 +248,14 @@ public class ActionFragment extends TrackerFragment implements
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        Application.getInstance().removeUIListener(OnTrackItemSelectedListener.class, this);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-    @Override
-    public void onFragmentSelected() {
-        super.onFragmentSelected();
-    }
-
-    @Override
-    public void onFragmentUnselected() {
-        super.onFragmentUnselected();
     }
 
     @Override
@@ -304,12 +279,7 @@ public class ActionFragment extends TrackerFragment implements
             }
             case MotionsQuery.TOKEN_NORMAL: {
                 Motion[] motions = Motion.motionsFromCursor(data);
-                mMotionsView.updateMotions(motions, new MotionsView.OnMotionsUpdatedListener() {
-                    @Override
-                    public void onMotionsUpdated() {
-                        hideLoadingProgress();
-                    }
-                });
+                mMotionsView.updateMotions(motions, () -> hideLoadingProgress());
                 break;
             }
             case ActivitiesQuery.TOKEN_NORMAL: {
@@ -338,16 +308,23 @@ public class ActionFragment extends TrackerFragment implements
     }
 
     private void showLoadingProgress() {
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mLoadingView.setVisibility(View.VISIBLE);
-            }
-        }, 50);
+        mHandler.postDelayed(() -> mLoadingView.setVisibility(View.VISIBLE), 50);
     }
 
     private void hideLoadingProgress() {
         mHandler.removeCallbacksAndMessages(null);
         mLoadingView.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onSelected() {
+
+    }
+
+    @Override
+    public void onUnselected() {
+        if (isAdded()) {
+            hideLoadingProgress();
+        }
     }
 }

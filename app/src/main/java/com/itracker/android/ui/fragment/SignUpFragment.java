@@ -139,16 +139,16 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
     @Override
     public void onAuthStateChanged(AuthState state, Bundle extra) {
         switch (state) {
-        case REGULAR_AUTH_START:
-        case GOOGLE_AUTH_START:
-            enableUi(false);
-            break;
-        case REGULAR_AUTH_FAIL:
-        case REGULAR_AUTH_SUCCEED:
-        case GOOGLE_AUTH_FAIL:
-        case GOOGLE_AUTH_SUCCEED:
-            enableUi(true);
-            break;
+            case REGULAR_AUTH_START:
+            case GOOGLE_AUTH_START:
+                enableUi(false);
+                break;
+            case REGULAR_AUTH_FAIL:
+            case REGULAR_AUTH_SUCCEED:
+            case GOOGLE_AUTH_FAIL:
+            case GOOGLE_AUTH_SUCCEED:
+                enableUi(true);
+                break;
         }
     }
 
@@ -292,18 +292,18 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
 
         public void afterTextChanged(Editable editable) {
             switch (mView.getId()) {
-            case R.id.input_email:
-                validateEmail(editable.toString().trim());
-                break;
-            case R.id.input_username:
-                validateUsername(editable.toString().trim());
-                break;
-            case R.id.input_password:
-                validatePassword(editable.toString().trim());
-                break;
-            case R.id.input_password_confirmation:
-                validatePasswordConfirmation(editable.toString().trim());
-                break;
+                case R.id.input_email:
+                    validateEmail(editable.toString().trim());
+                    break;
+                case R.id.input_username:
+                    validateUsername(editable.toString().trim());
+                    break;
+                case R.id.input_password:
+                    validatePassword(editable.toString().trim());
+                    break;
+                case R.id.input_password_confirmation:
+                    validatePasswordConfirmation(editable.toString().trim());
+                    break;
             }
         }
     }

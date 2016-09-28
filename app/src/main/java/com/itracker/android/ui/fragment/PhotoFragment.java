@@ -38,6 +38,7 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.Photo;
 import com.itracker.android.ui.activity.PhotoDetailActivity;
 import com.itracker.android.ui.activity.TrackerActivity;
+import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.ui.widget.CollectionView;
 import com.itracker.android.ui.widget.CollectionViewCallbacks;
 import com.itracker.android.ui.widget.PhotoCoordinatorLayout;
@@ -95,14 +96,11 @@ public class PhotoFragment extends TrackerFragment {
         mTimeRangeController = new TimeRangeController(this);
 
         // Should be triggered after we taking a new photo
-        mPhotosObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (photos). Content changed.");
-                if (isAdded()) {
-                    LOGD(TAG, "Requesting photos cursor reload as a result of ContentObserver firing.");
-                    reloadPhotosWithRequiredPermission();
-                }
+        mPhotosObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (photos). Content changed.");
+            if (isAdded()) {
+                LOGD(TAG, "Requesting photos cursor reload as a result of ContentObserver firing.");
+                reloadPhotosWithRequiredPermission();
             }
         });
         activity.getContentResolver().registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, mPhotosObserver);
@@ -134,43 +132,34 @@ public class PhotoFragment extends TrackerFragment {
         }
 
         mFabTakePhoto = (FloatingActionButton) root.findViewById(R.id.fab_take_photo);
-        mFabTakePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!requestPhotoTakingPermissions()) {
-                    takePhoto();
-                }
+        mFabTakePhoto.setOnClickListener(v -> {
+            if (!requestPhotoTakingPermissions()) {
+                takePhoto();
             }
         });
 
-        mPhotoCollectionView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (mFabTakePhoto == null) {
-                    return false;
-                }
-                switch (event.getActionMasked()) {
-                    case MotionEvent.ACTION_DOWN:
-                        mFabTakePhoto.removeCallbacks(mShowTakePhotoFab);
-                        mFabTakePhoto.hide();
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        mFabTakePhoto.postDelayed(mShowTakePhotoFab, TAKE_PHOTO_FAB_SHOW_DELAY);
-                        break;
-                }
+        mPhotoCollectionView.setOnTouchListener((v, event) -> {
+            if (mFabTakePhoto == null) {
                 return false;
             }
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    mFabTakePhoto.removeCallbacks(mShowTakePhotoFab);
+                    mFabTakePhoto.hide();
+                    break;
+                case MotionEvent.ACTION_UP:
+                    mFabTakePhoto.postDelayed(mShowTakePhotoFab, TAKE_PHOTO_FAB_SHOW_DELAY);
+                    break;
+            }
+            return false;
         });
 
         return root;
     }
 
-    private Runnable mShowTakePhotoFab = new Runnable() {
-        @Override
-        public void run() {
-            if (mFabTakePhoto != null) {
-                mFabTakePhoto.show();
-            }
+    private Runnable mShowTakePhotoFab = () -> {
+        if (mFabTakePhoto != null) {
+            mFabTakePhoto.show();
         }
     };
 
@@ -352,23 +341,6 @@ public class PhotoFragment extends TrackerFragment {
         }
     }
 
-    @Override
-    public void onFragmentSelected() {
-        super.onFragmentSelected();
-        if (isAdded()) {
-            mPermissionRequested = true;
-            reloadPhotosWithRequiredPermission();
-        }
-    }
-
-    @Override
-    public void onFragmentUnselected() {
-        super.onFragmentUnselected();
-        if (isAdded()) {
-            mFabTakePhoto.show();
-        }
-    }
-
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -417,6 +389,21 @@ public class PhotoFragment extends TrackerFragment {
             case PhotosQuery.TOKEN_NORMAL: {
                 break;
             }
+        }
+    }
+
+    @Override
+    public void onSelected() {
+        if (isAdded()) {
+            mPermissionRequested = true;
+            reloadPhotosWithRequiredPermission();
+        }
+    }
+
+    @Override
+    public void onUnselected() {
+        if (isAdded()) {
+            mFabTakePhoto.show();
         }
     }
 
@@ -527,15 +514,12 @@ public class PhotoFragment extends TrackerFragment {
             ImageView photoImage;
 
             void registerListener(final View view, final Photo photo) {
-                photoImage.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = PhotoDetailActivity.createIntent(Application.getInstance(),
-                                photo, inventoryToList(mPhotoInventory));
-                        ActivityOptions options =
-                                ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-                        startActivity(intent, options.toBundle());
-                    }
+                photoImage.setOnClickListener(v -> {
+                    Intent intent = PhotoDetailActivity.createIntent(Application.getInstance(),
+                            photo, inventoryToList(mPhotoInventory));
+                    ActivityOptions options =
+                            ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+                    startActivity(intent, options.toBundle());
                 });
             }
         }

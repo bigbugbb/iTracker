@@ -89,12 +89,7 @@ public class ContactAddFragment extends Fragment {
             mNameView.setText(mName);
         }
 
-        view.findViewById(R.id.btn_add_contact).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addContact();
-            }
-        });
+        view.findViewById(R.id.btn_add_contact).setOnClickListener(v -> addContact());
 
         return view;
     }

@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.itracker.android.R;
+import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
@@ -40,6 +41,16 @@ public class FriendFragment extends TrackerFragment {
         tabs.setupWithViewPager(pager);
 
         return view;
+    }
+
+    @Override
+    public void onSelected() {
+
+    }
+
+    @Override
+    public void onUnselected() {
+
     }
 
     private class FriendFragmentPagerAdapter extends FragmentPagerAdapter {

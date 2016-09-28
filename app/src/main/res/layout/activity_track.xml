@@ -27,8 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                app:popupTheme="@style/AppTheme.PopupOverlay">
-            </android.support.v7.widget.Toolbar>
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         </android.support.design.widget.AppBarLayout>
 
@@ -37,6 +36,7 @@
             android:layout_height="match_parent"
             android:paddingTop="?attr/actionBarSize"
             android:orientation="vertical">
+
             <android.support.v4.view.ViewPager
                 android:id="@+id/viewpager"
                 android:layout_width="match_parent"
@@ -54,6 +54,7 @@
                 app:tabTextColor="@color/tab_text_color"
                 app:tabMode="fixed"
                 app:tabGravity="fill"/>
+
         </RelativeLayout>
 
     </android.support.design.widget.CoordinatorLayout>
@@ -62,7 +63,7 @@
         android:id="@+id/nav_view"
         android:layout_height="match_parent"
         android:layout_width="wrap_content"
-        android:layout_gravity="start"
+        android:layout_gravity="left|start"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/menu_drawer_view"/>
 

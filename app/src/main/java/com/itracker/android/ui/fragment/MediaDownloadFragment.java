@@ -97,14 +97,11 @@ public class MediaDownloadFragment extends TrackerFragment implements
 
         mMediaPlaybackDelegate = (MediaPlaybackDelegate) activity;
 
-        mMediaDownloadsObserver = new ThrottledContentObserver(new ThrottledContentObserver.Callbacks() {
-            @Override
-            public void onThrottledContentObserverFired() {
-                LOGD(TAG, "ThrottledContentObserver fired (file downloads). Content changed.");
-                if (isAdded()) {
-                    LOGD(TAG, "Requesting file downloads cursor reload as a result of ContentObserver firing.");
-                    reloadMediaDownloads(getLoaderManager(), MediaDownloadFragment.this);
-                }
+        mMediaDownloadsObserver = new ThrottledContentObserver(() -> {
+            LOGD(TAG, "ThrottledContentObserver fired (file downloads). Content changed.");
+            if (isAdded()) {
+                LOGD(TAG, "Requesting file downloads cursor reload as a result of ContentObserver firing.");
+                reloadMediaDownloads(getLoaderManager(), MediaDownloadFragment.this);
             }
         });
         mMediaDownloadsObserver.setThrottleDelay(100);
@@ -144,7 +141,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
                     mMediaDownloadAdapter.updateDownloads(downloads);
                     mEmptyView.setVisibility(View.GONE);
                 } else {
-                    mMediaDownloadAdapter.updateDownloads(new ArrayList<MediaDownload>());
+                    mMediaDownloadAdapter.updateDownloads(new ArrayList<>());
                     mEmptyView.setVisibility(View.VISIBLE);
                 }
                 break;
@@ -228,38 +225,35 @@ public class MediaDownloadFragment extends TrackerFragment implements
             menu.findItem(R.id.action_show_property).setVisible(true);
         }
 
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-             @Override
-             public boolean onMenuItemClick(MenuItem item) {
-                 switch (item.getItemId()) {
-                     case R.id.action_open_file: {
-                         onActionOpenFile(download);
-                         break;
-                     }
-                     case R.id.action_delete_file: {
-                         onActionDeleteFile(download);
-                         break;
-                     }
-                     case R.id.action_start_download: {
-                         onActionStartDownload(download);
-                         break;
-                     }
-                     case R.id.action_pause_download: {
-                         onActionPauseDownload(download);
-                         break;
-                     }
-                     case R.id.action_cancel_download: {
-                         onActionCancelDownload(download);
-                         break;
-                     }
-                     case R.id.action_show_property: {
-                         onActionShowProperty(download);
-                         break;
-                     }
-                 }
-                 return true;
-             }
-         });
+        popupMenu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.action_open_file: {
+                    onActionOpenFile(download);
+                    break;
+                }
+                case R.id.action_delete_file: {
+                    onActionDeleteFile(download);
+                    break;
+                }
+                case R.id.action_start_download: {
+                    onActionStartDownload(download);
+                    break;
+                }
+                case R.id.action_pause_download: {
+                    onActionPauseDownload(download);
+                    break;
+                }
+                case R.id.action_cancel_download: {
+                    onActionCancelDownload(download);
+                    break;
+                }
+                case R.id.action_show_property: {
+                    onActionShowProperty(download);
+                    break;
+                }
+            }
+            return true;
+        });
 
         popupMenu.show();
     }
@@ -273,35 +267,28 @@ public class MediaDownloadFragment extends TrackerFragment implements
     }
 
     private void onActionDeleteFile(final MediaDownload download) {
-        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
                 // Set Dialog Icon
                 .setIcon(R.mipmap.ic_launcher)
                 // Set Dialog Title
                 .setTitle("Delete file")
                 // Set Dialog Message
                 .setMessage(R.string.delete_file_prompt)
-
                 // Positive button
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
-                            @Override
-                            protected void onDeleteComplete(int token, Object cookie, int result) {
-                                deleteDownloadedFile((String) cookie);
-                            }
-                        };
-                        handler.startDelete(0, download.local_location, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
-                    }
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
+                        @Override
+                        protected void onDeleteComplete(int token, Object cookie, int result) {
+                            deleteDownloadedFile((String) cookie);
+                        }
+                    };
+                    handler.startDelete(0, download.local_location, FileDownloads.CONTENT_URI, FileDownloads.FILE_ID + " = ?", new String[]{download.identifier});
                 })
-
                 // Negative Button
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,	int which) {
-                        // Do nothing
-                    }
-                }).create();
+                .setNegativeButton("No", (dialog, which) -> {})
+                .create();
 
-        dialog.show();
+        alertDialog.show();
     }
 
     private void onActionShowProperty(MediaDownload download) {
@@ -341,7 +328,7 @@ public class MediaDownloadFragment extends TrackerFragment implements
                 statusText.length(),
                 0);
 
-        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
                 // Set Dialog Icon
                 .setIcon(R.mipmap.ic_launcher)
                 // Set Dialog Title
@@ -349,23 +336,16 @@ public class MediaDownloadFragment extends TrackerFragment implements
                 // Set Dialog Message
                 .setMessage(statusText)
                 // Positive button
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        FileDownloadManager.getInstance().cancelDownload(download.identifier);
-                    }
-                })
+                .setPositiveButton("Yes", (dialog, which) ->
+                    FileDownloadManager.getInstance().cancelDownload(download.identifier))
                 // Negative Button
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,	int which) {
-                        // Do nothing
-                    }
-                })
+                .setNegativeButton("No", (dialog, which) -> {})
                 .create();
 
         DownloadStatus status = download.getStatus();
         if (status == DownloadStatus.PENDING || status == DownloadStatus.PREPARING ||
                 status == DownloadStatus.CONNECTING || status == DownloadStatus.DOWNLOADING) {
-            dialog.show();
+            alertDialog.show();
         } else if (status == DownloadStatus.FAILED || status == DownloadStatus.PAUSED) {
             AsyncQueryHandler handler = new AppQueryHandler(getActivity().getContentResolver()) {
                 @Override
