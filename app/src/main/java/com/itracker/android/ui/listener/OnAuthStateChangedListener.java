@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import com.itracker.android.data.BaseUIListener;
 
-public interface OnAuthStateChangedListener extends BaseUIListener {
+public interface OnAuthStateChangedListener  extends BaseUIListener {
 
     enum AuthState {
         // Regular auth states

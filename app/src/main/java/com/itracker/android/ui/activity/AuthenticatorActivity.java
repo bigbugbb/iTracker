@@ -40,6 +40,7 @@ import com.itracker.android.data.account.AccountType;
 import com.itracker.android.ui.fragment.SignInFragment;
 import com.itracker.android.ui.fragment.SignUpFragment;
 import com.itracker.android.ui.listener.OnAuthStateChangedListener;
+import com.itracker.android.ui.listener.OnSignInSignUpSwitchedListener;
 import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.RequestUtils;
 
@@ -59,6 +60,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         SignInFragment.OnAccountSignInListener,
         SignUpFragment.OnAccountSignUpListener,
         OnAuthStateChangedListener,
+        OnSignInSignUpSwitchedListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener {
@@ -171,18 +173,18 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     }
 
     @Override
-    public void onAccountWillCreateNew() {
-        mAnimator.setDisplayedChild(mAnimator.getDisplayedChild() == SIGN_IN_FRAGMENT ? SIGN_UP_FRAGMENT : SIGN_IN_FRAGMENT);
-    }
-
-    @Override
     public void onAccountSignInSuccess(Intent intent) {
         onFinishLogin(intent);
     }
 
     @Override
-    public void onAccountAreadyExists() {
-        mAnimator.setDisplayedChild(mAnimator.getDisplayedChild() == SIGN_IN_FRAGMENT ? SIGN_UP_FRAGMENT : SIGN_IN_FRAGMENT);
+    public void onSwitchToSignIn() {
+        mAnimator.setDisplayedChild(SIGN_IN_FRAGMENT);
+    }
+
+    @Override
+    public void onSwitchToSignUp() {
+        mAnimator.setDisplayedChild(SIGN_UP_FRAGMENT);
     }
 
     @Override

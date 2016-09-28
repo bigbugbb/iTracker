@@ -23,6 +23,7 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 import com.itracker.android.ui.activity.AuthenticatorActivity;
 import com.itracker.android.ui.listener.OnAuthStateChangedListener;
+import com.itracker.android.ui.listener.OnSignInSignUpSwitchedListener;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -43,6 +44,7 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
     private static final int MIN_PASSWORD_LENGTH = 8;
 
     private OnAccountSignUpListener mListener;
+    private OnSignInSignUpSwitchedListener mSwitchListener;
 
     private Button   mSignUp;
     private TextView mAccountExists;
@@ -111,8 +113,8 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
         mAccountExists.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onAccountAreadyExists();
+                if (mSwitchListener != null) {
+                    mSwitchListener.onSwitchToSignIn();
                 }
             }
         });
@@ -128,6 +130,7 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
         super.onAttach(activity);
         try {
             mListener = (OnAccountSignUpListener) activity;
+            mSwitchListener = (OnSignInSignUpSwitchedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnAccountSignUpListener");
         }
@@ -137,6 +140,7 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mSwitchListener = null;
     }
 
     @Override
@@ -337,6 +341,5 @@ public class SignUpFragment extends Fragment implements OnAuthStateChangedListen
         void onAccountSignUpSuccess(Intent intent);
         void onAccountSignUpError(String message);
         void onAccountStartSignUp();
-        void onAccountAreadyExists();
     }
 }

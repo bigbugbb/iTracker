@@ -134,21 +134,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
                 return thread;
             }
         });
-
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    LOGD(TAG, "onAuthStateChanged:signed_out");
-                }
-            }
-        };
     }
 
     public static Application getInstance() {
@@ -179,6 +164,20 @@ public class Application extends android.support.multidex.MultiDexApplication {
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    LOGD(TAG, "onAuthStateChanged:signed_out");
+                }
+            }
+        };
         mFirebaseAuth.addAuthStateListener(mAuthListener);
 
         ArrayList<String> contactManager = new ArrayList<>();

@@ -23,6 +23,7 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 import com.itracker.android.ui.activity.AuthenticatorActivity;
 import com.itracker.android.ui.listener.OnAuthStateChangedListener;
+import com.itracker.android.ui.listener.OnSignInSignUpSwitchedListener;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -41,6 +42,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     private static final String KEY_ERROR_MESSAGE = "ERR_MSG";
 
     private OnAccountSignInListener mListener;
+    private OnSignInSignUpSwitchedListener mSwitchListener;
 
     private Button mSignIn;
     private TextView mNewAccount;
@@ -98,8 +100,8 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         mNewAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onAccountWillCreateNew();
+                if (mSwitchListener != null) {
+                    mSwitchListener.onSwitchToSignUp();
                 }
             }
         });
@@ -115,6 +117,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         super.onAttach(activity);
         try {
             mListener = (OnAccountSignInListener) activity;
+            mSwitchListener = (OnSignInSignUpSwitchedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnAccountSignInListener");
         }
@@ -124,6 +127,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mSwitchListener = null;
     }
 
     @Override
@@ -280,6 +284,5 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         void onAccountSignInSuccess(Intent intent);
         void onAccountSignInError(String message);
         void onAccountStartSignIn();
-        void onAccountWillCreateNew();
     }
 }
