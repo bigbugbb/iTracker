@@ -169,8 +169,7 @@
             android:label="@string/login_label"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait" />
 
         <provider
             android:name="com.itracker.android.provider.TrackerProvider"

@@ -177,6 +177,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         mAnimator = (ViewAnimator) findViewById(R.id.auth_views);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
 
     @Override

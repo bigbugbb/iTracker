@@ -22,7 +22,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textCursorDrawable="@null"
             android:inputType="textEmailAddress"
-            android:singleLine="true" />
+            android:maxLines="1" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -37,7 +37,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:singleLine="true"
+            android:imeOptions="actionDone"
+            android:maxLines="1"
             android:hint="Password"
             android:text=""
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
