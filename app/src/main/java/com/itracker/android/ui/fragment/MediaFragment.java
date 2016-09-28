@@ -448,7 +448,7 @@ public class MediaFragment extends TrackerFragment implements
                     // Get the user's uploads playlist's id from channel list response
                     String watchHistoryPlaylistIds = clr.getItems().get(0)
                             .getContentDetails().getRelatedPlaylists()
-                            .getWatchHistory();
+                            .getLikes();
 
                     // Get videos from user's upload playlist with a playlist items list request
                     PlaylistItemListResponse pilr = youtube.playlistItems()
