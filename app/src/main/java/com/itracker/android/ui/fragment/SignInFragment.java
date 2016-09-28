@@ -22,7 +22,7 @@ import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 import com.itracker.android.ui.activity.AuthenticatorActivity;
-import com.itracker.android.ui.listener.OnAuthenticateResult;
+import com.itracker.android.ui.listener.OnAuthStateChangedListener;
 import com.itracker.android.utils.AccountUtils;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -34,7 +34,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
  * {@link SignInFragment.OnAccountSignInListener} interface
  * to handle interaction events.
  */
-public class SignInFragment extends Fragment implements OnAuthenticateResult {
+public class SignInFragment extends Fragment implements OnAuthStateChangedListener {
 
     private static final String TAG = makeLogTag(SignInFragment.class);
 
@@ -124,6 +124,18 @@ public class SignInFragment extends Fragment implements OnAuthenticateResult {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Application.getInstance().addUIListener(OnAuthStateChangedListener.class, this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Application.getInstance().removeUIListener(OnAuthStateChangedListener.class, this);
     }
 
     public void signIn() {
@@ -224,14 +236,8 @@ public class SignInFragment extends Fragment implements OnAuthenticateResult {
     }
 
     @Override
-    public void onAuthenticateSuccess() {
-        LOGD(TAG, "authenticate success");
-    }
+    public void onAuthStateChanged(AuthState state, Bundle extra) {
 
-    @Override
-    public void onAuthenticateFailed() {
-        LOGD(TAG, "authenticate failed");
-        enableUi(false);
     }
 
     private class AuthTextWatcher implements TextWatcher {

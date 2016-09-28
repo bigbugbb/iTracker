@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.data.BaseManagerInterface;
 import com.itracker.android.data.BaseUIListener;
 import com.itracker.android.data.FileDownloadManager;
@@ -39,6 +42,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
+import static com.itracker.android.utils.LogUtils.LOGD;
+
 public class Application extends android.support.multidex.MultiDexApplication {
 
     private final static String TAG = LogUtils.makeLogTag(Application.class);
@@ -56,6 +61,12 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * Handler to execute runnable in UI thread.
      */
     private final Handler mHandler;
+
+    /**
+     * Firebase auth and auth state listener.
+     */
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     /**
      * Unmodifiable collections of managers that implement some common
@@ -123,6 +134,21 @@ public class Application extends android.support.multidex.MultiDexApplication {
                 return thread;
             }
         });
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    LOGD(TAG, "onAuthStateChanged:signed_out");
+                }
+            }
+        };
     }
 
     public static Application getInstance() {
@@ -152,6 +178,8 @@ public class Application extends android.support.multidex.MultiDexApplication {
         super.onCreate();
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
+        mFirebaseAuth.addAuthStateListener(mAuthListener);
 
         ArrayList<String> contactManager = new ArrayList<>();
         TypedArray contactManagerClasses = getResources().obtainTypedArray(R.array.contact_managers);
@@ -252,6 +280,10 @@ public class Application extends android.support.multidex.MultiDexApplication {
             }
         }
         mClosed = true;
+
+        if (mAuthListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     private void onUnload() {
