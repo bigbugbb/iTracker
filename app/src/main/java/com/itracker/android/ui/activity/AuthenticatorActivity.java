@@ -16,7 +16,6 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
-import com.android.volley.ServerError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;

@@ -1,6 +1,5 @@
 package com.itracker.android.ui.fragment;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -34,8 +33,6 @@ public abstract class TrackerFragment extends Fragment
     public static final String BEGIN_DATE = "begin_date";
     public static final String END_DATE = "end_date";
     public static final String VIDEO_TITLE = "video_title";
-
-    protected int mPosition;
 
     protected Menu mMenu;
     protected Handler mHandler;

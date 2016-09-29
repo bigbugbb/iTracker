@@ -16,22 +16,16 @@
 package com.itracker.android.utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.text.TextUtils;
-import android.text.format.DateUtils;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.StringRequest;
 import com.itracker.android.Application;
 import com.itracker.android.BuildConfig;
 import com.itracker.android.Config;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -39,21 +33,15 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.LOGE;
 import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGV;
-import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
 

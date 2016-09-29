@@ -68,7 +68,6 @@ import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.ui.adapter.MediaAdapter;
 import com.itracker.android.ui.listener.MediaPlaybackDelegate;
 import com.itracker.android.ui.listener.OnMediaSelectModeChangedListener;
-import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ThrottledContentObserver;
 
@@ -158,7 +157,6 @@ public class MediaFragment extends TrackerFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPosition = 2;
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addConnectionCallbacks(this)

@@ -38,7 +38,6 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.Photo;
 import com.itracker.android.ui.activity.PhotoDetailActivity;
 import com.itracker.android.ui.activity.TrackerActivity;
-import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.ui.widget.CollectionView;
 import com.itracker.android.ui.widget.CollectionViewCallbacks;
 import com.itracker.android.ui.widget.PhotoCoordinatorLayout;
@@ -115,7 +114,6 @@ public class PhotoFragment extends TrackerFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPosition = 1;
         mTimeRangeController.create();
     }
 

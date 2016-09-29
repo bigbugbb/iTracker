@@ -68,7 +68,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.google.api-client:google-api-client-android:1.19.0' exclude module: 'httpclient'
     compile "org.igniterealtime.smack:smack-android-extensions:${project.SMACK_VERSION}"
     compile "org.igniterealtime.smack:smack-experimental:${project.SMACK_VERSION}"
     compile "org.igniterealtime.smack:smack-tcp:${project.SMACK_VERSION}"
@@ -82,8 +81,8 @@ dependencies {
     compile "com.android.support:support-v13:${project.ANDROID_SUPPORT_VERSION}"
     compile "com.android.support:design:${project.ANDROID_SUPPORT_VERSION}"
     compile 'com.google.code.gson:gson:2.3.1'
-    compile 'org.apache.directory.studio:org.apache.commons.io:2.4'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.directory.studio:org.apache.commons.io:2.4'
     compile 'com.opencsv:opencsv:3.5'
     compile 'joda-time:joda-time:2.9.1'
     compile 'com.loopj.android:android-async-http:1.4.9'
@@ -95,6 +94,7 @@ dependencies {
     compile "com.google.firebase:firebase-messaging:${project.FIREBASE_VERSION}"
     compile "com.google.firebase:firebase-auth:${project.FIREBASE_VERSION}"
     compile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
+    compile 'com.google.api-client:google-api-client-android:1.22.0' exclude module: 'httpclient'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.amazonaws:aws-android-sdk-core:2.+'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
@@ -104,7 +104,6 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'io.jsonwebtoken:jjwt:0.7.0'
     compile 'io.realm:realm-android:0.85.0'
-    compile 'com.localytics.android:library:4.1+'
 }
 
 // ADD THIS AT THE BOTTOM

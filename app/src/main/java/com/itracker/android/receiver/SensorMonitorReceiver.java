@@ -8,7 +8,6 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 
 import com.itracker.android.Application;
@@ -17,10 +16,7 @@ import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.service.sensor.SensorMonitorService;
 import com.itracker.android.utils.ConnectivityUtils;
 
-import java.util.Date;
-
 import static com.itracker.android.utils.LogUtils.LOGD;
-import static com.itracker.android.utils.LogUtils.LOGI;
 import static com.itracker.android.utils.LogUtils.LOGW;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 

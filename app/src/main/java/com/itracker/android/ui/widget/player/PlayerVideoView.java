@@ -2,7 +2,6 @@ package com.itracker.android.ui.widget.player;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;

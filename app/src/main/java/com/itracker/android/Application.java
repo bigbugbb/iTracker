@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,7 +25,6 @@ import com.itracker.android.receiver.SensorMonitorReceiver;
 import com.itracker.android.service.sensor.AppPersistentService;
 import com.itracker.android.ui.activity.SplashActivity;
 import com.itracker.android.utils.LogUtils;
-import com.localytics.android.Localytics;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;
 import org.jivesoftware.smack.provider.ProviderManager;
@@ -41,7 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
 
@@ -198,9 +195,6 @@ public class Application extends android.support.multidex.MultiDexApplication {
             }
         }
         tableClasses.recycle();
-
-//        Localytics.autoIntegrate(this);
-//        Localytics.setTestModeEnabled(true);
     }
 
     @Override

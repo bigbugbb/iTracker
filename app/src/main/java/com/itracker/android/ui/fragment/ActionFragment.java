@@ -122,7 +122,6 @@ public class ActionFragment extends TrackerFragment implements OnTrackItemSelect
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPosition = 0;
         mTimeRangeController.create();
     }
 

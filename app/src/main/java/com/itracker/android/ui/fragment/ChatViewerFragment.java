@@ -33,7 +33,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
-import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.itracker.android.Application;
@@ -74,9 +73,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import github.ankushsachdeva.emojicon.EmojiconGridView;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
-import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
 public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItemClickListener,
         View.OnClickListener, Toolbar.OnMenuItemClickListener,
