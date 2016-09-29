@@ -19,8 +19,9 @@ public interface OnAuthStateChangedListener  extends BaseUIListener {
 
     /**
      * @param state The current auth state.
+     * @param message The message related to the auth state.
      * @param extra The extra information for the auth state.
      */
-    void onAuthStateChanged(AuthState state, Bundle extra);
+    void onAuthStateChanged(AuthState state, String message, Bundle extra);
 
 }

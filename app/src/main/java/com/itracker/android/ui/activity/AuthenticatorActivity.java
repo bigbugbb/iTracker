@@ -12,9 +12,11 @@ import android.util.Base64;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.android.volley.ServerError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -74,6 +76,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private Button mGoogleSignInButton;
     private GoogleApiClient mGoogleApiClient;
 
+    private ProgressBar mProgressBar;
+
     /**
      * Called when the activity is first created.
      */
@@ -81,6 +85,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authenticator);
+
+        mProgressBar = (ProgressBar) findViewById(R.id.authenticate_progress);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -100,7 +106,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         mGoogleSignInButton.setOnClickListener(v -> {
             for (OnAuthStateChangedListener listener
                     : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-                listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_START, null);
+                listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_START, null, null);
             }
             Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
             startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
@@ -162,7 +168,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     }
 
     @Override
-    public void onAuthStateChanged(AuthState state, Bundle extra) {
+    public void onAuthStateChanged(AuthState state, String message, Bundle extra) {
         switch (state) {
             case REGULAR_AUTH_START:
             case GOOGLE_AUTH_START:
@@ -171,6 +177,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             case REGULAR_AUTH_FAIL:
             case GOOGLE_AUTH_FAIL:
                 enableUi(true);
+                if (!TextUtils.isEmpty(message)) {
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
                 break;
             case REGULAR_AUTH_SUCCEED:
                 onFinishLogin(extra);
@@ -193,7 +202,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
     private void enableUi(boolean enabled) {
         mGoogleSignInButton.setEnabled(enabled);
-        findViewById(R.id.authenticate_progress).setVisibility(enabled ? View.INVISIBLE : View.VISIBLE);
+        mProgressBar.setVisibility(enabled ? View.INVISIBLE : View.VISIBLE);
     }
 
     // User sign in/up by typing username and password
@@ -275,10 +284,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             } else {
-                // Google Sign In failed, update UI appropriately
+                // It's been canceled
                 for (OnAuthStateChangedListener listener
                         : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-                    listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null);
+                    listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null, null);
                 }
             }
         }
@@ -338,7 +347,12 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                     LOGD(TAG, "Failed to create the google sign in session.");
                     for (OnAuthStateChangedListener listener
                             : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-                        listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null);
+                        try {
+                            String msg = new String(error.networkResponse.data);
+                            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, new JSONObject(msg).getString("errors"), null);
+                        } catch (JSONException ex) {
+                            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, "Unknown authenticate error.", null);
+                        }
                     }
                 });
 
@@ -363,7 +377,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         for (OnAuthStateChangedListener listener
                 : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_SUCCEED, data);
+            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_SUCCEED, null, data);
         }
     }
 

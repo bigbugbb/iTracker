@@ -12,21 +12,20 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.RequestFuture;
 import com.google.gson.Gson;
 import com.itracker.android.Config;
 import com.itracker.android.data.model.User;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
 
@@ -251,72 +250,52 @@ public class AccountUtils {
     public static User signInUser(String email, String password) throws Exception {
         LOGD(TAG, "user sign in");
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
-        HttpPost httpPost = new HttpPost(Config.SESSIONS_URL);
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("email", email);
+        jsonRequest.put("password", password);
 
-        // Create the http header
-        httpPost.addHeader(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-        httpPost.addHeader(new BasicHeader("Accept", "application/vnd.itracker.v1"));
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.SESSIONS_URL, jsonRequest, future, future) {
 
-        String jsonSession = "{\"session\":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}}";
-        HttpEntity entity = new StringEntity(jsonSession);
-        httpPost.setEntity(entity);
-
-        try {
-            HttpResponse response = httpClient.execute(httpPost);
-            String responseString = EntityUtils.toString(response.getEntity());
-
-            if (response.getStatusLine().getStatusCode() / 100 != 2) {
-                ServerError error = new Gson().fromJson(responseString, ServerError.class);
-                throw new Exception(error.toString());
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("Content-Type", "application/json");
+                params.put("Accept", "application/vnd.itracker.v1");
+                return params;
             }
+        };
+        RequestUtils.addToRequestQueue(jsObjRequest);
 
-            User user = new Gson().fromJson(responseString, User.class);
-            return user;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        JSONObject response = future.get(1500, TimeUnit.SECONDS);
 
-        return null;
+        return new Gson().fromJson(response.toString(), User.class);
     }
 
     public static User signUpUser(String email, String username, String password, String passwordConfirmation) throws Exception {
         LOGD(TAG, "user sign up");
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
-        HttpPost httpPost = new HttpPost(Config.USERS_URL);
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("email", email);
+        jsonRequest.put("username", username);
+        jsonRequest.put("password", password);
+        jsonRequest.put("password_confirmation", passwordConfirmation);
 
-        // Create the http header
-        httpPost.addHeader(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-        httpPost.addHeader(new BasicHeader("Accept", "application/vnd.itracker.v1"));
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.USERS_URL, jsonRequest, future, future) {
 
-        String jsonUser = "{\"user\":{\"email\":\"" + email + "\",\"username\":\"" + username + "\",\"password\":\"" + password + "\",\"password_confirmation\":\"" + passwordConfirmation + "\"}}";
-        HttpEntity entity = new StringEntity(jsonUser);
-        httpPost.setEntity(entity);
-
-        try {
-            HttpResponse response = httpClient.execute(httpPost);
-            String responseString = EntityUtils.toString(response.getEntity());
-
-            if (response.getStatusLine().getStatusCode() / 100 != 2) {
-                ServerError error = new Gson().fromJson(responseString, ServerError.class);
-                throw new Exception(error.toString());
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("Content-Type", "application/json");
+                params.put("Accept", "application/vnd.itracker.v1");
+                return params;
             }
+        };
+        RequestUtils.addToRequestQueue(jsObjRequest);
 
-            User user = new Gson().fromJson(responseString, User.class);
-            return user;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        JSONObject response = future.get(1500, TimeUnit.SECONDS);
 
-        return null;
-    }
-
-    private static class ServerError {
-        public String errors;
-
-        public String toString() {
-            return errors;
-        }
+        return new Gson().fromJson(response.toString(), User.class);
     }
 }

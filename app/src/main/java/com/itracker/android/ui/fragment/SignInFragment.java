@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.volley.ServerError;
 import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.model.User;
@@ -23,6 +24,9 @@ import com.itracker.android.ui.activity.AuthenticatorActivity;
 import com.itracker.android.ui.listener.OnAuthStateChangedListener;
 import com.itracker.android.ui.listener.OnSignInSignUpSwitchedListener;
 import com.itracker.android.utils.AccountUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
@@ -80,7 +84,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         mSignIn.setOnClickListener(v -> {
             for (OnAuthStateChangedListener listener
                     : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_START, null);
+                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_START, null, null);
             }
             signIn();
         });
@@ -126,7 +130,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
     }
 
     @Override
-    public void onAuthStateChanged(AuthState state, Bundle extra) {
+    public void onAuthStateChanged(AuthState state, String message, Bundle extra) {
         switch (state) {
             case REGULAR_AUTH_START:
             case GOOGLE_AUTH_START:
@@ -149,7 +153,7 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
         if (!validateEmail(email) || !validatePassword(password)) {
             for (OnAuthStateChangedListener listener
                     : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, null);
+                listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, null, null);
             }
             return;
         }
@@ -170,7 +174,12 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
                 userData.putString(AccountUtils.USERDATA_USER_ID, user != null ? user.id : null);
                 data.putBundle(AccountManager.KEY_USERDATA, userData);
             } catch (Exception e) {
-                data.putString(KEY_ERROR_MESSAGE, e.getMessage());
+                try {
+                    String msg = new String(((ServerError) e.getCause()).networkResponse.data);
+                    data.putString(KEY_ERROR_MESSAGE, new JSONObject(msg).getString("errors"));
+                } catch (JSONException ex) {
+                    data.putString(KEY_ERROR_MESSAGE, "Unknown authenticate error.");
+                }
             }
 
             Application.getInstance().runOnUiThread(() -> {
@@ -178,10 +187,10 @@ public class SignInFragment extends Fragment implements OnAuthStateChangedListen
                 for (OnAuthStateChangedListener listener
                         : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
                     if (TextUtils.isEmpty(errMsg)) {
-                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_SUCCEED, data);
+                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_SUCCEED, null, data);
                     } else {
                         LOGD(TAG, errMsg);
-                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, null);
+                        listener.onAuthStateChanged(AuthState.REGULAR_AUTH_FAIL, errMsg, null);
                     }
                 }
             });

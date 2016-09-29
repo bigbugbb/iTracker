@@ -141,7 +141,7 @@ public class SyncHelper {
 
     /**
      * Attempts to perform conference data synchronization. The data comes from the remote URL
-     * configured in {@link Config#MANIFEST_URL}. The remote URL
+     * configured in {@link Config#API_BASE}. The remote URL
      * must point to a manifest file that, in turn, can reference other files. For more details
      * about conference data synchronization, refer to the documentation at
      * http://code.google.com/p/iosched.
