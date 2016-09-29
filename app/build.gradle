@@ -24,6 +24,12 @@ android {
     lintOptions {
         // problems with generated "applicationId" string resource
         disable 'MissingTranslation'
+        // set to true to turn off analysis progress reporting by lint
+        quiet true
+        // if true, stop the gradle build if errors are found
+        abortOnError false
+        // if true, only report errors
+        ignoreWarnings true
     }
 
     productFlavors {
@@ -89,7 +95,6 @@ dependencies {
     compile "com.google.firebase:firebase-messaging:${project.FIREBASE_VERSION}"
     compile "com.google.firebase:firebase-auth:${project.FIREBASE_VERSION}"
     compile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
-    compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.amazonaws:aws-android-sdk-core:2.+'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
