@@ -8,7 +8,7 @@ public class BrightnessHelper {
 
     public static void setBrightness(Context context, int brightness){
         ContentResolver resolver = context.getContentResolver();
-//        Settings.System.putInt(resolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
+        Settings.System.putInt(resolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
     }
 
     public static int getBrightness(Context context) {

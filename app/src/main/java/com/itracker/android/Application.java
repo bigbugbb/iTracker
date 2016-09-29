@@ -95,18 +95,13 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     private boolean mClosed;
 
-    private final Runnable mTimerRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-            for (OnTimerListener listener : getManagers(OnTimerListener.class)) {
-                listener.onTimer();
-            }
-            if (!mClosing) {
-                startTimer();
-            }
+    private final Runnable mTimerRunnable = () -> {
+        for (OnTimerListener listener : getManagers(OnTimerListener.class)) {
+            listener.onTimer();
         }
-
+        if (!mClosing) {
+            startTimer();
+        }
     };
 
     /**
@@ -125,14 +120,11 @@ public class Application extends android.support.multidex.MultiDexApplication {
         mRegisteredManagers = new ArrayList<>();
 
         mHandler = new Handler();
-        mBackgroundExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable runnable) {
-                Thread thread = new Thread(runnable, "Background executor service");
-                thread.setPriority(Thread.MIN_PRIORITY);
-                thread.setDaemon(true);
-                return thread;
-            }
+        mBackgroundExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "Background executor service");
+            thread.setPriority(Thread.MIN_PRIORITY);
+            thread.setDaemon(true);
+            return thread;
         });
     }
 
@@ -165,17 +157,14 @@ public class Application extends android.support.multidex.MultiDexApplication {
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    LOGD(TAG, "onAuthStateChanged:signed_out");
-                }
+        mAuthListener = firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user != null) {
+                // User is signed in
+                LOGD(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+            } else {
+                // User is signed out
+                LOGD(TAG, "onAuthStateChanged:signed_out");
             }
         };
         mFirebaseAuth.addAuthStateListener(mAuthListener);
@@ -226,12 +215,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
             return;
         }
         onClose();
-        runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                onUnload();
-            }
-        });
+        runInBackground(() -> onUnload());
     }
 
     @Override
@@ -312,17 +296,14 @@ public class Application extends android.support.multidex.MultiDexApplication {
                 try {
                     onLoad();
                 } finally {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Throw exceptions in UI thread if any.
-                            try {
-                                mLoadFuture.get();
-                            } catch (InterruptedException | ExecutionException e) {
-                                throw new RuntimeException(e);
-                            }
-                            onInitialized();
+                    runOnUiThread(() -> {
+                        // Throw exceptions in UI thread if any.
+                        try {
+                            mLoadFuture.get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
                         }
+                        onInitialized();
                     });
                 }
                 return null;
@@ -392,7 +373,7 @@ public class Application extends android.support.multidex.MultiDexApplication {
     private <T extends BaseUIListener> Collection<T> getOrCreateUIListeners(Class<T> cls) {
         Collection<T> collection = (Collection<T>) mUiListeners.get(cls);
         if (collection == null) {
-            collection = new ArrayList<T>();
+            collection = new ArrayList<>();
             mUiListeners.put(cls, collection);
         }
         return collection;
@@ -431,13 +412,10 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * Notify about error.
      */
     public void onError(final int resourceId) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-//                for (OnErrorListener onErrorListener : getUIListeners(OnErrorListener.class)) {
-//                    onErrorListener.onError(resourceId);
-//                }
-            }
+        runOnUiThread(() -> {
+//            for (OnErrorListener onErrorListener : getUIListeners(OnErrorListener.class)) {
+//                onErrorListener.onError(resourceId);
+//            }
         });
     }
 
@@ -453,14 +431,11 @@ public class Application extends android.support.multidex.MultiDexApplication {
      * Submits request to be executed in background.
      */
     public void runInBackground(final Runnable runnable) {
-        mBackgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } catch (Exception e) {
-                    LogManager.exception(runnable, e);
-                }
+        mBackgroundExecutor.submit(() -> {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                LogManager.exception(runnable, e);
             }
         });
     }

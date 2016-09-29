@@ -24,10 +24,14 @@ import android.text.format.DateUtils;
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.itracker.android.BuildConfig;
 import com.itracker.android.Config;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -58,15 +62,9 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
 public final class ServerUtils {
     private static final String TAG = makeLogTag(ServerUtils.class);
 
-    private static final String PREFERENCES = "com.itracker.android.service.fcm";
-    private static final String PROPERTY_REGISTERED_TS = "registered_ts";
-    private static final String PROPERTY_SENDER_ID = "sender_id";
     private static final String PROPERTY_PUSH_TOKEN = "push_token";
     private static final String PROPERTY_MESSAGE = "message";
     private static final String PROPERTY_TARGET_ACCOUNT = "target_email";
-
-    private static final int MAX_ATTEMPTS = 5;
-    private static final int BACKOFF_SECONDS = 2;
 
     /**
      * Register this account/device pair within the server.
@@ -79,158 +77,37 @@ public final class ServerUtils {
         LOGI(TAG, "registering device (push_token = " + pushToken + ")");
         String registerUrl = Config.FCM_SERVER_URL + "/register";
 
-        for (int i = 1; i <= MAX_ATTEMPTS; ++i) {
-            try {
-                RequestFuture<String> future = RequestFuture.newFuture();
-                StringRequest request = new StringRequest(Request.Method.POST, registerUrl, future, future) {
-
-                    @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String, String> headers = new HashMap<>();
-                        headers.put("Content-Type", "application/x-www-form-urlencoded");
-                        headers.put("Accept", Config.API_HEADER_ACCEPT);
-                        headers.put("Authorization", AccountUtils.getAuthToken(context));
-                        return headers;
-                    }
-
-                    @Override
-                    protected Map<String, String> getParams() throws AuthFailureError {
-                        Map<String, String> params = new HashMap<>();
-                        params.put(PROPERTY_PUSH_TOKEN, pushToken);
-                        return params;
-                    }
-                };
-                request.setRetryPolicy(new DefaultRetryPolicy(10000, 2, 2));
-                RequestUtils.addToRequestQueue(request);
-
-                String response = future.get(10, TimeUnit.SECONDS);
-                if (!TextUtils.isEmpty(response)) {
-                    LOGV(TAG, "Push token updated: " + response);
-                    if (BuildConfig.DEBUG) {
-                        ping(context);
-                    }
-                    return true;
-                } else {
-                    LOGW(TAG, "Empty response, server must be broken");
-                    break;
-                }
-            } catch (ExecutionException | TimeoutException e) {
-                LOGE(TAG, "Fail to update push token: " + e.getMessage());
-                try {
-                    long timeToWait = (long) Math.pow(BACKOFF_SECONDS, i);
-                    LOGD(TAG, "Wait for " + timeToWait + " seconds to try again...");
-                    Thread.sleep(timeToWait * DateUtils.SECOND_IN_MILLIS);
-                } catch (InterruptedException ex) {
-                    LOGE(TAG, "Push token update request has been cancelled: " + ex.getMessage());
-                    break;
-                }
-            } catch (InterruptedException e) {
-                LOGE(TAG, "Push token update request has been cancelled: " + e.getMessage());
-                break;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Unregister this account/device pair within the server.
-     *
-     * @param context Current context
-     * @param registrationId   The GCM registration ID for this device
-     */
-    static void unregister(final Context context, final String registrationId) {
-        LOGI(TAG, "unregistering device (registrationId = " + registrationId + ")");
-        String serverUrl = Config.FCM_SERVER_URL + "/unregister";
-        String authToken = AccountUtils.getAuthToken(context);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("reg_id", registrationId);
         try {
-            post(serverUrl, authToken, params);
-        } catch (IOException e) {
-            // At this point the device is unregistered from GCM, but still
-            // registered in the server.
-            // We could try to unregister again, but it is not necessary:
-            // if the server tries to send a message to the device, it will get
-            // a "NotRegistered" error message and should unregister the device.
-            LOGD(TAG, "Unable to unregister from application server", e);
-        } finally {
-            // Regardless of server success, clear local preferences
-            setRegisteredOnServer(context, false, null, null);
-        }
-    }
+            JSONObject jsonRequest = new JSONObject();
+            jsonRequest.put(PROPERTY_PUSH_TOKEN, pushToken);
 
-    /**
-     * Sets whether the device was successfully registered in the server side.
-     *
-     * @param context   Current context
-     * @param flag      True if registration was successful, false otherwise
-     * @param senderId  The push sender id, which equals the project id from google dev console
-     * @param pushToken The push registration token from google fcm api
-     */
-    private static void setRegisteredOnServer(Context context, boolean flag, String senderId, String pushToken) {
-        final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        LOGD(TAG, "Setting registered on server status as: " + flag + ", fcmKey=" + AccountUtils.sanitizeFcmKey(senderId));
-        Editor editor = prefs.edit();
-        if (flag) {
-            editor.putLong(PROPERTY_REGISTERED_TS, new Date().getTime());
-            editor.putString(PROPERTY_SENDER_ID, senderId == null ? "" : senderId);
-            editor.putString(PROPERTY_PUSH_TOKEN, pushToken);
-        } else {
-            editor.remove(PROPERTY_PUSH_TOKEN);
-        }
-        editor.apply();
-    }
+            RequestFuture<JSONObject> future = RequestFuture.newFuture();
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest(registerUrl, jsonRequest, future, future) {
 
-    /**
-     * Checks whether the device was successfully registered in the server side.
-     *
-     * @param context Current context
-     * @return True if registration was successful, false otherwise
-     */
-    public static boolean isRegisteredOnServer(Context context, String pushToken) {
-        final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        // Find registration threshold
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
-        long yesterdayTS = cal.getTimeInMillis();
-        long regTS = prefs.getLong(PROPERTY_REGISTERED_TS, 0);
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    headers.put("Accept", Config.API_HEADER_ACCEPT);
+                    headers.put("Authorization", AccountUtils.getAuthToken(context));
+                    return headers;
+                }
+            };
+            jsObjRequest.setRetryPolicy(new DefaultRetryPolicy(5000, 2, 1));
+            RequestUtils.addToRequestQueue(jsObjRequest);
 
-        pushToken = pushToken == null ? "" : pushToken;
-
-        if (regTS > yesterdayTS) {
-            LOGV(TAG, "GCM registration current. regTS=" + regTS + " yesterdayTS=" + yesterdayTS);
-
-            final String registeredPushToken = prefs.getString(PROPERTY_PUSH_TOKEN, "");
-            if (registeredPushToken.equals(pushToken)) {
-                LOGD(TAG, "GCM registration is valid and for the correct gcm key: "
-                        + AccountUtils.sanitizeFcmKey(registeredPushToken));
-                return true;
+            JSONObject response = future.get(10, TimeUnit.SECONDS);
+            LOGV(TAG, "Push token updated: " + response);
+            if (BuildConfig.DEBUG) {
+                ping(context);
             }
-            LOGD(TAG, "GCM registration is for DIFFERENT gcm key "
-                    + AccountUtils.sanitizeFcmKey(registeredPushToken) + ". We were expecting "
-                    + AccountUtils.sanitizeFcmKey(pushToken));
-            return false;
-        } else {
-            LOGV(TAG, "GCM registration expired. regTS=" + regTS + " yesterdayTS=" + yesterdayTS);
-            return false;
-        }
-    }
 
-    public static String getFcmId(Context context) {
-        final SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        return prefs.getString(PROPERTY_PUSH_TOKEN, null);
-    }
-
-    /**
-     *  Unregister the current FCM ID when we sign-out
-     *
-     * @param context Current context
-     */
-    public static void onSignOut(Context context) {
-        String fcmId = getFcmId(context);
-        if (fcmId != null) {
-            unregister(context, fcmId);
+            return true;
+        } catch (Exception e) {
+            LOGE(TAG, "Fail to update push token: " + e.getMessage());
         }
+
+        return false;
     }
 
     public static void ping(Context context) {
@@ -282,7 +159,7 @@ public final class ServerUtils {
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
             conn.setRequestProperty("Content-Length", Integer.toString(body.length()));
-            conn.setRequestProperty("Accept", "application/vnd.itracker.v1");
+            conn.setRequestProperty("Accept", Config.API_HEADER_ACCEPT);
             conn.setRequestProperty("Authorization", authToken);
 
             // post the request

@@ -83,19 +83,10 @@ public class ContactEditorActivity extends ContactViewerActivity implements Tool
         input.setText(rosterContact.getName());
         builder.setView(input);
 
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                RosterManager.getInstance().setName(getAccount(), getBareAddress(), input.getText().toString());
-            }
-        });
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) ->
+            RosterManager.getInstance().setName(getAccount(), getBareAddress(), input.getText().toString()));
 
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
         builder.show();
     }

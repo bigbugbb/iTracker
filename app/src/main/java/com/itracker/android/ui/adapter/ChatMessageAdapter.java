@@ -230,12 +230,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         messageView.mMessageTextForFileName.setText(FileManager.getFileName(messageItem.getFile().getPath()));
         messageView.mMessageTextForFileName.setVisibility(View.VISIBLE);
 
-        messageView.mAttachmentButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FileManager.openFile(mContext, messageItem.getFile());
-            }
-        });
+        messageView.mAttachmentButton.setOnClickListener(v -> FileManager.openFile(mContext, messageItem.getFile()));
 
         final Long fileSize = messageItem.getFileSize();
         if (fileSize != null) {
@@ -253,12 +248,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 downloadFile(messageView, messageItem);
             } else {
                 messageView.mDownloadButton.setVisibility(View.VISIBLE);
-                messageView.mDownloadButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        downloadFile(messageView, messageItem);
-                    }
-                });
+                messageView.mDownloadButton.setOnClickListener(v -> downloadFile(messageView, messageItem));
             }
         }
     }
@@ -301,13 +291,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             message.mMessageTextForFileName.setVisibility(View.GONE);
             message.mMessageImage.setVisibility(View.VISIBLE);
             FileManager.loadImageFromFile(file, message.mMessageImage);
-            message.mMessageImage.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    FileManager.openFile(mContext, file);
-                }
-            });
-
+            message.mMessageImage.setOnClickListener(v -> FileManager.openFile(mContext, file));
         } else {
             message.mAttachmentButton.setVisibility(View.VISIBLE);
         }
@@ -484,7 +468,6 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         public BasicMessage(View itemView) {
             super(itemView);
-
             mMessageText = (TextView) itemView.findViewById(R.id.message_text);
         }
     }

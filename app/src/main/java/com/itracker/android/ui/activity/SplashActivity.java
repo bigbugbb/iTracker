@@ -120,16 +120,13 @@ public class SplashActivity extends SingleActivity {
 
     private void startAuthenticate() {
         if (!AccountUtils.hasToken(this)) {
-            Application.getInstance().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    AccountUtils.startAuthenticationFlow(
-                            SplashActivity.this, // This must be the activity mContext to start the authenticate activity.
-                            AccountUtils.ACCOUNT_TYPE,
-                            AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
-                            new SimpleAccountManagerCallback()
-                    );
-                }
+            Application.getInstance().runOnUiThread(() -> {
+                AccountUtils.startAuthenticationFlow(
+                        SplashActivity.this, // This must be the activity mContext to start the authenticate activity.
+                        AccountUtils.ACCOUNT_TYPE,
+                        AccountUtils.AUTHTOKEN_TYPE_FULL_ACCESS,
+                        new SimpleAccountManagerCallback()
+                );
             });
         } else {
             Intent intent = TrackerActivity.createIntent(this);

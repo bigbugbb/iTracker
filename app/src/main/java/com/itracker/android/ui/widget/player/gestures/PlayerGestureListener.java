@@ -5,22 +5,24 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 
+import static com.itracker.android.utils.LogUtils.LOGI;
+
 public class PlayerGestureListener implements GestureDetector.OnGestureListener {
 
     private static final int SWIPE_THRESHOLD = 100;
-    private final int minFlingVelocity;
+    private final int mMinFlingVelocity;
 
-    public static final String TAG = "FensterGestureListener";
-    private final PlayerGestureEventListener listener;
+    public static final String TAG = "PlayerGestureListener";
+    private final PlayerGestureEventListener mListener;
 
     public PlayerGestureListener(PlayerGestureEventListener listener, ViewConfiguration viewConfiguration) {
-        this.listener = listener;
-        minFlingVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
+        mListener = listener;
+        mMinFlingVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
     }
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        listener.onTap();
+        mListener.onTap();
         return false;
     }
 
@@ -28,7 +30,7 @@ public class PlayerGestureListener implements GestureDetector.OnGestureListener 
     public void onLongPress(MotionEvent e) {
         // Touch has been long enough to indicate a long press.
         // Does not indicate motion is complete yet (no up event necessarily)
-        Log.i(TAG, "Long Press");
+        LOGI(TAG, "Long Press");
     }
 
     @Override
@@ -40,20 +42,20 @@ public class PlayerGestureListener implements GestureDetector.OnGestureListener 
 
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
             if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-                listener.onHorizontalScroll(e2, deltaX);
+                mListener.onHorizontalScroll(e2, deltaX);
                 if (deltaX > 0) {
-                    Log.i(TAG, "Slide right");
+                    LOGI(TAG, "Slide right");
                 } else {
-                    Log.i(TAG, "Slide left");
+                    LOGI(TAG, "Slide left");
                 }
             }
         } else {
             if (Math.abs(deltaY) > SWIPE_THRESHOLD) {
-                listener.onVerticalScroll(e2, deltaY);
+                mListener.onVerticalScroll(e2, deltaY);
                 if (deltaY > 0) {
-                    Log.i(TAG, "Slide down");
+                    LOGI(TAG, "Slide down");
                 } else {
-                    Log.i(TAG, "Slide up");
+                    LOGI(TAG, "Slide up");
                 }
             }
         }
@@ -63,25 +65,25 @@ public class PlayerGestureListener implements GestureDetector.OnGestureListener 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         // Fling event occurred.  Notification of this one happens after an "up" event.
-        Log.i(TAG, "Fling");
+        LOGI(TAG, "Fling");
         boolean result = false;
         try {
             float diffY = e2.getY() - e1.getY();
             float diffX = e2.getX() - e1.getX();
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > minFlingVelocity) {
+                if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > mMinFlingVelocity) {
                     if (diffX > 0) {
-                        listener.onSwipeRight();
+                        mListener.onSwipeRight();
                     } else {
-                        listener.onSwipeLeft();
+                        mListener.onSwipeLeft();
                     }
                 }
                 result = true;
-            } else if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > minFlingVelocity) {
+            } else if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > mMinFlingVelocity) {
                 if (diffY > 0) {
-                    listener.onSwipeBottom();
+                    mListener.onSwipeBottom();
                 } else {
-                    listener.onSwipeTop();
+                    mListener.onSwipeTop();
                 }
             }
             result = true;
@@ -94,7 +96,7 @@ public class PlayerGestureListener implements GestureDetector.OnGestureListener 
 
     @Override
     public void onShowPress(MotionEvent e) {
-        Log.i(TAG, "Show Press");
+        LOGI(TAG, "Show Press");
     }
 
     @Override

@@ -48,43 +48,37 @@ public class TimeRangeController {
     public void create() {
         mTimeRange = LayoutInflater.from(mFragment.getActivity()).inflate(R.layout.search_date_range, null);
         mBeginText = (TextView) mTimeRange.findViewById(R.id.begin_date);
-        mBeginText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePickerDialog dialog = new DatePickerDialog(
-                        mFragment.getActivity(),
-                        0,
-                        mBeginDateSetListener,
-                        mBeginDate.getYear(),
-                        mBeginDate.getMonthOfYear() - 1,
-                        mBeginDate.getDayOfMonth());
-                int[] location = new int[2];
-                mBeginText.getLocationOnScreen(location);
-                WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-                params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                params.y = location[1];
-                dialog.show();
-            }
+        mBeginText.setOnClickListener(v -> {
+            DatePickerDialog dialog = new DatePickerDialog(
+                    mFragment.getActivity(),
+                    0,
+                    mBeginDateSetListener,
+                    mBeginDate.getYear(),
+                    mBeginDate.getMonthOfYear() - 1,
+                    mBeginDate.getDayOfMonth());
+            int[] location = new int[2];
+            mBeginText.getLocationOnScreen(location);
+            WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+            params.y = location[1];
+            dialog.show();
         });
         mEndText = (TextView) mTimeRange.findViewById(R.id.end_date);
-        mEndText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePickerDialog dialog = new DatePickerDialog(
-                        mFragment.getActivity(),
-                        0,
-                        mEndDateSetListener,
-                        mEndDate.getYear(),
-                        mEndDate.getMonthOfYear() - 1,
-                        mEndDate.getDayOfMonth());
+        mEndText.setOnClickListener(v -> {
+            DatePickerDialog dialog = new DatePickerDialog(
+                    mFragment.getActivity(),
+                    0,
+                    mEndDateSetListener,
+                    mEndDate.getYear(),
+                    mEndDate.getMonthOfYear() - 1,
+                    mEndDate.getDayOfMonth());
 
-                int[] location = new int[2];
-                mEndText.getLocationOnScreen(location);
-                WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-                params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                params.y = location[1];
-                dialog.show();
-            }
+            int[] location = new int[2];
+            mEndText.getLocationOnScreen(location);
+            WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+            params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+            params.y = location[1];
+            dialog.show();
         });
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mFragment.getActivity());
@@ -151,25 +145,19 @@ public class TimeRangeController {
         textView.setText(text);
     }
 
-    private DatePickerDialog.OnDateSetListener mBeginDateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
-            mBeginDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            setDateText(mBeginText, mBeginDate);
-            mFragment.reloadTracks(mFragment.getLoaderManager(), mBeginDate.getMillis(), mEndDate.getMillis(), mFragment);
-            PrefUtils.setLastDateRangeUpdateTime(mFragment.getActivity());
-        }
+    private DatePickerDialog.OnDateSetListener mBeginDateSetListener = (view, year, monthOfYear, dayOfMonth) -> {
+        // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
+        mBeginDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
+        setDateText(mBeginText, mBeginDate);
+        mFragment.reloadTracks(mFragment.getLoaderManager(), mBeginDate.getMillis(), mEndDate.getMillis(), mFragment);
+        PrefUtils.setLastDateRangeUpdateTime(mFragment.getActivity());
     };
 
-    private DatePickerDialog.OnDateSetListener mEndDateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
-            mEndDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
-            setDateText(mEndText, mEndDate);
-            mFragment.reloadTracks(mFragment.getLoaderManager(), mBeginDate.getMillis(), mEndDate.getMillis(), mFragment);
-            PrefUtils.setLastDateRangeUpdateTime(mFragment.getActivity());
-        }
+    private DatePickerDialog.OnDateSetListener mEndDateSetListener = (view, year, monthOfYear, dayOfMonth) -> {
+        // monthOfYear is within [0, 11], but DateTime expects month to be [1, 12]
+        mEndDate = new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0);
+        setDateText(mEndText, mEndDate);
+        mFragment.reloadTracks(mFragment.getLoaderManager(), mBeginDate.getMillis(), mEndDate.getMillis(), mFragment);
+        PrefUtils.setLastDateRangeUpdateTime(mFragment.getActivity());
     };
 }

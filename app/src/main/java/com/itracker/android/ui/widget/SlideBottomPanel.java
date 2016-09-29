@@ -292,14 +292,11 @@ public class SlideBottomPanel extends FrameLayout {
                 mPanel.getY(), mMeasureHeight - mTitleHeightNoDisplay);
         animator.setInterpolator(mCloseAnimationInterpolator);
         animator.setTarget(mPanel);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float value = (float) animation.getAnimatedValue();
-                mPanel.setY(value);
-                if (mDarkFrameLayout != null && mIsFade && value < t) {
-                    mDarkFrameLayout.fade((int) ((1 - value / t) * DarkFrameLayout.MAX_ALPHA));
-                }
+        animator.addUpdateListener(animation -> {
+            float value = (float) animation.getAnimatedValue();
+            mPanel.setY(value);
+            if (mDarkFrameLayout != null && mIsFade && value < t) {
+                mDarkFrameLayout.fade((int) ((1 - value / t) * DarkFrameLayout.MAX_ALPHA));
             }
         });
         animator.addListener(new Animator.AnimatorListener() {
@@ -341,16 +338,13 @@ public class SlideBottomPanel extends FrameLayout {
                 .setDuration(mAnimationDuration);
         animator.setTarget(mPanel);
         animator.setInterpolator(mOpenAnimationInterpolator);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float value = (float) animation.getAnimatedValue();
-                mPanel.setY(value);
-                if (mDarkFrameLayout != null && mIsFade
-                        && mDarkFrameLayout.getCurrentAlpha() != DarkFrameLayout.MAX_ALPHA) {
-                    mDarkFrameLayout.fade(
-                            (int) ((1 - value / (mMeasureHeight - mTitleHeightNoDisplay)) * DarkFrameLayout.MAX_ALPHA));
-                }
+        animator.addUpdateListener(animation -> {
+            float value = (float) animation.getAnimatedValue();
+            mPanel.setY(value);
+            if (mDarkFrameLayout != null && mIsFade
+                    && mDarkFrameLayout.getCurrentAlpha() != DarkFrameLayout.MAX_ALPHA) {
+                mDarkFrameLayout.fade(
+                        (int) ((1 - value / (mMeasureHeight - mTitleHeightNoDisplay)) * DarkFrameLayout.MAX_ALPHA));
             }
         });
         animator.addListener(new Animator.AnimatorListener() {

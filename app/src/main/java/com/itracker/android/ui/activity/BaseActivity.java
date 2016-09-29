@@ -47,8 +47,6 @@ public class BaseActivity extends ManagedActivity implements
     // Permission request codes
     private static final int REQUEST_BASIC_PERMISSIONS = 100;
 
-    private GoogleApiClient mGoogleApiClient;
-
     // SwipeRefreshLayout allows the user to swipe the screen down to trigger a manual refresh
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
@@ -257,24 +255,21 @@ public class BaseActivity extends ManagedActivity implements
     private SyncStatusObserver mSyncStatusObserver = new SyncStatusObserver() {
         @Override
         public void onStatusChanged(int which) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    String accountName = AccountUtils.getActiveAccountName(BaseActivity.this);
-                    if (TextUtils.isEmpty(accountName)) {
-                        onRefreshingStateChanged(false);
-                        mManualSyncRequest = false;
-                        return;
-                    }
-
-                    Account account = new Account(accountName, AccountUtils.ACCOUNT_TYPE);
-                    boolean syncActive = ContentResolver.isSyncActive(account, TrackerContract.CONTENT_AUTHORITY);
-                    boolean syncPending = ContentResolver.isSyncPending(account, TrackerContract.CONTENT_AUTHORITY);
-                    if (!syncActive && !syncPending) {
-                        mManualSyncRequest = false;
-                    }
-                    onRefreshingStateChanged(syncActive || (mManualSyncRequest && syncPending));
+            runOnUiThread(() -> {
+                String accountName = AccountUtils.getActiveAccountName(BaseActivity.this);
+                if (TextUtils.isEmpty(accountName)) {
+                    onRefreshingStateChanged(false);
+                    mManualSyncRequest = false;
+                    return;
                 }
+
+                Account account = new Account(accountName, AccountUtils.ACCOUNT_TYPE);
+                boolean syncActive = ContentResolver.isSyncActive(account, TrackerContract.CONTENT_AUTHORITY);
+                boolean syncPending = ContentResolver.isSyncPending(account, TrackerContract.CONTENT_AUTHORITY);
+                if (!syncActive && !syncPending) {
+                    mManualSyncRequest = false;
+                }
+                onRefreshingStateChanged(syncActive || (mManualSyncRequest && syncPending));
             });
         }
     };

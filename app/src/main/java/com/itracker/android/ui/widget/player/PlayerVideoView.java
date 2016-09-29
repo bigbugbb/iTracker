@@ -29,6 +29,11 @@ import com.itracker.android.ui.widget.player.controller.PlayerController;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.itracker.android.utils.LogUtils.LOGD;
+import static com.itracker.android.utils.LogUtils.LOGI;
+import static com.itracker.android.utils.LogUtils.LOGW;
+import static com.itracker.android.utils.LogUtils.makeLogTag;
+
 /**
  * Displays a video file.  The VideoView class
  * can load images from various sources (such as resources or content
@@ -47,7 +52,7 @@ import java.util.Map;
 
 public class PlayerVideoView extends TextureView implements MediaController.MediaPlayerControl, TrackerPlayer {
 
-    public static final String TAG = "TextureVideoView";
+    public static final String TAG = makeLogTag(PlayerVideoView.class);
     public static final int VIDEO_BEGINNING = 0;
 
     public enum ScaleType {
@@ -203,7 +208,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     }
 
     private void setVideoURI(final Uri uri, final Map<String, String> headers, final int seekInSeconds) {
-        Log.d(TAG, "start playing: " + uri);
+        LOGD(TAG, "start playing: " + uri);
         mUri = uri;
         mHeaders = headers;
         mSeekWhenPrepared = seekInSeconds * 1000;
@@ -280,7 +285,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     }
 
     private void notifyUnableToOpenContent(final Exception e) {
-        Log.w("Unable to open content:" + mUri, e);
+        LOGW(TAG, "Unable to open content:" + mUri, e);
         mCurrentState = STATE_ERROR;
         mTargetState = STATE_ERROR;
         mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -376,28 +381,25 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         }
     };
 
-    private OnErrorListener mErrorListener = new OnErrorListener() {
-        @Override
-        public boolean onError(final MediaPlayer mp, final int frameworkError, final int implError) {
-            Log.d(TAG, "Error: " + frameworkError + "," + implError);
-            if (mCurrentState == STATE_ERROR) {
-                return true;
-            }
-            mCurrentState = STATE_ERROR;
-            mTargetState = STATE_ERROR;
-            hideMediaController();
-
-            if (allowPlayStateToHandle(frameworkError)) {
-                return true;
-            }
-
-            if (allowErrorListenerToHandle(frameworkError, implError)) {
-                return true;
-            }
-
-            handleError(frameworkError);
+    private OnErrorListener mErrorListener = (mp, frameworkError, implError) -> {
+        LOGD(TAG, "Error: " + frameworkError + "," + implError);
+        if (mCurrentState == STATE_ERROR) {
             return true;
         }
+        mCurrentState = STATE_ERROR;
+        mTargetState = STATE_ERROR;
+        hideMediaController();
+
+        if (allowPlayStateToHandle(frameworkError)) {
+            return true;
+        }
+
+        if (allowErrorListenerToHandle(frameworkError, implError)) {
+            return true;
+        }
+
+        handleError(frameworkError);
+        return true;
     };
 
     private void hideMediaController() {
@@ -433,7 +435,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     private void handleError(final int frameworkError) {
         if (getWindowToken() != null) {
             if (mErrorDialog != null && mErrorDialog.isShowing()) {
-                Log.d(TAG, "Dismissing last error dialog for a new one");
+                LOGD(TAG, "Dismissing last error dialog for a new one");
                 mErrorDialog.dismiss();
             }
             mErrorDialog = createErrorDialog(this.getContext(), mOnCompletionListener, mMediaPlayer, getErrorMessage(frameworkError));
@@ -444,19 +446,14 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
     private static AlertDialog createErrorDialog(final Context context, final OnCompletionListener completionListener, final MediaPlayer mediaPlayer, final int errorMessage) {
         return new AlertDialog.Builder(context)
                 .setMessage(errorMessage)
-                .setPositiveButton(
-                        android.R.string.ok,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, final int whichButton) {
-                                /* If we get here, there is no onError listener, so
-                                 * at least inform them that the video is over.
-                                 */
-                                if (completionListener != null) {
-                                    completionListener.onCompletion(mediaPlayer);
-                                }
-                            }
-                        }
-                )
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    /* If we get here, there is no onError listener, so
+                     * at least inform them that the video is over.
+                     */
+                    if (completionListener != null) {
+                        completionListener.onCompletion(mediaPlayer);
+                    }
+                })
                 .setCancelable(false)
                 .create();
     }
@@ -693,12 +690,7 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
 
     public void seekToSeconds(final int seconds) {
         seekTo(seconds * MILLIS_IN_SEC);
-        mMediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
-            @Override
-            public void onSeekComplete(final MediaPlayer mp) {
-                Log.i(TAG, "seek completed");
-            }
-        });
+        mMediaPlayer.setOnSeekCompleteListener(mp -> LOGI(TAG, "seek completed"));
     }
 
     @Override
@@ -746,27 +738,23 @@ public class PlayerVideoView extends TextureView implements MediaController.Medi
         return mAudioSession;
     }
 
-    private final OnInfoListener mOnInfoToPlayStateListener = new OnInfoListener() {
-
-        @Override
-        public boolean onInfo(final MediaPlayer mp, final int what, final int extra) {
-            if (!hasPlayStateListener()) {
-                return false;
-            }
-
-            if (MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START == what) {
-                mPlayStateListener.onFirstVideoFrameRendered();
-                mPlayStateListener.onPlay();
-            }
-            if (MediaPlayer.MEDIA_INFO_BUFFERING_START == what) {
-                mPlayStateListener.onBuffer();
-            }
-            if (MediaPlayer.MEDIA_INFO_BUFFERING_END == what) {
-                mPlayStateListener.onPlay();
-            }
-
+    private final OnInfoListener mOnInfoToPlayStateListener = (mp, what, extra) -> {
+        if (!hasPlayStateListener()) {
             return false;
         }
+
+        if (MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START == what) {
+            mPlayStateListener.onFirstVideoFrameRendered();
+            mPlayStateListener.onPlay();
+        }
+        if (MediaPlayer.MEDIA_INFO_BUFFERING_START == what) {
+            mPlayStateListener.onBuffer();
+        }
+        if (MediaPlayer.MEDIA_INFO_BUFFERING_END == what) {
+            mPlayStateListener.onPlay();
+        }
+
+        return false;
     };
 
     private boolean hasPlayStateListener() {

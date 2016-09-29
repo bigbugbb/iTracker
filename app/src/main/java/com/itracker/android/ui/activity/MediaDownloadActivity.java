@@ -64,14 +64,11 @@ public class MediaDownloadActivity extends BaseActivity
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         final ArrayList<Video> videos = getIntent().getParcelableArrayListExtra(EXTRA_VIDEOS_TO_DOWNLOAD);
-        Application.getInstance().runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    requestDownloads(videos);
-                } catch (Exception e) {
-                    LOGE(TAG, "Fail to make the download request", e);
-                }
+        Application.getInstance().runInBackground(() -> {
+            try {
+                requestDownloads(videos);
+            } catch (Exception e) {
+                LOGE(TAG, "Fail to make the download request", e);
             }
         });
     }
@@ -97,12 +94,7 @@ public class MediaDownloadActivity extends BaseActivity
         }
 
         if (!ConnectivityUtils.isWifiConnected(Application.getInstance())) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show();
-                }
-            });
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), R.string.download_allowed_when_wifi_connected, Toast.LENGTH_LONG).show());
         } else {
             FileDownloadManager.getInstance().startAvailableDownloads();
         }

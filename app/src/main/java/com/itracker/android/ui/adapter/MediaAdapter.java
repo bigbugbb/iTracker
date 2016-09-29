@@ -160,12 +160,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     private void showMessage(final int resId) {
-        mContext.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(mContext, resId, Toast.LENGTH_SHORT);
-            }
-        });
+        mContext.runOnUiThread(() -> Toast.makeText(mContext, resId, Toast.LENGTH_SHORT));
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -207,40 +202,30 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                 selected.setVisibility(View.INVISIBLE);
                 overlay.setVisibility(View.INVISIBLE);
             }
-            selected.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            selected.setOnClickListener(v -> {
+                boolean isChecked = mCheckedMap.get(video.identifier) != null;
+                mCheckedMap.put(video.identifier, isChecked ? null : video);
+                overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
+            });
+
+            itemView.setOnClickListener(v -> {
+                if (mMediaSelectModeEnabled) {
                     boolean isChecked = mCheckedMap.get(video.identifier) != null;
                     mCheckedMap.put(video.identifier, isChecked ? null : video);
+                    selected.setChecked(!isChecked);
                     overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
+                    return;
                 }
+
+                YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
+                extractor.extractAsync(createYouTubeExtractorCallback(video));
             });
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    if (mMediaSelectModeEnabled) {
-                        boolean isChecked = mCheckedMap.get(video.identifier) != null;
-                        mCheckedMap.put(video.identifier, isChecked ? null : video);
-                        selected.setChecked(!isChecked);
-                        overlay.setVisibility(isChecked ? View.INVISIBLE : View.VISIBLE);
-                        return;
-                    }
-
-                    YouTubeExtractor extractor = new YouTubeExtractor(video.identifier);
-                    extractor.extractAsync(createYouTubeExtractorCallback(video));
-                }
-            });
-
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    mCheckedMap.put(video.identifier, video);
-                    overlay.setVisibility(View.VISIBLE);
-                    setMediaSelectModeEnabled(true);
-                    return true;
-                }
+            itemView.setOnLongClickListener(v -> {
+                mCheckedMap.put(video.identifier, video);
+                overlay.setVisibility(View.VISIBLE);
+                setMediaSelectModeEnabled(true);
+                return true;
             });
         }
     }

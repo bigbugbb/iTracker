@@ -29,12 +29,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // noinspection ConstantConditions, PointlessBooleanExpression
         if (!BuildConfig.DEBUG) {
-            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-                @Override
-                public void uncaughtException(Thread thread, Throwable throwable) {
-                    LogUtils.LOGE(TAG, "Uncaught sync exception, suppressing UI in release build.", throwable);
-                }
-            });
+            Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->
+                    LogUtils.LOGE(TAG, "Uncaught sync exception, suppressing UI in release build.", throwable));
         }
     }
 

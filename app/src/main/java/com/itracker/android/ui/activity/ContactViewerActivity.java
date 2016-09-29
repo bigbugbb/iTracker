@@ -123,13 +123,7 @@ public class ContactViewerActivity extends BaseActivity implements
 
         toolbar = (Toolbar) findViewById(R.id.toolbar_default);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavUtils.navigateUpFromSameTask(ContactViewerActivity.this);
-            }
-        });
-
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(ContactViewerActivity.this));
 
 //        StatusBarPainter statusBarPainter = new StatusBarPainter(this);
 //        statusBarPainter.updateWithAccountName(account);

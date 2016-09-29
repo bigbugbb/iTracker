@@ -222,12 +222,8 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 mStopTypingTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        Application.getInstance().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ChatStateManager.getInstance().onPaused(mAccount, mUser);
-                            }
-                        });
+                        Application.getInstance().runOnUiThread(() ->
+                                ChatStateManager.getInstance().onPaused(mAccount, mUser));
                     }
 
                 }, STOP_TYPING_DELAY);

@@ -346,13 +346,10 @@ class FileDownloadTask implements Runnable {
     }
 
     protected void onPreparing() {
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onPreparing(mRequest, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onPreparing(mRequest, null);
             }
         });
 
@@ -360,13 +357,10 @@ class FileDownloadTask implements Runnable {
     }
 
     protected void onPaused() {
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onPaused(mRequest, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onPaused(mRequest, null);
             }
         });
 
@@ -379,13 +373,10 @@ class FileDownloadTask implements Runnable {
         PrefUtils.setCurrentDownloadSpeed(mContext, mRequest.getId(), downloadSpeed);
         PrefUtils.setCurrentDownloadFileSize(mContext, mRequest.getId(), currentFileSize);
 
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onDownloading(mRequest, currentFileSize, totalFileSize, downloadSpeed, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onDownloading(mRequest, currentFileSize, totalFileSize, downloadSpeed, null);
             }
         });
 
@@ -399,13 +390,10 @@ class FileDownloadTask implements Runnable {
         File tempFile = new File(mRequest.mDestUri.toString());
         tempFile.delete();
 
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onCanceled(mRequest, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onCanceled(mRequest, null);
             }
         });
 
@@ -414,13 +402,10 @@ class FileDownloadTask implements Runnable {
     }
 
     protected void onCompleted(final Uri finalFileUri) {
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onCompleted(mRequest, finalFileUri, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onCompleted(mRequest, finalFileUri, null);
             }
         });
 
@@ -431,13 +416,10 @@ class FileDownloadTask implements Runnable {
 
     protected void onFailed(Exception exception) {
         final String reason = TextUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
-        Application.getInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (DownloadStateChangedListener downloadStateChangedListener
-                        : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
-                    downloadStateChangedListener.onFailed(mRequest, reason, null);
-                }
+        Application.getInstance().runOnUiThread(() -> {
+            for (DownloadStateChangedListener downloadStateChangedListener
+                    : Application.getInstance().getUIListeners(DownloadStateChangedListener.class)) {
+                downloadStateChangedListener.onFailed(mRequest, reason, null);
             }
         });
 

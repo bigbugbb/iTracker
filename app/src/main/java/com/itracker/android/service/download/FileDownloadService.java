@@ -84,25 +84,22 @@ public class FileDownloadService extends Service implements FileDownloadTask.OnT
         if (intent != null) {
             // Need this separate thread to update the download status before starting to download,
             // and make sure it's always running before the following download tasks.
-            Application.getInstance().runInBackground(new Runnable() {
-                @Override
-                public void run() {
-                    final String action = intent.getAction();
-                    if (ACTION_DOWNLOAD_FILE.equals(action)) {
-                        FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
-                        if (request != null) {
-                            handleRequest(request);
-                        }
-                    } else if (ACTION_RECOVER_STATUS.equals(action)) {
-                        ContentResolver resolver = getApplicationContext().getContentResolver();
-                        ContentValues values = new ContentValues();
-                        values.put(FileDownloads.STATUS, DownloadStatus.PENDING.value());
-                        resolver.update(
-                                FileDownloads.CONTENT_URI,
-                                values,
-                                FileDownloads.STATUS + " = ? OR " + FileDownloads.STATUS + " = ?",
-                                new String[]{DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value()});
+            Application.getInstance().runInBackground(() -> {
+                final String action = intent.getAction();
+                if (ACTION_DOWNLOAD_FILE.equals(action)) {
+                    FileDownloadRequest request = intent.getParcelableExtra(FILE_DOWNLOAD_REQUEST);
+                    if (request != null) {
+                        handleRequest(request);
                     }
+                } else if (ACTION_RECOVER_STATUS.equals(action)) {
+                    ContentResolver resolver = getApplicationContext().getContentResolver();
+                    ContentValues values = new ContentValues();
+                    values.put(FileDownloads.STATUS, DownloadStatus.PENDING.value());
+                    resolver.update(
+                            FileDownloads.CONTENT_URI,
+                            values,
+                            FileDownloads.STATUS + " = ? OR " + FileDownloads.STATUS + " = ?",
+                            new String[]{DownloadStatus.DOWNLOADING.value(), DownloadStatus.CONNECTING.value()});
                 }
             });
         }

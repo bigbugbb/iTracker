@@ -261,7 +261,7 @@ public class AccountUtils {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
                 params.put("Content-Type", "application/json");
-                params.put("Accept", "application/vnd.itracker.v1");
+                params.put("Accept", Config.API_HEADER_ACCEPT);
                 return params;
             }
         };
@@ -288,7 +288,7 @@ public class AccountUtils {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
                 params.put("Content-Type", "application/json");
-                params.put("Accept", "application/vnd.itracker.v1");
+                params.put("Accept", Config.API_HEADER_ACCEPT);
                 return params;
             }
         };

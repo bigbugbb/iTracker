@@ -89,14 +89,11 @@ public class PlayerActivity extends BaseActivity implements PlayerControllerVisi
 
         final View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(newVisibility);
-        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(final int visibility) {
-                if ((visibility & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
-                    PlayerFragment fragment = (PlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
-                    if (fragment != null) {
-                        fragment.showPlayerController();
-                    }
+        decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+            if ((visibility & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
+                PlayerFragment fragment = (PlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
+                if (fragment != null) {
+                    fragment.showPlayerController();
                 }
             }
         });

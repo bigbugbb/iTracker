@@ -123,7 +123,7 @@ public class ContactAddFragment extends Fragment {
         }
 
         try {
-            RosterManager.getInstance().createContact(mAccount, user, mNameView.getText().toString(), new ArrayList<String>());
+            RosterManager.getInstance().createContact(mAccount, user, mNameView.getText().toString(), new ArrayList<>());
             PresenceManager.getInstance().requestSubscription(mAccount, user);
             MessageManager.getInstance().openChat(mAccount, user);
         } catch (SmackException.NotLoggedInException | SmackException.NotConnectedException e) {

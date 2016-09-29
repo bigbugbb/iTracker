@@ -87,13 +87,10 @@ public class GLMotionsView extends GLSurfaceView {
     public void updateMotions(final Motion[] motions) {
         // Update the gl renderer with the summary data
         if (ViewCompat.isAttachedToWindow(GLMotionsView.this)) {
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    Motion.populateData(motions, mData, 0);
-                    mRenderer.updateMotionGraph(mData, new Geometry.Point(0, 0, 0.011f), mGraphPageSize, 0.8f);
-                    requestRender();
-                }
+            queueEvent(() -> {
+                Motion.populateData(motions, mData, 0);
+                mRenderer.updateMotionGraph(mData, new Geometry.Point(0, 0, 0.011f), mGraphPageSize, 0.8f);
+                requestRender();
             });
         }
     }
@@ -137,12 +134,9 @@ public class GLMotionsView extends GLSurfaceView {
 
             LOGD(TAG, String.format("normalizedX: %f, normalizedY: %f", normalizedX, normalizedY));
 
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    mRenderer.touchDown(normalizedX, normalizedY);
-                    requestRender();
-                }
+            queueEvent(() -> {
+                mRenderer.touchDown(normalizedX, normalizedY);
+                requestRender();
             });
 
             mScroller.forceFinished(true);
@@ -155,12 +149,9 @@ public class GLMotionsView extends GLSurfaceView {
             final float normalizedDistanceX = distanceX / getWidth() * 2;
             final float normalizedDistanceY = distanceY / getHeight() * 2;
 
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    mRenderer.scrollBy(-normalizedDistanceX, -normalizedDistanceY);
-                    requestRender();
-                }
+            queueEvent(() -> {
+                mRenderer.scrollBy(-normalizedDistanceX, -normalizedDistanceY);
+                requestRender();
             });
 
             float viewportStart = mViewport.left + mViewport.width() * distanceX / getWidth();
@@ -235,12 +226,9 @@ public class GLMotionsView extends GLSurfaceView {
 
 //            LOGD(TAG, String.format("viewport: %s currX: %d lastX: %d", mViewport.toShortString(), currX, lastX));
 
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    mRenderer.scrollBy(-normalizedDistanceX, 0f);
-                    requestRender();
-                }
+            queueEvent(() -> {
+                mRenderer.scrollBy(-normalizedDistanceX, 0f);
+                requestRender();
             });
 
             ViewCompat.postInvalidateOnAnimation(this);

@@ -230,15 +230,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Nest
     /** Registers the gesture detector to receive gesture notifications for this view */
     private void bindGestureDetector() {
         // Generic touch listener that can be applied to any view that needs to process gestures
-        final View.OnTouchListener gestureListenerHandler = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(final View v, final MotionEvent event) {
-                // Delegate the touch event to our gesture detector
-                return mGestureDetector.onTouchEvent(event);
-            }
-        };
-
-        setOnTouchListener(gestureListenerHandler);
+        setOnTouchListener((v, event) -> mGestureDetector.onTouchEvent(event));
     }
 
     /**

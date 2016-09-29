@@ -218,13 +218,7 @@ public class FileDownloadManager extends ContentObserver implements OnLoadListen
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
 
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                nm.cancel(NOTIFICATION_ID);
-            }
-        }, 5000);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> nm.cancel(NOTIFICATION_ID), 5000);
     }
 
     private void sendPauseDownloadingNotification(final Context context) {
@@ -232,13 +226,7 @@ public class FileDownloadManager extends ContentObserver implements OnLoadListen
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(NOTIFICATION_ID, createDownloadPromptNotification(context, message));
 
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                nm.cancel(NOTIFICATION_ID);
-            }
-        }, 5000);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> nm.cancel(NOTIFICATION_ID), 5000);
     }
 
     private Notification createDownloadPromptNotification(Context context, String message) {

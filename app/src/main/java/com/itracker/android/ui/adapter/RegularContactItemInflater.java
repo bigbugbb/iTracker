@@ -45,14 +45,7 @@ public class RegularContactItemInflater {
         } else {
             viewHolder.avatar.setVisibility(View.GONE);
         }
-
-        viewHolder.avatar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onAvatarClick(contact);
-            }
-        });
-
+        viewHolder.avatar.setOnClickListener(v -> onAvatarClick(contact));
         viewHolder.name.setText(contact.getName());
         viewHolder.status.setText(String.format("[%s]", mContext.getString(contact.getStatusMode().getStringID())));
 

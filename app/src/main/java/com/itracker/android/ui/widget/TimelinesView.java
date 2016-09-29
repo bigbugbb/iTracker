@@ -117,7 +117,7 @@ public class TimelinesView extends RelativeLayout {
     public static class TimelineItemAdapter extends ArrayAdapter<TimelineItem.Timeline> {
 
         public TimelineItemAdapter(Context context) {
-            super(context, 0, new ArrayList<TimelineItem.Timeline>());
+            super(context, 0, new ArrayList<>());
         }
 
         @Override
