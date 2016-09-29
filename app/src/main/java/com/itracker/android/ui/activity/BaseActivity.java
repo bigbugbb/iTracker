@@ -29,6 +29,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.itracker.android.R;
 import com.itracker.android.provider.TrackerContract;
+import com.itracker.android.service.fcm.AppInstanceIdService;
 import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PlayServicesUtils;
@@ -78,9 +79,9 @@ public class BaseActivity extends ManagedActivity implements
             // do something here in some time
         }
 
-//        Intent intent = new Intent(this, ChatService.class);
-//        startService(intent); // Need this call so the service can still run in background after the unbinding
-//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        if (!PrefUtils.hasSentPushTokenToServer(context)) {
+            AppInstanceIdService.updateFcmToken();
+        }
 
         // The player activity needs the landscape orientation, otherwise if the orientation changes,
         // from portrait to landscape, there will be a terrible lagging before opening the video.

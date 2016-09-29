@@ -27,6 +27,7 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
+import com.itracker.android.Application;
 import com.itracker.android.BuildConfig;
 import com.itracker.android.Config;
 
@@ -69,13 +70,18 @@ public final class ServerUtils {
     /**
      * Register this account/device pair within the server.
      *
-     * @param context   Current context
      * @param pushToken The FCM registration ID for this device
      * @return whether the registration succeeded or not.
      */
-    public static boolean register(final Context context, final String pushToken) {
+    public static boolean register(final String pushToken) {
         LOGI(TAG, "registering device (push_token = " + pushToken + ")");
-        String registerUrl = Config.FCM_SERVER_URL + "/register";
+        final String registerUrl = Config.FCM_SERVER_URL + "/register";
+        final String authToken = AccountUtils.getAuthToken(Application.getInstance());
+
+        if (TextUtils.isEmpty(authToken)) {
+            LOGI(TAG, "Auth token is required to register push token.");
+            return false;
+        }
 
         try {
             JSONObject jsonRequest = new JSONObject();
@@ -89,7 +95,7 @@ public final class ServerUtils {
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Content-Type", "application/json");
                     headers.put("Accept", Config.API_HEADER_ACCEPT);
-                    headers.put("Authorization", AccountUtils.getAuthToken(context));
+                    headers.put("Authorization", authToken);
                     return headers;
                 }
             };
@@ -99,7 +105,7 @@ public final class ServerUtils {
             JSONObject response = future.get(10, TimeUnit.SECONDS);
             LOGV(TAG, "Push token updated: " + response);
             if (BuildConfig.DEBUG) {
-                ping(context);
+                ping();
             }
 
             return true;
@@ -110,7 +116,8 @@ public final class ServerUtils {
         return false;
     }
 
-    public static void ping(Context context) {
+    public static void ping() {
+        Context context = Application.getInstance();
         String pushSendUrl = Config.FCM_SERVER_URL;
         try {
             Map<String, String> params = new HashMap<>();

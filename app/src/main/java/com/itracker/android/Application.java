@@ -26,6 +26,7 @@ import com.itracker.android.receiver.SensorMonitorReceiver;
 import com.itracker.android.service.sensor.AppPersistentService;
 import com.itracker.android.ui.activity.SplashActivity;
 import com.itracker.android.utils.LogUtils;
+import com.localytics.android.Localytics;
 
 import org.jivesoftware.smack.provider.ProviderFileLoader;
 import org.jivesoftware.smack.provider.ProviderManager;
@@ -197,6 +198,9 @@ public class Application extends android.support.multidex.MultiDexApplication {
             }
         }
         tableClasses.recycle();
+
+//        Localytics.autoIntegrate(this);
+//        Localytics.setTestModeEnabled(true);
     }
 
     @Override

@@ -268,7 +268,7 @@
         <!-- [START Localytics Integration] -->
         <meta-data
             android:name="LOCALYTICS_APP_KEY"
-            android:value="59b6d367575c8798a17acb0-9ccf239a-d9ac-11e5-aa99-00342b7f5075" />
+            android:value="dcdf9cb70fff87655848357-8f7e9180-385a-11e4-a3d0-009c5fda0a25" />
 
         <!-- <activity android:name="com.itracker.android.PushTrackingActivity"/> -->
 

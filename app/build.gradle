@@ -104,6 +104,7 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'io.jsonwebtoken:jjwt:0.7.0'
     compile 'io.realm:realm-android:0.85.0'
+    compile 'com.localytics.android:library:4.1+'
 }
 
 // ADD THIS AT THE BOTTOM

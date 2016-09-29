@@ -108,12 +108,12 @@ public class PrefUtils {
         sp.edit().putLong(PREF_CUR_SYNC_INTERVAL, interval).apply();
     }
 
-    public static boolean hasSentTokenToServer(final Context context) {
+    public static boolean hasSentPushTokenToServer(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getBoolean(PREF_SENT_TOKEN_TO_SERVER, false);
     }
 
-    public static void setSentTokenToServer(final Context context, boolean sent) {
+    public static void setSentPushTokenToServer(final Context context, boolean sent) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putBoolean(PREF_SENT_TOKEN_TO_SERVER, sent).apply();
     }

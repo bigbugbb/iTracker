@@ -38,6 +38,7 @@ import com.itracker.android.ui.fragment.TrackerFragment;
 import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PrefUtils;
+import com.itracker.android.utils.ServerUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -146,6 +147,7 @@ public class TrackerActivity extends SingleActivity implements
     protected void onStart() {
         super.onStart();
         mViewPager.setCurrentItem(PrefUtils.getLastSelectedTab(this));
+        Application.getInstance().runInBackground(() -> ServerUtils.ping());
     }
 
     @Override
