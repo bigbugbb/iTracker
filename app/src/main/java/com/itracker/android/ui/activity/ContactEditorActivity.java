@@ -16,7 +16,7 @@ import com.itracker.android.data.roster.RosterContact;
 import com.itracker.android.data.roster.RosterManager;
 import com.itracker.android.ui.dialog.ContactDeleteDialogFragment;
 
-public class ContactEditorActivity extends ContactViewerActivity implements Toolbar.OnMenuItemClickListener {
+public class ContactEditorActivity extends ContactViewerActivity {
 
     public static Intent createIntent(Context context, String account, String user) {
         return new EntityIntentBuilder(context, ContactEditorActivity.class)
@@ -27,12 +27,10 @@ public class ContactEditorActivity extends ContactViewerActivity implements Tool
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Toolbar toolbar = getToolbar();
-
         RosterContact rosterContact = RosterManager.getInstance().getRosterContact(getAccount(), getBareAddress());
         if (rosterContact != null) {
-            toolbar.inflateMenu(R.menu.menu_contact_viewer);
-            toolbar.setOnMenuItemClickListener(this);
+            mToolbar.inflateMenu(R.menu.menu_contact_viewer);
+            mToolbar.setOnMenuItemClickListener(item -> onOptionsItemSelected(item));
         }
     }
 
@@ -40,14 +38,9 @@ public class ContactEditorActivity extends ContactViewerActivity implements Tool
     public boolean onCreateOptionsMenu(Menu menu) {
         RosterContact rosterContact = RosterManager.getInstance().getRosterContact(getAccount(), getBareAddress());
         if (rosterContact != null) {
-            getMenuInflater().inflate(R.menu.menu_contact_viewer, menu);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  getMenuInflater().inflate(R.menu.menu_contact_viewer, menu);
         }
         return true;
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        return onOptionsItemSelected(item);
     }
 
     @Override

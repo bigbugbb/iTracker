@@ -15,6 +15,7 @@ import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.data.LogManager;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.OnCloseListener;
+import com.itracker.android.data.OnErrorListener;
 import com.itracker.android.data.OnInitializedListener;
 import com.itracker.android.data.OnLoadListener;
 import com.itracker.android.data.OnLowMemoryListener;
@@ -411,9 +412,9 @@ public class Application extends android.support.multidex.MultiDexApplication {
      */
     public void onError(final int resourceId) {
         runOnUiThread(() -> {
-//            for (OnErrorListener onErrorListener : getUIListeners(OnErrorListener.class)) {
-//                onErrorListener.onError(resourceId);
-//            }
+            for (OnErrorListener onErrorListener : getUIListeners(OnErrorListener.class)) {
+                onErrorListener.onError(resourceId);
+            }
         });
     }
 

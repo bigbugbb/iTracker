@@ -1,6 +1,7 @@
 package com.itracker.android.ui.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,8 @@ import com.itracker.android.R;
 import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.extension.muc.MUCManager;
 import com.itracker.android.data.roster.AbstractContact;
+import com.itracker.android.ui.activity.ContactEditorActivity;
+import com.itracker.android.ui.activity.ContactViewerActivity;
 import com.itracker.android.ui.color.ColorManager;
 
 public class RegularContactItemInflater {
@@ -65,12 +68,12 @@ public class RegularContactItemInflater {
     }
 
     protected void onAvatarClick(AbstractContact contact) {
-//        Intent intent;
-//        if (MUCManager.getInstance().hasRoom(contact.getAccount(), contact.getUser())) {
-//            intent = ContactViewer.createIntent(mContext, contact.getAccount(), contact.getUser());
-//        } else {
-//            intent = ContactEditor.createIntent(mContext, contact.getAccount(), contact.getUser());
-//        }
-//        mContext.startActivity(intent);
+        Intent intent;
+        if (MUCManager.getInstance().hasRoom(contact.getAccount(), contact.getUser())) {
+            intent = ContactViewerActivity.createIntent(mContext, contact.getAccount(), contact.getUser());
+        } else {
+            intent = ContactEditorActivity.createIntent(mContext, contact.getAccount(), contact.getUser());
+        }
+        mContext.startActivity(intent);
     }
 }

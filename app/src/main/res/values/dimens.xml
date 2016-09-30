@@ -75,7 +75,7 @@
     <dimen name="contact_elevation">1dp</dimen>
 
     <dimen name="status_icon_width">24dip</dimen>
-    <dimen name="avatar_size_toolbar">48dip</dimen>
+    <dimen name="avatar_size_toolbar">40dip</dimen>
 
     <dimen name="contact_list_item_padding_top">2dip</dimen>
     <dimen name="contact_list_item_padding_bottom">2dip</dimen>

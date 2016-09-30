@@ -79,6 +79,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.SplashActivity"
             android:label="@string/app_name"
@@ -92,6 +93,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.FootprintActivity"
             android:label="@string/title_activity_footprint"
@@ -101,6 +103,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.PhotoDetailActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -110,6 +113,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.MediaDownloadActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -126,6 +130,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.PlayerActivity"
             android:exported="true"
@@ -147,6 +152,7 @@
                 <data android:scheme="http" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.ContactAddActivity"
             android:label="@string/title_activity_add_contact"
@@ -156,6 +162,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.ChatViewerActivity"
             android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
@@ -164,6 +171,25 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
+
+        <activity
+            android:name="com.itracker.android.ui.activity.ContactViewerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
+        </activity>
+
+        <activity
+            android:name="com.itracker.android.ui.activity.ContactEditorActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
+        </activity>
+
         <activity
             android:name="com.itracker.android.ui.activity.AuthenticatorActivity"
             android:label="@string/login_label"
@@ -280,9 +306,6 @@
         <!-- <action android:name="com.android.vending.INSTALL_REFERRER" /> -->
         <!-- </intent-filter> -->
         <!-- </receiver> -->
-
-        <activity android:name="com.itracker.android.ui.activity.ContactViewerActivity" />
-        <activity android:name="com.itracker.android.ui.activity.ContactEditorActivity"></activity>
     </application>
 
 </manifest>

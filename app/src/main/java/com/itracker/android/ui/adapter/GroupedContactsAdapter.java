@@ -46,12 +46,7 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
 
     static {
         Collection<Group> groups = new ArrayList<>(1);
-        groups.add(new Group() {
-            @Override
-            public String getName() {
-                return GroupManager.IS_FRIEND;
-            }
-        });
+        groups.add(() -> GroupManager.IS_FRIEND);
         NO_GROUP_LIST = Collections.unmodifiableCollection(groups);
     }
 
@@ -120,10 +115,8 @@ public abstract class GroupedContactsAdapter extends BaseAdapter implements Upda
         switch (getItemViewType(position)) {
             case TYPE_CONTACT:
                 return getContactView(position, convertView, parent);
-
             case TYPE_GROUP:
                 return getGroupView(position, convertView, parent);
-
             default:
                 throw new IllegalStateException();
         }

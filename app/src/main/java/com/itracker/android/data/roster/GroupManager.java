@@ -65,7 +65,7 @@ public class GroupManager implements OnLoadListener, OnAccountRemovedListener,
     private final NestedMap<GroupConfiguration> groupConfigurations;
 
     private GroupManager() {
-        groupConfigurations = new NestedMap<GroupConfiguration>();
+        groupConfigurations = new NestedMap<>();
     }
 
     public static GroupManager getInstance() {

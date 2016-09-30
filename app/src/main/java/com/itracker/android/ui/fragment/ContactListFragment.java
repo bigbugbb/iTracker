@@ -37,8 +37,7 @@ public class ContactListFragment extends TrackerFragment implements
         OnContactChangedListener,
         OnChatChangedListener,
         ContactsAdapter.OnContactListChangedListener,
-        AdapterView.OnItemClickListener,
-        View.OnClickListener {
+        AdapterView.OnItemClickListener {
     private static final String TAG = makeLogTag(ContactListFragment.class);
 
     private ListView mContactsView;
@@ -150,11 +149,6 @@ public class ContactListFragment extends TrackerFragment implements
             intent = ContactEditorActivity.createIntent(getActivity(), account, user);
         }
         startActivity(intent);
-    }
-
-    @Override
-    public void onClick(View v) {
-
     }
 
     @Override

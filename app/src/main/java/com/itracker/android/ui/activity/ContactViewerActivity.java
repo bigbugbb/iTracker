@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
@@ -37,12 +38,11 @@ import java.util.List;
 public class ContactViewerActivity extends BaseActivity implements
         OnContactChangedListener, OnAccountChangedListener, ContactVcardViewerFragment.Listener {
 
-    private String account;
-    private String bareAddress;
-    private Toolbar toolbar;
-    private View contactTitleView;
-    private AbstractContact bestContact;
-    private CollapsingToolbarLayout collapsingToolbar;
+    private String mAccount;
+    private String mBareAddress;
+    private View mContactTitleView;
+    private AbstractContact mBestContact;
+    private CollapsingToolbarLayout mCollapsingToolbar;
 
     public static Intent createIntent(Context context, String account, String user) {
         return new EntityIntentBuilder(context, ContactViewerActivity.class)
@@ -57,14 +57,9 @@ public class ContactViewerActivity extends BaseActivity implements
         return EntityIntentBuilder.getUser(intent);
     }
 
-    protected Toolbar getToolbar() {
-        return toolbar;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
             // View information about contact from system contact list
@@ -82,22 +77,22 @@ public class ContactViewerActivity extends BaseActivity implements
                         // FIXME: Will be empty while application is loading
                         for (RosterContact rosterContact : RosterManager.getInstance().getContacts())
                             if (id.equals(rosterContact.getViewId())) {
-                                account = rosterContact.getAccount();
-                                bareAddress = rosterContact.getUser();
+                                mAccount = rosterContact.getAccount();
+                                mBareAddress = rosterContact.getUser();
                                 break;
                             }
                 }
             }
         } else {
-            account = getAccount(getIntent());
-            bareAddress = getUser(getIntent());
+            mAccount = getAccount(getIntent());
+            mBareAddress = getUser(getIntent());
         }
 
-        if (bareAddress != null && bareAddress.equalsIgnoreCase(GroupManager.IS_ACCOUNT)) {
-            bareAddress = Jid.getBareAddress(AccountManager.getInstance().getAccount(account).getRealJid());
+        if (mBareAddress != null && mBareAddress.equalsIgnoreCase(GroupManager.IS_ACCOUNT)) {
+            mBareAddress = Jid.getBareAddress(AccountManager.getInstance().getAccount(mAccount).getRealJid());
         }
 
-        if (account == null || bareAddress == null) {
+        if (mAccount == null || mBareAddress == null) {
             Application.getInstance().onError(R.string.ENTRY_IS_NOT_FOUND);
             finish();
             return;
@@ -106,41 +101,37 @@ public class ContactViewerActivity extends BaseActivity implements
         setContentView(R.layout.activity_contact_viewer);
 
         if (savedInstanceState == null) {
-
             Fragment fragment;
-            if (MUCManager.getInstance().hasRoom(account, bareAddress)) {
-                fragment = ConferenceInfoFragment.newInstance(account, bareAddress);
+            if (MUCManager.getInstance().hasRoom(mAccount, mBareAddress)) {
+                fragment = ConferenceInfoFragment.newInstance(mAccount, mBareAddress);
             } else {
-                fragment = ContactVcardViewerFragment.newInstance(account, bareAddress);
+                fragment = ContactVcardViewerFragment.newInstance(mAccount, mBareAddress);
             }
 
             getFragmentManager().beginTransaction().add(R.id.scrollable_container, fragment).commit();
-
-
         }
 
-        bestContact = RosterManager.getInstance().getBestContact(account, bareAddress);
+        mBestContact = RosterManager.getInstance().getBestContact(mAccount, mBareAddress);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar_default);
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
-        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(ContactViewerActivity.this));
+        mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
+        mToolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(ContactViewerActivity.this));
 
 //        StatusBarPainter statusBarPainter = new StatusBarPainter(this);
 //        statusBarPainter.updateWithAccountName(account);
 
-        final int accountMainColor = ColorManager.getInstance().getAccountPainter().getAccountMainColor(account);
+        final int accountMainColor = ContextCompat.getColor(this, R.color.colorPrimary);
 
-        contactTitleView = findViewById(R.id.contact_title_expanded);
+        mContactTitleView = findViewById(R.id.contact_title_expanded);
         findViewById(R.id.status_icon).setVisibility(View.GONE);
-        contactTitleView.setBackgroundColor(accountMainColor);
+        mContactTitleView.setBackgroundColor(accountMainColor);
         TextView contactNameView = (TextView) findViewById(R.id.name);
         contactNameView.setVisibility(View.INVISIBLE);
 
-        collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbar.setTitle(bestContact.getName());
-
-        collapsingToolbar.setBackgroundColor(accountMainColor);
-        collapsingToolbar.setContentScrimColor(accountMainColor);
+        mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        mCollapsingToolbar.setTitle(mBestContact.getName());
+        mCollapsingToolbar.setCollapsedTitleTextColor(ContextCompat.getColor(this, R.color.primary_text_default_material_dark));
+        mCollapsingToolbar.setBackgroundColor(accountMainColor);
+        mCollapsingToolbar.setContentScrimColor(accountMainColor);
     }
 
     @Override
@@ -148,7 +139,7 @@ public class ContactViewerActivity extends BaseActivity implements
         super.onResume();
         Application.getInstance().addUIListener(OnContactChangedListener.class, this);
         Application.getInstance().addUIListener(OnAccountChangedListener.class, this);
-        ContactTitleInflater.updateTitle(contactTitleView, this, bestContact);
+        ContactTitleInflater.updateTitle(mContactTitleView, this, mBestContact);
         updateName();
     }
 
@@ -162,7 +153,7 @@ public class ContactViewerActivity extends BaseActivity implements
     @Override
     public void onContactsChanged(Collection<BaseEntity> entities) {
         for (BaseEntity entity : entities) {
-            if (entity.equals(account, bareAddress)) {
+            if (entity.equals(mAccount, mBareAddress)) {
                 updateName();
                 break;
             }
@@ -170,36 +161,36 @@ public class ContactViewerActivity extends BaseActivity implements
     }
 
     private void updateName() {
-        if (MUCManager.getInstance().isMucPrivateChat(account, bareAddress)) {
-            String vCardName = VCardManager.getInstance().getName(bareAddress);
+        if (MUCManager.getInstance().isMucPrivateChat(mAccount, mBareAddress)) {
+            String vCardName = VCardManager.getInstance().getName(mBareAddress);
             if (!"".equals(vCardName)) {
-                collapsingToolbar.setTitle(vCardName);
+                mCollapsingToolbar.setTitle(vCardName);
             } else {
-                collapsingToolbar.setTitle(Jid.getResource(bareAddress));
+                mCollapsingToolbar.setTitle(Jid.getResource(mBareAddress));
             }
 
         } else {
-            collapsingToolbar.setTitle(RosterManager.getInstance().getBestContact(account, bareAddress).getName());
+            mCollapsingToolbar.setTitle(RosterManager.getInstance().getBestContact(mAccount, mBareAddress).getName());
         }
     }
 
     @Override
     public void onAccountsChanged(Collection<String> accounts) {
-        if (accounts.contains(account)) {
+        if (accounts.contains(mAccount)) {
             updateName();
         }
     }
 
     protected String getAccount() {
-        return account;
+        return mAccount;
     }
 
     protected String getBareAddress() {
-        return bareAddress;
+        return mBareAddress;
     }
 
     @Override
     public void onVCardReceived() {
-        ContactTitleInflater.updateTitle(contactTitleView, this, bestContact);
+        ContactTitleInflater.updateTitle(mContactTitleView, this, mBestContact);
     }
 }

@@ -13,11 +13,11 @@ import com.itracker.android.ui.activity.ContactViewerActivity;
 
 public class ContactDeleteDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
-    public static final String ARGUMENT_ACCOUNT = "com.xabber.android.ui.dialog.ContactDeleteDialogFragment.ARGUMENT_ACCOUNT";
-    public static final String ARGUMENT_USER = "com.xabber.android.ui.dialog.ContactDeleteDialogFragment.ARGUMENT_USER";
+    public static final String ARGUMENT_ACCOUNT = "com.itracker.android.ui.dialog.ContactDeleteDialogFragment.ARGUMENT_ACCOUNT";
+    public static final String ARGUMENT_USER = "com.itracker.android.ui.dialog.ContactDeleteDialogFragment.ARGUMENT_USER";
 
-    private String user;
-    private String account;
+    private String mUser;
+    private String mAccount;
 
     public static ContactDeleteDialogFragment newInstance(String account, String user) {
         ContactDeleteDialogFragment fragment = new ContactDeleteDialogFragment();
@@ -32,13 +32,13 @@ public class ContactDeleteDialogFragment extends DialogFragment implements Dialo
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
-        account = args.getString(ARGUMENT_ACCOUNT, null);
-        user = args.getString(ARGUMENT_USER, null);
+        mAccount = args.getString(ARGUMENT_ACCOUNT, null);
+        mUser = args.getString(ARGUMENT_USER, null);
 
         return new AlertDialog.Builder(getActivity())
                 .setMessage(String.format(getActivity().getString(R.string.contact_delete_confirm),
-                        RosterManager.getInstance().getName(account, user),
-                        AccountManager.getInstance().getVerboseName(account)))
+                        RosterManager.getInstance().getName(mAccount, mUser),
+                        AccountManager.getInstance().getVerboseName(mAccount)))
                 .setPositiveButton(R.string.contact_delete, this)
                 .setNegativeButton(android.R.string.cancel, this).create();
     }
@@ -46,7 +46,7 @@ public class ContactDeleteDialogFragment extends DialogFragment implements Dialo
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == Dialog.BUTTON_POSITIVE) {
-            RosterManager.getInstance().removeContact(account, user);
+            RosterManager.getInstance().removeContact(mAccount, mUser);
 
             if (getActivity() instanceof ContactViewerActivity) {
 //                startAnimationActivity(ContactList.createIntent(getActivity()));

@@ -19,7 +19,7 @@ package com.itracker.android.data;
  *
  * @author alexander.ivanov
  */
-interface OnErrorListener extends BaseUIListener {
+public interface OnErrorListener extends BaseUIListener {
 
     /**
      * Error occurred.
