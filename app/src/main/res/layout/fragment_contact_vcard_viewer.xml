@@ -1,31 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/xmpp_items"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        />
+        android:orientation="vertical" />
 
     <ProgressBar
+        android:id="@+id/contact_info_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/contact_info_progress_bar"
-        android:visibility="gone"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/contact_info_items"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        />
+        android:orientation="vertical" />
 
 </LinearLayout>

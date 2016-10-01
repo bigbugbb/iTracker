@@ -65,9 +65,9 @@
     <dimen name="collapsing_toolbar_height">192dp</dimen>
     <dimen name="contact_title_padding_left">10dp</dimen>
     <dimen name="contact_title_padding_right">16dp</dimen>
-    <dimen name="contact_title_padding_bottom">10dp</dimen>
+    <dimen name="contact_title_padding_bottom">16dp</dimen>
 
-    <dimen name="avatar_large_size">72dp</dimen>
+    <dimen name="avatar_large_size">80dp</dimen>
     <dimen name="avatar_normal_size">48dp</dimen>
     <dimen name="avatar_radius">56dp</dimen>
 

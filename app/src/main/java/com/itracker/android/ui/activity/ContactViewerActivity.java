@@ -8,9 +8,7 @@ import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.TextView;
 
 import com.itracker.android.Application;
 import com.itracker.android.R;
@@ -26,17 +24,15 @@ import com.itracker.android.data.roster.GroupManager;
 import com.itracker.android.data.roster.OnContactChangedListener;
 import com.itracker.android.data.roster.RosterContact;
 import com.itracker.android.data.roster.RosterManager;
-import com.itracker.android.ui.adapter.ContactTitleInflater;
-import com.itracker.android.ui.color.ColorManager;
 import com.itracker.android.ui.fragment.ConferenceInfoFragment;
-import com.itracker.android.ui.fragment.ContactVcardViewerFragment;
+import com.itracker.android.ui.fragment.ContactVCardViewerFragment;
 import com.itracker.android.xmpp.address.Jid;
 
 import java.util.Collection;
 import java.util.List;
 
 public class ContactViewerActivity extends BaseActivity implements
-        OnContactChangedListener, OnAccountChangedListener, ContactVcardViewerFragment.Listener {
+        OnContactChangedListener, OnAccountChangedListener, ContactVCardViewerFragment.Listener {
 
     private String mAccount;
     private String mBareAddress;
@@ -105,7 +101,7 @@ public class ContactViewerActivity extends BaseActivity implements
             if (MUCManager.getInstance().hasRoom(mAccount, mBareAddress)) {
                 fragment = ConferenceInfoFragment.newInstance(mAccount, mBareAddress);
             } else {
-                fragment = ContactVcardViewerFragment.newInstance(mAccount, mBareAddress);
+                fragment = ContactVCardViewerFragment.newInstance(mAccount, mBareAddress);
             }
 
             getFragmentManager().beginTransaction().add(R.id.scrollable_container, fragment).commit();
@@ -116,20 +112,17 @@ public class ContactViewerActivity extends BaseActivity implements
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
         mToolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(ContactViewerActivity.this));
 
-//        StatusBarPainter statusBarPainter = new StatusBarPainter(this);
-//        statusBarPainter.updateWithAccountName(account);
-
         final int accountMainColor = ContextCompat.getColor(this, R.color.colorPrimary);
 
-        mContactTitleView = findViewById(R.id.contact_title_expanded);
-        findViewById(R.id.status_icon).setVisibility(View.GONE);
-        mContactTitleView.setBackgroundColor(accountMainColor);
-        TextView contactNameView = (TextView) findViewById(R.id.name);
-        contactNameView.setVisibility(View.INVISIBLE);
+//        mContactTitleView = findViewById(R.id.contact_title_expanded);
+//        mContactTitleView.setBackgroundColor(accountMainColor);
+//        TextView contactNameView = (TextView) findViewById(R.id.name);
+//        contactNameView.setVisibility(View.INVISIBLE);
 
         mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         mCollapsingToolbar.setTitle(mBestContact.getName());
         mCollapsingToolbar.setCollapsedTitleTextColor(ContextCompat.getColor(this, R.color.primary_text_default_material_dark));
+        mCollapsingToolbar.setExpandedTitleColor(ContextCompat.getColor(this, android.R.color.transparent));
         mCollapsingToolbar.setBackgroundColor(accountMainColor);
         mCollapsingToolbar.setContentScrimColor(accountMainColor);
     }
@@ -139,7 +132,7 @@ public class ContactViewerActivity extends BaseActivity implements
         super.onResume();
         Application.getInstance().addUIListener(OnContactChangedListener.class, this);
         Application.getInstance().addUIListener(OnAccountChangedListener.class, this);
-        ContactTitleInflater.updateTitle(mContactTitleView, this, mBestContact);
+//        ContactTitleExpandedInflater.updateTitle(mContactTitleView, this, mBestContact);
         updateName();
     }
 
@@ -191,6 +184,6 @@ public class ContactViewerActivity extends BaseActivity implements
 
     @Override
     public void onVCardReceived() {
-        ContactTitleInflater.updateTitle(mContactTitleView, this, mBestContact);
+//        ContactTitleExpandedInflater.updateTitle(mContactTitleView, this, mBestContact);
     }
 }

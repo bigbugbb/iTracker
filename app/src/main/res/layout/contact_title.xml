@@ -7,12 +7,6 @@
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
-    <!--<ImageView-->
-        <!--android:id="@+id/avatar"-->
-        <!--android:layout_width="@dimen/avatar_size_toolbar"-->
-        <!--android:layout_height="@dimen/avatar_size_toolbar"-->
-        <!--android:src="@drawable/ic_avatar_1" />-->
-
     <View
         android:layout_width="1dp"
         android:layout_height="match_parent"
@@ -20,6 +14,12 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"/>
+
+    <ImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/avatar_size_toolbar"
+        android:layout_height="@dimen/avatar_size_toolbar"
+        android:src="@drawable/ic_avatar_1" />
 
     <LinearLayout
         android:id="@+id/name_holder"
@@ -33,7 +33,7 @@
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textColor="@color/primary_text_default_material_dark"
             android:text=""
             android:layout_marginLeft="8dp"
@@ -45,7 +45,7 @@
             android:id="@+id/status_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textColor="@color/grey_200"
             android:textSize="10sp"
             android:text=""

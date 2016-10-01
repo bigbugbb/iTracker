@@ -3,9 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="72dp"
-    >
-
+    android:minHeight="72dp" >
 
     <ImageView
         android:id="@+id/contact_info_group_icon"
@@ -13,8 +11,7 @@
         android:layout_height="24dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="32dp"
-        android:layout_marginTop="24dp"
-        />
+        android:layout_marginTop="24dp" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -24,36 +21,34 @@
         android:orientation="vertical"
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
-        android:layout_marginRight="16dp"
-        >
-
+        android:layout_marginRight="16dp" >
 
         <TextView
+            android:id="@+id/contact_info_item_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?android:attr/textColorPrimary"
-
             android:text="(650) 555-1234"
-            android:id="@+id/contact_info_item_main"
             android:textIsSelectable="true"
             android:textSize="@dimen/abc_text_size_medium_material" />
 
         <TextView
+            android:id="@+id/contact_info_item_secondary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?android:attr/textColorSecondary"
+            android:maxLines="1"
+            android:text="Mobile" />
 
-            android:singleLine="true"
-            android:text="Mobile"
-            android:id="@+id/contact_info_item_secondary" />
         <TextView
+            android:id="@+id/contact_info_item_secondary_second_line"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?android:attr/textColorSecondary"
-            android:singleLine="true"
+            android:maxLines="1"
             android:text="Mobile"
-            android:visibility="gone"
-            android:id="@+id/contact_info_item_secondary_second_line" />
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <ImageView
@@ -62,7 +57,6 @@
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:visibility="gone"
-        android:layout_marginRight="16dp"
-        />
+        android:layout_marginRight="16dp" />
 
 </LinearLayout>
