@@ -30,6 +30,7 @@ import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.itracker.android.Application;
 import com.itracker.android.Config;
+import com.itracker.android.R;
 import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.data.model.Activity;
 import com.itracker.android.data.model.Backup;
@@ -152,6 +153,21 @@ public class SyncHelper {
      */
     public boolean performSync(SyncResult syncResult, Account account, Bundle extras) {
 
+        long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
+        long now = System.currentTimeMillis();
+        long timeSinceAttempt = now - lastAttemptTime;
+        final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
+
+        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
+//            Random r = new Random();
+//            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
+//                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
+//            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
+//                    + "ms ago. Requesting delay of " + toWait + "ms.");
+//            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
+            return false;
+        }
+
         // Get auth token and use it for each data request
         mAuthToken = AccountUtils.getAuthToken(mContext);
         mAccountName = AccountUtils.getActiveAccountName(mContext);
@@ -173,29 +189,14 @@ public class SyncHelper {
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-            mContext,
-            Config.COGNITO_IDENTITY_POOL_ID,
-            Regions.US_EAST_1 // Region
+                mContext,
+                mContext.getString(R.string.aws_cognito_identity_pool_id),
+                Regions.US_EAST_1 // Region
         );
 
         // Initialize s3 client and the transfer utility
         mS3Client = new AmazonS3Client(credentialsProvider);
         mTransferUtility = new TransferUtility(mS3Client, mContext);
-
-        long lastAttemptTime = PrefUtils.getLastSyncAttemptedTime(mContext);
-        long now = System.currentTimeMillis();
-        long timeSinceAttempt = now - lastAttemptTime;
-        final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
-
-        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
-//            Random r = new Random();
-//            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
-//                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
-//            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
-//                    + "ms ago. Requesting delay of " + toWait + "ms.");
-//            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
-            return false;
-        }
 
         // Download available media files
         if (ConnectivityUtils.isWifiConnected(Application.getInstance())) {

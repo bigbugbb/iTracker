@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aws_cognito_identity_pool_id">us-east-1:d05df8cf-b6a0-43ce-a478-ba6960a5acc6</string>
+</resources>

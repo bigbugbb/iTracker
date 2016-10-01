@@ -74,9 +74,6 @@ public class Config {
     // Data sync configurations
     public static final boolean WIFI_ONLY_SYNC_ENABLED = true;
 
-    // AWS cognito identity pool id
-    public static final String COGNITO_IDENTITY_POOL_ID = "us-east-1:d05df8cf-b6a0-43ce-a478-ba6960a5acc6";
-
     // S3 Bucket name
     public static final String S3_BUCKET_NAME = "itracker-track-data";
 
@@ -95,23 +92,20 @@ public class Config {
     public final static String ACTION_DOWNLOAD_MEDIA = "com.itracker.android.intent.action.DOWNLOAD_MEDIA";
 
     public static void enableStrictMode() {
-        if (SdkVersionUtils.hasGingerbread()) {
-            StrictMode.ThreadPolicy.Builder threadPolicyBuilder =
-                    new StrictMode.ThreadPolicy.Builder()
-                            .detectAll()
-                            .penaltyLog();
-            StrictMode.VmPolicy.Builder vmPolicyBuilder =
-                    new StrictMode.VmPolicy.Builder()
-                            .detectAll()
-                            .penaltyLog();
+        StrictMode.ThreadPolicy.Builder threadPolicyBuilder =
+                new StrictMode.ThreadPolicy.Builder()
+                        .detectAll()
+                        .penaltyLog();
+        StrictMode.VmPolicy.Builder vmPolicyBuilder =
+                new StrictMode.VmPolicy.Builder()
+                        .detectAll()
+                        .penaltyLog();
 
-            if (SdkVersionUtils.hasHoneycomb()) {
-                threadPolicyBuilder.penaltyFlashScreen();
-                vmPolicyBuilder
-                        .setClassInstanceLimit(TrackerActivity.class, 1);
-            }
-            StrictMode.setThreadPolicy(threadPolicyBuilder.build());
-            StrictMode.setVmPolicy(vmPolicyBuilder.build());
+        if (SdkVersionUtils.hasHoneycomb()) {
+            threadPolicyBuilder.penaltyFlashScreen();
+            vmPolicyBuilder.setClassInstanceLimit(TrackerActivity.class, 1);
         }
+        StrictMode.setThreadPolicy(threadPolicyBuilder.build());
+        StrictMode.setVmPolicy(vmPolicyBuilder.build());
     }
 }
