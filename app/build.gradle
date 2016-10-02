@@ -80,6 +80,7 @@ dependencies {
     compile "com.android.support:appcompat-v7:${project.ANDROID_SUPPORT_VERSION}"
     compile "com.android.support:support-v13:${project.ANDROID_SUPPORT_VERSION}"
     compile "com.android.support:design:${project.ANDROID_SUPPORT_VERSION}"
+    compile 'com.mikhaellopez:circularimageview:3.0.2'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.apache.directory.studio:org.apache.commons.io:2.4'

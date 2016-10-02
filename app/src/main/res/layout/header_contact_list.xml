@@ -15,10 +15,8 @@
 
         <ImageView
             android:id="@+id/image_add_contacts"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_width="@dimen/avatar_normal_size"
+            android:layout_height="@dimen/avatar_normal_size"
             android:adjustViewBounds="true"
             android:src="@drawable/ic_action_add_contacts"/>
 
@@ -27,7 +25,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:ellipsize="end"
-            android:singleLine="true"
+            android:maxLines="1"
             android:text="@string/contact_add"
             android:textColor="@android:color/black"
             android:textSize="16sp"

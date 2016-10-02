@@ -50,9 +50,9 @@ public class ContactEditorActivity extends ContactViewerActivity {
                 editAlias();
                 return true;
 
-            case R.id.action_edit_groups:
+//            case R.id.action_edit_groups:
 //                startActivity(GroupEditor.createIntent(this, getAccount(), getBareAddress()));
-                return true;
+//                return true;
 
             case R.id.action_remove_contact:
                 ContactDeleteDialogFragment.newInstance(getAccount(), getBareAddress())

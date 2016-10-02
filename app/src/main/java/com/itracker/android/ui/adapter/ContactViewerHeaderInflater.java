@@ -10,12 +10,19 @@ import com.itracker.android.data.extension.avatar.AvatarManager;
 import com.itracker.android.data.roster.AbstractContact;
 import com.itracker.android.xmpp.address.Jid;
 
+import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
-public class ContactTitleExpandedInflater {
 
-    public static void updateTitle(View titleView, final Context context, AbstractContact abstractContact) {
-        final TextView nameView = (TextView) titleView.findViewById(R.id.name);
+public class ContactViewerHeaderInflater {
+
+    public static void updateHeader(View titleView, final Context context, AbstractContact abstractContact, VCard vCard) {
+        updateHeader(titleView, context, abstractContact);
         final TextView emailView = (TextView) titleView.findViewById(R.id.email);
+        emailView.setText(vCard.getEmailHome() != null ? vCard.getEmailHome() : vCard.getEmailWork());
+    }
+
+    public static void updateHeader(View titleView, final Context context, AbstractContact abstractContact) {
+        final TextView nameView = (TextView) titleView.findViewById(R.id.name);
         final ImageView avatarView = (ImageView) titleView.findViewById(R.id.avatar);
 
         nameView.setText(abstractContact.getName());

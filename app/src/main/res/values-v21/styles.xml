@@ -12,4 +12,8 @@
         <item name="textAllCaps">false</item>
     </style>
 
+    <style name="Widget.ActionButton.Overflow" parent="@android:style/Widget.Material.ActionButton.Overflow">
+        <!--<item name="android:contentDescription">@string/accessibility_overflow</item>-->
+    </style>
+
 </resources>
