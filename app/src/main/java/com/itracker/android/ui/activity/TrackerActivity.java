@@ -238,7 +238,8 @@ public class TrackerActivity extends SingleActivity implements
         if (user != null) {
             tvUsername.setText(user.getDisplayName());
             tvEmail.setText(user.getEmail());
-            Glide.with(this).load(user.getPhotoUrl()).placeholder(R.drawable.ic_avatar_1).into(avatar);
+            // stackoverflow.com/question/36384789/glide-not-loading-real-image-and-stuck-with-placeholder
+            Glide.with(this).load(user.getPhotoUrl()).placeholder(R.drawable.ic_avatar_1).dontAnimate().into(avatar);
         } else {
             tvUsername.setText(getString(R.string.username_placeholder));
             tvEmail.setText(getString(R.string.email_placeholder));
