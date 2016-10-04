@@ -23,9 +23,13 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
@@ -108,6 +112,7 @@ public class TrackerActivity extends SingleActivity implements
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
+                updateNavigationHeader();
             }
         };
 
@@ -225,8 +230,20 @@ public class TrackerActivity extends SingleActivity implements
         super.onBackPressed();
     }
 
-    public int getSelectedTab() {
-        return mViewPager.getCurrentItem();
+    private void updateNavigationHeader() {
+        ImageView avatar = (ImageView) findViewById(R.id.avatar);
+        TextView tvUsername = (TextView) findViewById(R.id.username);
+        TextView tvEmail = (TextView) findViewById(R.id.email);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            tvUsername.setText(user.getDisplayName());
+            tvEmail.setText(user.getEmail());
+            Glide.with(this).load(user.getPhotoUrl()).placeholder(R.drawable.ic_avatar_1).into(avatar);
+        } else {
+            tvUsername.setText(getString(R.string.username_placeholder));
+            tvEmail.setText(getString(R.string.email_placeholder));
+            Glide.with(this).load(R.drawable.ic_avatar_1).crossFade().into(avatar);
+        }
     }
 
     /**

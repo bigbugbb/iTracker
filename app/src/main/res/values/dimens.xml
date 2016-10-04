@@ -62,6 +62,8 @@
     <dimen name="media_controller_button_height">52dip</dimen>
     <dimen name="media_controller_button_width">71dip</dimen>
 
+    <dimen name="status_bar_height">25dp</dimen>
+
     <dimen name="collapsing_toolbar_height">320dp</dimen>
     <dimen name="collapsing_toolbar_image_height">192dp</dimen>
     <dimen name="collapsing_toolbar_button_space_height">56dp</dimen>

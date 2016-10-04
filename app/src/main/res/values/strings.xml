@@ -47,6 +47,9 @@
     <string name="hide_timeline">HIDE ACTIVITY TIMELINE</string>
     <string name="need_time_for_timelines">Time is needed to get the activity timeline.</string>
 
+    <string name="username_placeholder">Username</string>
+    <string name="email_placeholder">username@myemail.com</string>
+
     <!-- Activity detection strings -->
     <string name="in_vehicle">In a vehicle</string>
     <string name="on_bicycle">On a bicycle</string>
