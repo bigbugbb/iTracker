@@ -95,6 +95,24 @@
         </activity>
 
         <activity
+            android:name="com.itracker.android.ui.activity.AccountViewerActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.itracker.android.ui.activity.TrackerActivity" />
+        </activity>
+
+        <activity
+            android:name="com.itracker.android.ui.activity.AccountInfoEditorActivity"
+            android:parentActivityName="com.itracker.android.ui.activity.AccountViewerActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.itracker.android.ui.activity.AccountViewerActivity" />
+        </activity>
+
+        <activity
             android:name="com.itracker.android.ui.activity.FootprintActivity"
             android:label="@string/title_activity_footprint"
             android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"

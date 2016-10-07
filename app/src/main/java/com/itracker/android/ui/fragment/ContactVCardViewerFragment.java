@@ -238,6 +238,10 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
         return source + splitter + value;
     }
 
+    public VCard getVCard() {
+        return mVCard;
+    }
+
     public void updateContact(String account, String bareAddress) {
         mAccount = account;
         mUser = bareAddress;

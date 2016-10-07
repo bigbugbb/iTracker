@@ -1091,9 +1091,9 @@ public class AccountManager implements OnLoadListener, OnWipeListener {
      * </ul>
      */
     public String getSelectedAccount() {
-        if (SettingsManager.contactsShowAccounts()) {
-            return null;
-        }
+//        if (SettingsManager.contactsShowAccounts()) {
+//            return null;
+//        }
         String selected = SettingsManager.contactsSelectedAccount();
         if (enabledAccounts.contains(selected)) {
             return selected;

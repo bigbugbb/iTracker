@@ -30,6 +30,7 @@ import com.itracker.android.Application;
 import com.itracker.android.Config;
 import com.itracker.android.R;
 import com.itracker.android.data.NetworkException;
+import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.account.AccountType;
 import com.itracker.android.ui.fragment.SignInFragment;
 import com.itracker.android.ui.fragment.SignUpFragment;
@@ -394,6 +395,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                     false,
                     createAccount);
             LOGD(TAG, "addAcount: " + account);
+            SettingsManager.setContactsSelectedAccount(account);
         } catch (NetworkException e) {
             Application.getInstance().onError(e);
         }

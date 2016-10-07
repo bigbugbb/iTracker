@@ -32,6 +32,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.Application;
 import com.itracker.android.R;
+import com.itracker.android.data.account.AccountManager;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
 import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
@@ -234,6 +235,7 @@ public class TrackerActivity extends SingleActivity implements
         ImageView avatar = (ImageView) findViewById(R.id.avatar);
         TextView tvUsername = (TextView) findViewById(R.id.username);
         TextView tvEmail = (TextView) findViewById(R.id.email);
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             tvUsername.setText(user.getDisplayName());
@@ -245,6 +247,13 @@ public class TrackerActivity extends SingleActivity implements
             tvEmail.setText(getString(R.string.email_placeholder));
             Glide.with(this).load(R.drawable.ic_avatar_1).crossFade().into(avatar);
         }
+
+        avatar.setOnClickListener(v -> {
+            mDrawerLayout.closeDrawers();
+            Intent intent = AccountViewerActivity.createAccountInfoIntent(TrackerActivity.this,
+                    AccountManager.getInstance().getSelectedAccount());
+            startActivity(intent);
+        });
     }
 
     /**

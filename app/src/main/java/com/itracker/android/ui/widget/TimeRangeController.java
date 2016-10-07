@@ -60,6 +60,7 @@ public class TimeRangeController {
             WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
             params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
             params.y = location[1];
+            dialog.setCancelable(false);
             dialog.show();
         });
         mEndText = (TextView) mTimeRange.findViewById(R.id.end_date);
@@ -77,6 +78,7 @@ public class TimeRangeController {
             WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
             params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
             params.y = location[1];
+            dialog.setCancelable(false);
             dialog.show();
         });
 
