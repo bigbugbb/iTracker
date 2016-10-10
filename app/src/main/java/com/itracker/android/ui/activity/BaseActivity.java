@@ -180,6 +180,12 @@ public class BaseActivity extends ManagedActivity implements
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        mOptionsMenu = menu;
+        return true;
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
     }

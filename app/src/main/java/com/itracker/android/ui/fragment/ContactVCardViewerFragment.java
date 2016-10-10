@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -260,12 +261,6 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
         addItem(birthDayList, mContactInfoItems, getString(R.string.vcard_birth_date), mVCard.getField(VCardProperty.BDAY.toString()));
         addItemGroup(birthDayList, mContactInfoItems, R.drawable.ic_vcard_birthday_24dp, false);
 
-        addOrganizationInfo(mVCard);
-
-        List<View> webList = new ArrayList<>();
-        addItem(webList, mContactInfoItems, getString(R.string.vcard_url), mVCard.getField(VCardProperty.URL.toString()));
-        addItemGroup(webList, mContactInfoItems, R.drawable.ic_vcard_web_24dp, false);
-
         addAdditionalInfo(mVCard);
         addAddresses(mVCard);
         addPhones(mVCard);
@@ -326,13 +321,6 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
 
         addItem(addressList, mContactInfoItems,  getString(VcardMaps.getAddressTypeMap().get(AddressType.HOME)), homeAddress);
 
-        String workAddress = null;
-        for (AddressProperty property : AddressProperty.values()) {
-            workAddress = addString(workAddress, vCard.getAddressFieldWork(property.name()), "\n");
-        }
-
-        addItem(addressList, mContactInfoItems, getString(VcardMaps.getAddressTypeMap().get(AddressType.WORK)), workAddress);
-
         addItemGroup(addressList, mContactInfoItems, R.drawable.ic_vcard_address_24dp, false);
     }
 
@@ -343,19 +331,19 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
         addItemGroup(notesList, mContactInfoItems, R.drawable.ic_vcard_notes_24dp, false);
     }
 
-    private void addOrganizationInfo(VCard vCard) {
-        List<View> organizationList = new ArrayList<>();
-
-        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_title), vCard.getField(VCardProperty.TITLE.toString()));
-        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_role), vCard.getField(VCardProperty.ROLE.toString()));
-
-        String organization = vCard.getOrganization();
-        String unit = vCard.getOrganizationUnit();
-
-        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_organization), addString(organization, unit, "\n"));
-
-        addItemGroup(organizationList, mContactInfoItems, R.drawable.ic_vcard_job_title_24dp, false);
-    }
+//    private void addOrganizationInfo(VCard vCard) {
+//        List<View> organizationList = new ArrayList<>();
+//
+//        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_title), vCard.getField(VCardProperty.TITLE.toString()));
+//        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_role), vCard.getField(VCardProperty.ROLE.toString()));
+//
+//        String organization = vCard.getOrganization();
+//        String unit = vCard.getOrganizationUnit();
+//
+//        addItem(organizationList, mContactInfoItems, getString(R.string.vcard_organization), addString(organization, unit, "\n"));
+//
+//        addItemGroup(organizationList, mContactInfoItems, R.drawable.ic_vcard_job_title_24dp, false);
+//    }
 
     private void addNameInfo(VCard vCard) {
         List<View> nameList = new ArrayList<>();
@@ -391,7 +379,9 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
     private void addItem(List<View> nameList, ViewGroup rootView, String label, String value) {
         View itemView = createItemView(rootView, label, value, null);
         if (itemView != null) {
-            Linkify.addLinks((TextView) itemView.findViewById(R.id.contact_info_item_main), Linkify.ALL);
+            if (!TextUtils.equals(label, getString(R.string.vcard_birth_date))) {
+                Linkify.addLinks((TextView) itemView.findViewById(R.id.contact_info_item_main), Linkify.ALL);
+            }
             nameList.add(itemView);
         }
     }

@@ -28,6 +28,8 @@ public class PrefUtils {
 
     public static final String PREF_LAST_SELECTED_TAB = "_pref_last_selected_tab";
 
+    public static final String PREF_UPDATE_VCARD_DONE = "_pref_update_vcard_done";
+
     /** Long indicating when a sync was last ATTEMPTED (not necessarily succeeded) */
     public static final String PREF_LAST_SYNC_ATTEMPTED = "_pref_last_sync_attempted";
 
@@ -76,6 +78,16 @@ public class PrefUtils {
     public static void setLastSelectedTab(final Context context, int tab) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putInt(PREF_LAST_SELECTED_TAB, tab).apply();
+    }
+
+    public static boolean isVCardUpdated(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(PREF_UPDATE_VCARD_DONE, false);
+    }
+
+    public static void markVCardUpdated(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putBoolean(PREF_UPDATE_VCARD_DONE, true).apply();
     }
 
     public static long getLastSyncAttemptedTime(final Context context) {

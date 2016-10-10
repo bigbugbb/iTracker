@@ -1,5 +1,6 @@
 package com.itracker.android.ui.activity;
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -20,6 +22,8 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.itracker.android.Application;
 import com.itracker.android.R;
@@ -52,6 +56,7 @@ import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
 
 public class ContactViewerActivity extends BaseActivity implements
+        View.OnClickListener,
         OnVCardListener,
         OnContactChangedListener,
         OnAccountChangedListener,
@@ -59,28 +64,34 @@ public class ContactViewerActivity extends BaseActivity implements
 
     private static final String TAG = makeLogTag(ContactViewerActivity.class);
 
-    private String mAccount;
-    private String mBareAddress;
-    private View mContactViewerHeader;
-    private View mContactTitleCollapsed;
-    private AbstractContact mBestContact;
-    private AppBarLayout mAppBarLayout;
-    private CollapsingToolbarLayout mCollapsingToolbar;
+    public static final int ACCOUNT_INFO_EDITOR_REQUEST_CODE = 1;
+    public static final String INTENT_IS_FOR_ACCOUNT = "com.itracker.android.ui.activity.ContactViewerActivity.INTENT_IS_FOR_ACCOUNT";
 
-    private boolean mInitialized;
-    private boolean mExpandedMode;
-    private TransitionDrawable mToobarBackgroundColorTransition;
+    protected String mAccount;
+    protected String mBareAddress;
+    protected View mContactViewerHeader;
+    protected View mContactTitleCollapsed;
+    protected AbstractContact mBestContact;
+    protected AppBarLayout mAppBarLayout;
+    protected CollapsingToolbarLayout mCollapsingToolbar;
+
+    protected Button mBtnSendMessage;
+    protected Button mBtnEditAccount;
+
+    protected boolean mInitialized;
+    protected boolean mExpandedMode;
+    protected TransitionDrawable mToobarBackgroundColorTransition;
 
     public static Intent createIntent(Context context, String account, String user) {
         return new EntityIntentBuilder(context, ContactViewerActivity.class)
                 .setAccount(account).setUser(user).build();
     }
 
-    private static String getAccount(Intent intent) {
+    protected static String getAccount(Intent intent) {
         return AccountIntentBuilder.getAccount(intent);
     }
 
-    private static String getUser(Intent intent) {
+    protected static String getUser(Intent intent) {
         return EntityIntentBuilder.getUser(intent);
     }
 
@@ -115,8 +126,12 @@ public class ContactViewerActivity extends BaseActivity implements
             mBareAddress = getUser(getIntent());
         }
 
+        boolean isForAccount = getIntent().getBooleanExtra(INTENT_IS_FOR_ACCOUNT, false);
+
         if (mBareAddress != null && mBareAddress.equalsIgnoreCase(GroupManager.IS_ACCOUNT)) {
             mBareAddress = Jid.getBareAddress(AccountManager.getInstance().getAccount(mAccount).getRealJid());
+        } else if (isForAccount) {
+            mBareAddress = Jid.getBareAddress(mAccount);
         }
 
         if (mAccount == null || mBareAddress == null) {
@@ -157,6 +172,15 @@ public class ContactViewerActivity extends BaseActivity implements
         mCollapsingToolbar.setStatusBarScrimColor(colorPrimary);
         mCollapsingToolbar.setTitleEnabled(false);
 
+        mBtnSendMessage = (Button) findViewById(R.id.send_message);
+        mBtnSendMessage.setOnClickListener(this);
+        mBtnSendMessage.setVisibility(isForAccount ? View.INVISIBLE : View.VISIBLE);
+        mBtnEditAccount = (Button) findViewById(R.id.edit_account);
+        mBtnEditAccount.setOnClickListener(this);
+        mBtnEditAccount.setVisibility(isForAccount ? View.VISIBLE : View.INVISIBLE);
+
+        findViewById(R.id.app_icon).setOnClickListener(this);
+
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         float collapsingToolbarHeight = getResources().getDimension(R.dimen.collapsing_toolbar_height);
         float actionBarHeight = getResources().getDimension(R.dimen.default_toolbar_height);
@@ -181,6 +205,7 @@ public class ContactViewerActivity extends BaseActivity implements
                     mToobarBackgroundColorTransition.startTransition(animDuration);
                     updateBackArrowColor(R.color.white);
                     updateOverflowColor(R.color.white);
+                    updateMenuItemsColor(R.color.white);
                 }
                 mExpandedMode = false;
             } else {
@@ -200,15 +225,10 @@ public class ContactViewerActivity extends BaseActivity implements
                     }
                     updateBackArrowColor(R.color.grey_400);
                     updateOverflowColor(R.color.grey_400);
+                    updateMenuItemsColor(R.color.grey_400);
                 }
                 mExpandedMode = true;
             }
-        });
-
-        findViewById(R.id.send_message).setOnClickListener(v -> {
-            Intent intent = ChatViewerActivity.createClearTopIntent(ContactViewerActivity.this,
-                    mAccount, mBareAddress);
-            startActivity(intent);
         });
     }
 
@@ -240,16 +260,51 @@ public class ContactViewerActivity extends BaseActivity implements
         }
     }
 
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.send_message:
+                onSendMessageClicked();
+                break;
+            case R.id.edit_account:
+                onEditAccountClicked();
+                break;
+            case R.id.app_icon:
+                Toast.makeText(this, R.string.funny_face, Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                break;
+        }
+    }
+
+    protected void onSendMessageClicked() {
+        Intent intent = ChatViewerActivity.createClearTopIntent(ContactViewerActivity.this,
+                mAccount, mBareAddress);
+        startActivity(intent);
+    }
+
+    protected void onEditAccountClicked() {
+        VCard vCard = ((ContactVCardViewerFragment) getFragmentManager().findFragmentById(R.id.scrollable_container)).getVCard();
+        if (vCard != null) {
+            Intent intent = AccountInfoEditorActivity.createIntent(this, mAccount, vCard.getChildElementXML().toString());
+            startActivityForResult(intent, ACCOUNT_INFO_EDITOR_REQUEST_CODE);
+        }
+    }
+
     private void updateCollapsedTitle() {
         mBestContact = RosterManager.getInstance().getBestContact(mAccount, mBareAddress);
         ContactTitleInflater.updateTitle(mContactTitleCollapsed, this, mBestContact);
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void updateBackArrowColor(int colorId) {
         final Drawable upArrow = SdkVersionUtils.hasLollipop() ? getResources().getDrawable(R.drawable.abc_ic_ab_back_material, null) :
                 getResources().getDrawable(R.drawable.abc_ic_ab_back_material);
         upArrow.setColorFilter(ContextCompat.getColor(this, colorId), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
+    }
+
+    // the derived classes should override this method to update their own menu item icon color
+    protected void updateMenuItemsColor(int colorId) {
     }
 
     private void updateOverflowColor(int colorId) {

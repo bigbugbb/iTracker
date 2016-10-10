@@ -81,62 +81,41 @@ public class AccountInfoEditorFragment extends Fragment implements
     public static final String DATE_FORMAT_INT_TO_STRING = "%d-%02d-%02d";
     public static final int MAX_IMAGE_SIZE = 512;
 
-    private VCard vCard;
-    private String account;
-    private View progressBar;
-    private boolean isSaveSuccess;
-    private Listener listener;
-    private boolean updateFromVCardFlag = true;
+    private VCard mVCard;
+    private String mAccount;
+    private View mProgressBar;
+    private boolean mIsSaveSuccess;
+    private Listener mListener;
+    private boolean mUpdateFromVCardFlag = true;
 
-    private TextView account_jid;
-    private LinearLayout fields;
+    private LinearLayout mFields;
 
-    private EditText formattedName;
-    private EditText prefixName;
-    private EditText givenName;
-    private EditText middleName;
-    private EditText familyName;
-    private EditText suffixName;
-    private EditText nickName;
+    private EditText mGivenName;
+    private EditText mMiddleName;
+    private EditText mFamilyName;
+    private EditText mNickName;
 
-    private EditText title;
-    private EditText role;
-    private EditText organizationUnit;
-    private EditText organization;
+    private EditText mTitle;
 
-    private EditText url;
-    private EditText description;
-    private EditText emailHome;
-    private EditText emailWork;
-    private EditText phoneHome;
-    private EditText phoneWork;
+    private EditText mDescription;
+    private EditText mEmail;
+    private EditText mPhone;
 
-    private EditText addressHomePostOfficeBox;
-    private EditText addressHomePostExtended;
-    private EditText addressHomePostStreet;
-    private EditText addressHomeLocality;
-    private EditText addressHomeRegion;
-    private EditText addressHomeCountry;
-    private EditText addressHomePostalCode;
+    private EditText mAddressHomePostStreet;
+    private EditText mAddressHomeLocality;
+    private EditText mAddressHomeRegion;
+    private EditText mAddressHomeCountry;
+    private EditText mAddressHomePostalCode;
 
-    private EditText addressWorkPostOfficeBox;
-    private EditText addressWorkPostExtended;
-    private EditText addressWorkPostStreet;
-    private EditText addressWorkLocality;
-    private EditText addressWorkRegion;
-    private EditText addressWorkCountry;
-    private EditText addressWorkPostalCode;
+    private ImageView mAvatar;
+    private TextView mAvatarSize;
+    private Uri mNewAvatarImageUri;
+    private Uri mPhotoFileUri;
+    private boolean mRemoveAvatarFlag = false;
 
-    private ImageView avatar;
-    private TextView avatarSize;
-    private View changeAvatarButton;
-    private Uri newAvatarImageUri;
-    private Uri photoFileUri;
-    private boolean removeAvatarFlag = false;
-
-    private TextView birthDate;
-    private DatePickerDialog datePicker;
-    private View birthDateRemoveButton;
+    private TextView mBirthDate;
+    private DatePickerDialog mDatePicker;
+    private View mBirthDateRemoveButton;
 
     public interface Listener {
         void onProgressModeStarted(String message);
@@ -160,7 +139,7 @@ public class AccountInfoEditorFragment extends Fragment implements
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        listener = (Listener) activity;
+        mListener = (Listener) activity;
     }
 
     @Override
@@ -168,11 +147,11 @@ public class AccountInfoEditorFragment extends Fragment implements
         super.onCreate(savedInstanceState);
 
         Bundle args = getArguments();
-        account = args.getString(ARGUMENT_ACCOUNT, null);
+        mAccount = args.getString(ARGUMENT_ACCOUNT, null);
         String vCardString = args.getString(ARGUMENT_VCARD, null);
         if (vCardString != null) {
             try {
-                vCard = ContactVCardViewerFragment.parseVCard(vCardString);
+                mVCard = ContactVCardViewerFragment.parseVCard(vCardString);
             } catch (XmlPullParserException | IOException | SmackException e) {
                 LogManager.exception(this, e);
             }
@@ -181,15 +160,15 @@ public class AccountInfoEditorFragment extends Fragment implements
         if (savedInstanceState != null) {
             final String avatarImageUriString = savedInstanceState.getString(SAVE_NEW_AVATAR_IMAGE_URI);
             if (avatarImageUriString != null) {
-                newAvatarImageUri = Uri.parse(avatarImageUriString);
+                mNewAvatarImageUri = Uri.parse(avatarImageUriString);
             }
 
             final String photoFileUriString = savedInstanceState.getString(SAVE_PHOTO_FILE_URI);
             if (photoFileUriString != null) {
-                photoFileUri = Uri.parse(photoFileUriString);
+                mPhotoFileUri = Uri.parse(photoFileUriString);
             }
 
-            removeAvatarFlag = savedInstanceState.getBoolean(SAVE_REMOVE_AVATAR_FLAG);
+            mRemoveAvatarFlag = savedInstanceState.getBoolean(SAVE_REMOVE_AVATAR_FLAG);
         }
     }
 
@@ -198,62 +177,36 @@ public class AccountInfoEditorFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_account_info_editor, container, false);
 
-        fields = (LinearLayout) view.findViewById(R.id.vcard_fields_layout);
+        mFields = (LinearLayout) view.findViewById(R.id.vcard_fields_layout);
+        mProgressBar = view.findViewById(R.id.vcard_save_progress_bar);
 
-        progressBar = view.findViewById(R.id.vcard_save_progress_bar);
+        mGivenName = setUpInputField(view, R.id.vcard_given_name);
+        mMiddleName = setUpInputField(view, R.id.vcard_middle_name);
+        mFamilyName = setUpInputField(view, R.id.vcard_family_name);
+        mNickName = setUpInputField(view, R.id.vcard_nickname);
 
-        account_jid = (TextView) view.findViewById(R.id.vcard_jid);
+        mAvatar = (ImageView) view.findViewById(R.id.vcard_avatar);
+        mAvatarSize = (TextView) view.findViewById(R.id.vcard_avatar_size_text_view);
+        mAvatar.setOnClickListener(v -> changeAvatar());
 
-        prefixName = setUpInputField(view, R.id.vcard_prefix_name);
-        formattedName = setUpInputField(view, R.id.vcard_formatted_name);
-        givenName = setUpInputField(view, R.id.vcard_given_name);
-        middleName = setUpInputField(view, R.id.vcard_middle_name);
-        familyName = setUpInputField(view, R.id.vcard_family_name);
-        suffixName = setUpInputField(view, R.id.vcard_suffix_name);
-        nickName = setUpInputField(view, R.id.vcard_nickname);
+        mBirthDate = (TextView) view.findViewById(R.id.vcard_birth_date);
+        mBirthDate.setOnClickListener(v -> mDatePicker.show());
+        mBirthDate.addTextChangedListener(this);
 
-        avatar = (ImageView) view.findViewById(R.id.vcard_avatar);
-        avatarSize = (TextView) view.findViewById(R.id.vcard_avatar_size_text_view);
-        changeAvatarButton = view.findViewById(R.id.vcard_change_avatar);
-        changeAvatarButton.setOnClickListener(v -> changeAvatar());
+        mBirthDateRemoveButton = view.findViewById(R.id.vcard_birth_date_remove_button);
+        mBirthDateRemoveButton.setOnClickListener(v -> setBirthDate(null));
 
-        birthDate = (TextView) view.findViewById(R.id.vcard_birth_date);
-        birthDate.setOnClickListener(v -> datePicker.show());
-        birthDate.addTextChangedListener(this);
+        mTitle = setUpInputField(view, R.id.vcard_title);
 
-        birthDateRemoveButton = view.findViewById(R.id.vcard_birth_date_remove_button);
-        birthDateRemoveButton.setOnClickListener(v -> setBirthDate(null));
+        mDescription = setUpInputField(view, R.id.vcard_decsription);
+        mPhone = setUpInputField(view, R.id.vcard_phone);
+        mEmail = setUpInputField(view, R.id.vcard_email);
 
-        title = setUpInputField(view, R.id.vcard_title);
-        role = setUpInputField(view, R.id.vcard_role);
-        organization = setUpInputField(view, R.id.vcard_organization_name);
-        organizationUnit = setUpInputField(view, R.id.vcard_organization_unit);
-
-        url = setUpInputField(view, R.id.vcard_url);
-
-        description = setUpInputField(view, R.id.vcard_decsription);
-
-        phoneHome = setUpInputField(view, R.id.vcard_phone_home);
-        phoneWork = setUpInputField(view, R.id.vcard_phone_work);
-
-        emailHome = setUpInputField(view, R.id.vcard_email_home);
-        emailWork = setUpInputField(view, R.id.vcard_email_work);
-
-        addressHomePostOfficeBox = setUpInputField(view, R.id.vcard_address_home_post_office_box);
-        addressHomePostExtended = setUpInputField(view, R.id.vcard_address_home_post_extended);
-        addressHomePostStreet = setUpInputField(view, R.id.vcard_address_home_post_street);
-        addressHomeLocality = setUpInputField(view, R.id.vcard_address_home_locality);
-        addressHomeRegion = setUpInputField(view, R.id.vcard_address_home_region);
-        addressHomeCountry = setUpInputField(view, R.id.vcard_address_home_country);
-        addressHomePostalCode = setUpInputField(view, R.id.vcard_address_home_postal_code);
-
-        addressWorkPostOfficeBox = setUpInputField(view, R.id.vcard_address_work_post_office_box);
-        addressWorkPostExtended = setUpInputField(view, R.id.vcard_address_work_post_extended);
-        addressWorkPostStreet = setUpInputField(view, R.id.vcard_address_work_post_street);
-        addressWorkLocality = setUpInputField(view, R.id.vcard_address_work_locality);
-        addressWorkRegion = setUpInputField(view, R.id.vcard_address_work_region);
-        addressWorkCountry = setUpInputField(view, R.id.vcard_address_work_country);
-        addressWorkPostalCode = setUpInputField(view, R.id.vcard_address_work_postal_code);
+        mAddressHomePostStreet = setUpInputField(view, R.id.vcard_address_home_post_street);
+        mAddressHomeLocality = setUpInputField(view, R.id.vcard_address_home_locality);
+        mAddressHomeRegion = setUpInputField(view, R.id.vcard_address_home_region);
+        mAddressHomeCountry = setUpInputField(view, R.id.vcard_address_home_country);
+        mAddressHomePostalCode = setUpInputField(view, R.id.vcard_address_home_postal_code);
 
         setFieldsFromVCard();
 
@@ -274,10 +227,10 @@ public class AccountInfoEditorFragment extends Fragment implements
         Application.getInstance().addUIListener(OnVCardListener.class, this);
 
         VCardManager vCardManager = VCardManager.getInstance();
-        if (vCardManager.isVCardRequested(account) || vCardManager.isVCardSaveRequested(account)) {
+        if (vCardManager.isVCardRequested(mAccount) || vCardManager.isVCardSaveRequested(mAccount)) {
             enableProgressMode(getString(R.string.saving));
         }
-        updateFromVCardFlag = false;
+        mUpdateFromVCardFlag = false;
     }
 
     @Override
@@ -291,85 +244,57 @@ public class AccountInfoEditorFragment extends Fragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (newAvatarImageUri != null) {
-            outState.putString(SAVE_NEW_AVATAR_IMAGE_URI, newAvatarImageUri.toString());
+        if (mNewAvatarImageUri != null) {
+            outState.putString(SAVE_NEW_AVATAR_IMAGE_URI, mNewAvatarImageUri.toString());
         }
-        if (photoFileUri != null) {
-            outState.putString(SAVE_PHOTO_FILE_URI, photoFileUri.toString());
+        if (mPhotoFileUri != null) {
+            outState.putString(SAVE_PHOTO_FILE_URI, mPhotoFileUri.toString());
         }
-        outState.putBoolean(SAVE_REMOVE_AVATAR_FLAG, removeAvatarFlag);
+        outState.putBoolean(SAVE_REMOVE_AVATAR_FLAG, mRemoveAvatarFlag);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        listener = null;
+        mListener = null;
     }
 
     private void setFieldsFromVCard() {
-        account_jid.setText(Jid.getBareAddress(account));
-
-        formattedName.setText(vCard.getField(VCardProperty.FN.name()));
-        prefixName.setText(vCard.getPrefix());
-        givenName.setText(vCard.getFirstName());
-        middleName.setText(vCard.getMiddleName());
-        familyName.setText(vCard.getLastName());
-        suffixName.setText(vCard.getSuffix());
-        nickName.setText(vCard.getNickName());
+        mGivenName.setText(mVCard.getFirstName());
+        mMiddleName.setText(mVCard.getMiddleName());
+        mFamilyName.setText(mVCard.getLastName());
+        mNickName.setText(mVCard.getNickName());
 
         setUpAvatarView();
 
-        setBirthDate(vCard.getField(VCardProperty.BDAY.name()));
+        setBirthDate(mVCard.getField(VCardProperty.BDAY.name()));
 
         updateDatePickerDialog();
 
-        title.setText(vCard.getField(VCardProperty.TITLE.name()));
-        role.setText(vCard.getField(VCardProperty.ROLE.name()));
-        organization.setText(vCard.getOrganization());
-        organizationUnit.setText(vCard.getOrganizationUnit());
+        mTitle.setText(mVCard.getField(VCardProperty.TITLE.name()));
 
-        url.setText(vCard.getField(VCardProperty.URL.name()));
-
-        description.setText(vCard.getField(VCardProperty.DESC.name()));
+        mDescription.setText(mVCard.getField(VCardProperty.DESC.name()));
 
         for (TelephoneType telephoneType : TelephoneType.values() ) {
-            String phone = vCard.getPhoneHome(telephoneType.name());
+            String phone = mVCard.getPhoneHome(telephoneType.name());
             if (phone != null && !phone.isEmpty()) {
-                phoneHome.setText(phone);
+                mPhone.setText(phone);
             }
         }
 
-        for (TelephoneType telephoneType : TelephoneType.values() ) {
-            String phone = vCard.getPhoneWork(telephoneType.name());
-            if (phone != null && !phone.isEmpty()) {
-                phoneWork.setText(phone);
-            }
-        }
+        mEmail.setText(mVCard.getEmailHome());
 
-        emailHome.setText(vCard.getEmailHome());
-        emailWork.setText(vCard.getEmailWork());
-
-        addressHomePostOfficeBox.setText(vCard.getAddressFieldHome(AddressProperty.POBOX.name()));
-        addressHomePostExtended.setText(vCard.getAddressFieldHome(AddressProperty.EXTADR.name()));
-        addressHomePostStreet.setText(vCard.getAddressFieldHome(AddressProperty.STREET.name()));
-        addressHomeLocality.setText(vCard.getAddressFieldHome(AddressProperty.LOCALITY.name()));
-        addressHomeRegion.setText(vCard.getAddressFieldHome(AddressProperty.REGION.name()));
-        addressHomeCountry.setText(vCard.getAddressFieldHome(AddressProperty.CTRY.name()));
-        addressHomePostalCode.setText(vCard.getAddressFieldHome(AddressProperty.PCODE.name()));
-
-        addressWorkPostOfficeBox.setText(vCard.getAddressFieldWork(AddressProperty.POBOX.name()));
-        addressWorkPostExtended.setText(vCard.getAddressFieldWork(AddressProperty.EXTADR.name()));
-        addressWorkPostStreet.setText(vCard.getAddressFieldWork(AddressProperty.STREET.name()));
-        addressWorkLocality.setText(vCard.getAddressFieldWork(AddressProperty.LOCALITY.name()));
-        addressWorkRegion.setText(vCard.getAddressFieldWork(AddressProperty.REGION.name()));
-        addressWorkCountry.setText(vCard.getAddressFieldWork(AddressProperty.CTRY.name()));
-        addressWorkPostalCode.setText(vCard.getAddressFieldWork(AddressProperty.PCODE.name()));
+        mAddressHomePostStreet.setText(mVCard.getAddressFieldHome(AddressProperty.STREET.name()));
+        mAddressHomeLocality.setText(mVCard.getAddressFieldHome(AddressProperty.LOCALITY.name()));
+        mAddressHomeRegion.setText(mVCard.getAddressFieldHome(AddressProperty.REGION.name()));
+        mAddressHomePostalCode.setText(mVCard.getAddressFieldHome(AddressProperty.PCODE.name()));
+        mAddressHomeCountry.setText(mVCard.getAddressFieldHome(AddressProperty.CTRY.name()));
     }
 
     public void updateDatePickerDialog() {
         Calendar calendar = null;
 
-        String vCardBirthDate = vCard.getField(VCardProperty.BDAY.name());
+        String vCardBirthDate = mVCard.getField(VCardProperty.BDAY.name());
 
         if (vCardBirthDate != null) {
 
@@ -390,16 +315,16 @@ public class AccountInfoEditorFragment extends Fragment implements
         if (calendar == null) {
             calendar = Calendar.getInstance(TimeZone.getDefault());
         }
-        datePicker = new DatePickerDialog(getActivity(),
+        mDatePicker = new DatePickerDialog(getActivity(),
                 AccountInfoEditorFragment.this,
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
-        datePicker.setCancelable(false);
+        mDatePicker.setCancelable(false);
     }
 
     private void changeAvatar() {
-        PopupMenu menu = new PopupMenu(getActivity(), changeAvatarButton);
+        PopupMenu menu = new PopupMenu(getActivity(), mAvatar);
         menu.inflate(R.menu.menu_change_avatar);
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -409,11 +334,9 @@ public class AccountInfoEditorFragment extends Fragment implements
                 case R.id.action_take_photo:
                     onTakePhotoClick();
                     return true;
-
                 case R.id.action_remove_avatar:
                     removeAvatar();
                     return true;
-
                 default:
                     return false;
             }
@@ -449,19 +372,19 @@ public class AccountInfoEditorFragment extends Fragment implements
             }
 
             if (imageFile != null) {
-                photoFileUri = Uri.fromFile(imageFile);
+                mPhotoFileUri = Uri.fromFile(imageFile);
 
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoFileUri);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoFileUri);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
     }
 
     private void removeAvatar() {
-        newAvatarImageUri = null;
-        removeAvatarFlag = true;
+        mNewAvatarImageUri = null;
+        mRemoveAvatarFlag = true;
         setUpAvatarView();
-        listener.enableSave();
+        mListener.enableSave();
     }
 
     @Override
@@ -492,14 +415,14 @@ public class AccountInfoEditorFragment extends Fragment implements
         if (requestCode == Crop.REQUEST_PICK && resultCode == Activity.RESULT_OK) {
             beginCrop(result.getData());
         } else if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
-            beginCrop(photoFileUri);
+            beginCrop(mPhotoFileUri);
         } else if (requestCode == Crop.REQUEST_CROP) {
             handleCrop(resultCode, result);
         }
     }
 
     private void beginCrop(final Uri source) {
-        newAvatarImageUri = Uri.fromFile(new File(getActivity().getCacheDir(), TEMP_FILE_NAME));
+        mNewAvatarImageUri = Uri.fromFile(new File(getActivity().getCacheDir(), TEMP_FILE_NAME));
 
         Application.getInstance().runInBackground(() -> {
             final boolean isImageNeedPreprocess = FileManager.isImageSizeGreater(source, MAX_IMAGE_SIZE)
@@ -545,7 +468,7 @@ public class AccountInfoEditorFragment extends Fragment implements
         if (activity == null) {
             return;
         }
-        Crop.of(srcUri, newAvatarImageUri).withMaxSize(MAX_AVATAR_SIZE_PIXELS, MAX_AVATAR_SIZE_PIXELS).start(activity);
+        Crop.of(srcUri, mNewAvatarImageUri).withMaxSize(MAX_AVATAR_SIZE_PIXELS, MAX_AVATAR_SIZE_PIXELS).start(activity);
     }
 
     private void handleCrop(int resultCode, Intent result) {
@@ -554,33 +477,33 @@ public class AccountInfoEditorFragment extends Fragment implements
                 setUpAvatarView();
                 break;
             case Crop.RESULT_ERROR:
-                avatarSize.setVisibility(View.INVISIBLE);
+                mAvatarSize.setVisibility(View.INVISIBLE);
                 Toast.makeText(getActivity(), R.string.error_during_crop, Toast.LENGTH_SHORT).show();
                 // no break!
             default:
-                newAvatarImageUri = null;
+                mNewAvatarImageUri = null;
         }
     }
 
     private void setUpAvatarView() {
-        if (newAvatarImageUri != null) {
+        if (mNewAvatarImageUri != null) {
             // null prompts image view to reload file.
-            avatar.setImageURI(null);
-            avatar.setImageURI(newAvatarImageUri);
-            removeAvatarFlag = false;
+            mAvatar.setImageURI(null);
+            mAvatar.setImageURI(mNewAvatarImageUri);
+            mRemoveAvatarFlag = false;
 
-            File file = new File(newAvatarImageUri.getPath());
-            avatarSize.setText(file.length() / KB_SIZE_IN_BYTES + "KB");
-            avatarSize.setVisibility(View.VISIBLE);
-            if (listener != null) {
-                listener.enableSave();
+            File file = new File(mNewAvatarImageUri.getPath());
+            mAvatarSize.setText(file.length() / KB_SIZE_IN_BYTES + "KB");
+            mAvatarSize.setVisibility(View.VISIBLE);
+            if (mListener != null) {
+                mListener.enableSave();
             }
-        } else if (removeAvatarFlag) {
-            avatar.setImageDrawable(AvatarManager.getInstance().getDefaultAccountAvatar(account));
-            avatarSize.setVisibility(View.INVISIBLE);
+        } else if (mRemoveAvatarFlag) {
+            mAvatar.setImageDrawable(AvatarManager.getInstance().getDefaultAccountAvatar(mAccount));
+            mAvatarSize.setVisibility(View.INVISIBLE);
         } else {
-            avatar.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(account));
-            avatarSize.setVisibility(View.INVISIBLE);
+            mAvatar.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(mAccount));
+            mAvatarSize.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -600,83 +523,57 @@ public class AccountInfoEditorFragment extends Fragment implements
 
     private void updateVCardFromFields() {
 
-        vCard.setPrefix(getValueFromEditText(prefixName));
-        vCard.setFirstName(getValueFromEditText(givenName));
-        vCard.setMiddleName(getValueFromEditText(middleName));
-        vCard.setLastName(getValueFromEditText(familyName));
-        vCard.setSuffix(getValueFromEditText(suffixName));
-        vCard.setNickName(getValueFromEditText(nickName));
+        mVCard.setFirstName(getValueFromEditText(mGivenName));
+        mVCard.setMiddleName(getValueFromEditText(mMiddleName));
+        mVCard.setLastName(getValueFromEditText(mFamilyName));
+        mVCard.setNickName(getValueFromEditText(mNickName));
 
-        String formattedNameText = getValueFromEditText(formattedName);
-        if (formattedNameText != null) {
-            vCard.setField(VCardProperty.FN.name(), formattedNameText);
-        }
-
-        if (removeAvatarFlag) {
-            vCard.removeAvatar();
-        } else if (newAvatarImageUri != null) {
+        if (mRemoveAvatarFlag) {
+            mVCard.removeAvatar();
+        } else if (mNewAvatarImageUri != null) {
             try {
-                vCard.setAvatar(new URL(newAvatarImageUri.toString()));
+                mVCard.setAvatar(new URL(mNewAvatarImageUri.toString()));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
         }
 
-        vCard.setField(VCardProperty.BDAY.name(), getValueFromEditText(birthDate));
+        mVCard.setField(VCardProperty.BDAY.name(), getValueFromEditText(mBirthDate));
 
-        vCard.setField(VCardProperty.TITLE.name(), getValueFromEditText(title));
-        vCard.setField(VCardProperty.ROLE.name(), getValueFromEditText(role));
-        vCard.setOrganization(getValueFromEditText(organization));
-        vCard.setOrganizationUnit(getValueFromEditText(organizationUnit));
+        mVCard.setField(VCardProperty.TITLE.name(), getValueFromEditText(mTitle));
+        mVCard.setField(VCardProperty.DESC.name(), getValueFromEditText(mDescription));
 
-        vCard.setField(VCardProperty.URL.name(), getValueFromEditText(url));
+        mVCard.setPhoneHome(TelephoneType.VOICE.name(), getValueFromEditText(mPhone));
+        mVCard.setEmailHome(getValueFromEditText(mEmail));
 
-        vCard.setField(VCardProperty.DESC.name(), getValueFromEditText(description));
-
-        vCard.setPhoneHome(TelephoneType.VOICE.name(), getValueFromEditText(phoneHome));
-        vCard.setPhoneWork(TelephoneType.VOICE.name(), getValueFromEditText(phoneWork));
-
-        vCard.setEmailHome(getValueFromEditText(emailHome));
-        vCard.setEmailWork(getValueFromEditText(emailWork));
-
-        vCard.setAddressFieldHome(AddressProperty.POBOX.name(), getValueFromEditText(addressHomePostOfficeBox));
-        vCard.setAddressFieldHome(AddressProperty.EXTADR.name(), getValueFromEditText(addressHomePostExtended));
-        vCard.setAddressFieldHome(AddressProperty.STREET.name(), getValueFromEditText(addressHomePostStreet));
-        vCard.setAddressFieldHome(AddressProperty.LOCALITY.name(), getValueFromEditText(addressHomeLocality));
-        vCard.setAddressFieldHome(AddressProperty.REGION.name(), getValueFromEditText(addressHomeRegion));
-        vCard.setAddressFieldHome(AddressProperty.CTRY.name(), getValueFromEditText(addressHomeCountry));
-        vCard.setAddressFieldHome(AddressProperty.PCODE.name(), getValueFromEditText(addressHomePostalCode));
-
-        vCard.setAddressFieldWork(AddressProperty.POBOX.name(), getValueFromEditText(addressWorkPostOfficeBox));
-        vCard.setAddressFieldWork(AddressProperty.EXTADR.name(), getValueFromEditText(addressWorkPostExtended));
-        vCard.setAddressFieldWork(AddressProperty.STREET.name(), getValueFromEditText(addressWorkPostStreet));
-        vCard.setAddressFieldWork(AddressProperty.LOCALITY.name(), getValueFromEditText(addressWorkLocality));
-        vCard.setAddressFieldWork(AddressProperty.REGION.name(), getValueFromEditText(addressWorkRegion));
-        vCard.setAddressFieldWork(AddressProperty.CTRY.name(), getValueFromEditText(addressWorkCountry));
-        vCard.setAddressFieldWork(AddressProperty.PCODE.name(), getValueFromEditText(addressWorkPostalCode));
+        mVCard.setAddressFieldHome(AddressProperty.STREET.name(), getValueFromEditText(mAddressHomePostStreet));
+        mVCard.setAddressFieldHome(AddressProperty.LOCALITY.name(), getValueFromEditText(mAddressHomeLocality));
+        mVCard.setAddressFieldHome(AddressProperty.REGION.name(), getValueFromEditText(mAddressHomeRegion));
+        mVCard.setAddressFieldHome(AddressProperty.PCODE.name(), getValueFromEditText(mAddressHomePostalCode));
+        mVCard.setAddressFieldHome(AddressProperty.CTRY.name(), getValueFromEditText(mAddressHomeCountry));
     }
 
     public void saveVCard() {
         ChatViewerActivity.hideKeyboard(getActivity());
         updateVCardFromFields();
         enableProgressMode(getString(R.string.saving));
-        VCardManager.getInstance().saveVCard(account, vCard);
-        isSaveSuccess = false;
+        VCardManager.getInstance().saveVCard(mAccount, mVCard);
+        mIsSaveSuccess = false;
     }
 
     public void enableProgressMode(String message) {
-        setEnabledRecursive(false, fields);
-        progressBar.setVisibility(View.VISIBLE);
-        if (listener != null) {
-            listener.onProgressModeStarted(message);
+        setEnabledRecursive(false, mFields);
+        mProgressBar.setVisibility(View.VISIBLE);
+        if (mListener != null) {
+            mListener.onProgressModeStarted(message);
         }
     }
 
     public void disableProgressMode() {
-        progressBar.setVisibility(View.GONE);
-        setEnabledRecursive(true, fields);
-        if (listener != null) {
-            listener.onProgressModeFinished();
+        mProgressBar.setVisibility(View.GONE);
+        setEnabledRecursive(true, mFields);
+        if (mListener != null) {
+            mListener.onProgressModeFinished();
         }
     }
 
@@ -692,36 +589,36 @@ public class AccountInfoEditorFragment extends Fragment implements
 
     @Override
     public void onVCardSaveSuccess(String account) {
-        if (!Jid.getBareAddress(this.account).equals(Jid.getBareAddress(account))) {
+        if (!Jid.getBareAddress(this.mAccount).equals(Jid.getBareAddress(account))) {
             return;
         }
 
         enableProgressMode(getString(R.string.saving));
         VCardManager.getInstance().request(account, account);
-        isSaveSuccess = true;
+        mIsSaveSuccess = true;
     }
 
     @Override
     public void onVCardSaveFailed(String account) {
-        if (!Jid.getBareAddress(this.account).equals(Jid.getBareAddress(account))) {
+        if (!Jid.getBareAddress(this.mAccount).equals(Jid.getBareAddress(account))) {
             return;
         }
 
         disableProgressMode();
-        listener.enableSave();
+        mListener.enableSave();
         Toast.makeText(getActivity(), getString(R.string.account_user_info_save_fail), Toast.LENGTH_LONG).show();
-        isSaveSuccess = false;
+        mIsSaveSuccess = false;
     }
 
     @Override
     public void onVCardReceived(String account, String bareAddress, VCard vCard) {
-        if (!Jid.getBareAddress(this.account).equals(Jid.getBareAddress(bareAddress))) {
+        if (!Jid.getBareAddress(this.mAccount).equals(Jid.getBareAddress(bareAddress))) {
             return;
         }
 
-        if (isSaveSuccess) {
+        if (mIsSaveSuccess) {
             Toast.makeText(getActivity(), getString(R.string.account_user_info_save_success), Toast.LENGTH_LONG).show();
-            isSaveSuccess = false;
+            mIsSaveSuccess = false;
 
             Intent data = new Intent();
             data.putExtra(ARGUMENT_VCARD, vCard.getChildElementXML().toString());
@@ -730,22 +627,22 @@ public class AccountInfoEditorFragment extends Fragment implements
             getActivity().finish();
         } else {
             disableProgressMode();
-            this.vCard = vCard;
-            updateFromVCardFlag = true;
+            this.mVCard = vCard;
+            mUpdateFromVCardFlag = true;
             setFieldsFromVCard();
-            updateFromVCardFlag = false;
+            mUpdateFromVCardFlag = false;
         }
     }
 
     @Override
     public void onVCardFailed(String account, String bareAddress) {
-        if (!Jid.getBareAddress(this.account).equals(Jid.getBareAddress(bareAddress))) {
+        if (!Jid.getBareAddress(this.mAccount).equals(Jid.getBareAddress(bareAddress))) {
             return;
         }
 
-        if (isSaveSuccess) {
+        if (mIsSaveSuccess) {
             Toast.makeText(getActivity(), getString(R.string.account_user_info_save_success), Toast.LENGTH_LONG).show();
-            isSaveSuccess = false;
+            mIsSaveSuccess = false;
             getActivity().setResult(REQUEST_NEED_VCARD);
             getActivity().finish();
         }
@@ -757,11 +654,11 @@ public class AccountInfoEditorFragment extends Fragment implements
     }
 
     public void setBirthDate(String date) {
-        birthDate.setText(date);
+        mBirthDate.setText(date);
         if (date == null) {
-            birthDateRemoveButton.setVisibility(View.INVISIBLE);
+            mBirthDateRemoveButton.setVisibility(View.INVISIBLE);
         } else {
-            birthDateRemoveButton.setVisibility(View.VISIBLE);
+            mBirthDateRemoveButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -772,8 +669,8 @@ public class AccountInfoEditorFragment extends Fragment implements
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (!updateFromVCardFlag && listener != null) {
-            listener.enableSave();
+        if (!mUpdateFromVCardFlag && mListener != null) {
+            mListener.enableSave();
         }
     }
 

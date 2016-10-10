@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +20,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +34,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.Application;
 import com.itracker.android.R;
+import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.account.AccountManager;
+import com.itracker.android.data.extension.vcard.OnVCardListener;
+import com.itracker.android.data.extension.vcard.OnVCardSaveListener;
+import com.itracker.android.data.extension.vcard.VCardManager;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
 import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
@@ -42,8 +48,13 @@ import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ServerUtils;
+import com.itracker.android.xmpp.address.Jid;
+
+import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,9 +62,15 @@ import static com.itracker.android.utils.LogUtils.LOGD;
 
 
 public class TrackerActivity extends SingleActivity implements
-        NavigationView.OnNavigationItemSelectedListener, TabLayout.OnTabSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener,
+        TabLayout.OnTabSelectedListener,
+        OnVCardListener,
+        OnVCardSaveListener {
 
     private static final String TAG = LogUtils.makeLogTag(TrackerActivity.class);
+
+    private static int VCARD_REQUEST_RETRY_COUNT = 5;
+    private static int VCARD_UPDATE_RETRY_COUNT = 3;
 
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
@@ -62,6 +79,10 @@ public class TrackerActivity extends SingleActivity implements
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private Menu mMenu;
+
+    private VCard mVCard;
+    private int mVCardRequestRetries = VCARD_REQUEST_RETRY_COUNT;
+    private int mVCardUpdateRetries = VCARD_UPDATE_RETRY_COUNT;
 
     private Handler mHandler = new Handler();
 
@@ -152,11 +173,14 @@ public class TrackerActivity extends SingleActivity implements
         super.onStart();
         mViewPager.setCurrentItem(PrefUtils.getLastSelectedTab(this));
         Application.getInstance().runInBackground(() -> ServerUtils.ping());
+        Application.getInstance().addUIListener(OnVCardListener.class, this);
+        Application.getInstance().addUIListener(OnVCardSaveListener.class, this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        requestVCard(SettingsManager.getInstance().contactsSelectedAccount());
     }
 
     @Override
@@ -168,6 +192,9 @@ public class TrackerActivity extends SingleActivity implements
     protected void onStop() {
         super.onStop();
         PrefUtils.setLastSelectedTab(this, mViewPager.getCurrentItem());
+        Application.getInstance().removeUIListener(OnVCardListener.class, this);
+        Application.getInstance().removeUIListener(OnVCardSaveListener.class, this);
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
@@ -279,6 +306,63 @@ public class TrackerActivity extends SingleActivity implements
         adapter.addFragment(new MediaFragment(),  getString(TAB_NAMES[2]));
         adapter.addFragment(new FriendFragment(), getString(TAB_NAMES[3]));
         mViewPager.setAdapter(adapter);
+    }
+
+    private void requestVCard(@NonNull String account) {
+        if (mVCard == null) {
+            VCardManager.getInstance().request(account, Jid.getBareAddress(account));
+        }
+    }
+
+    private void updateVCard(String account, String bareAddress, VCard vCard) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            LOGD(TAG, "Waiting for firebase user...");
+            onVCardSaveFailed(account);
+            return;
+        }
+
+        vCard.setNickName(user.getDisplayName());
+        vCard.setEmailHome(user.getEmail());
+        if (user.getPhotoUrl() != null) {
+            try {
+                vCard.setAvatar(new URL(user.getPhotoUrl().toString()));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        VCardManager.getInstance().saveVCard(account, vCard);
+    }
+
+    @Override
+    public void onVCardReceived(String account, String bareAddress, VCard vCard) {
+        LOGD(TAG, "onVCardReceived: " + account);
+        mVCard = vCard;
+        updateVCard(account, bareAddress, vCard);
+    }
+
+    @Override
+    public void onVCardFailed(String account, String bareAddress) {
+        LOGD(TAG, "onVCardFailed: " + account);
+        mVCard = null;
+        if (mVCardRequestRetries-- > 0) {
+            mHandler.postDelayed(() -> requestVCard(account), DateUtils.SECOND_IN_MILLIS * 3);
+        }
+    }
+
+    @Override
+    public void onVCardSaveSuccess(String account) {
+        LOGD(TAG, "onVCardSaveSuccess: " + account);
+    }
+
+    @Override
+    public void onVCardSaveFailed(String account) {
+        LOGD(TAG, "onVCardSaveFailed: " + account);
+        if (mVCardUpdateRetries-- > 0) {
+            mHandler.postDelayed(() -> requestVCard(account), DateUtils.SECOND_IN_MILLIS * 3);
+        }
     }
 
     /**

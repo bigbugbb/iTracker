@@ -20,6 +20,8 @@
 
     <string name="accessibility_overflow">Overflow</string>
     <string name="send_message">Send message</string>
+    <string name="edit_account">Edit account</string>
+    <string name="funny_face">(╯°□°)╯︵ ┻━┻</string>
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
