@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.os.Handler;
 import android.support.multidex.MultiDex;
+import android.support.multidex.MultiDexApplication;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -43,7 +44,7 @@ import java.util.concurrent.Future;
 
 import static com.itracker.android.utils.LogUtils.LOGD;
 
-public class Application extends android.support.multidex.MultiDexApplication {
+public class Application extends MultiDexApplication {
 
     private final static String TAG = LogUtils.makeLogTag(Application.class);
 
