@@ -1,7 +1,6 @@
 package com.itracker.android.ui.adapter;
 
 import android.content.Context;
-import android.util.Base64;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,7 +9,6 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.R;
-import com.itracker.android.data.extension.avatar.AvatarManager;
 import com.itracker.android.data.roster.AbstractContact;
 import com.itracker.android.xmpp.address.Jid;
 
