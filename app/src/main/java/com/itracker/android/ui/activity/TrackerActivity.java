@@ -58,6 +58,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.itracker.android.utils.LogUtils.LOGD;
 
 
@@ -110,7 +111,9 @@ public class TrackerActivity extends SingleActivity implements
     public static final int REQUEST_DIRECT_TAG           = 6;
 
     public static Intent createIntent(Context context) {
-        return new Intent(context, TrackerActivity.class);
+        Intent intent = new Intent(context, TrackerActivity.class);
+        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+        return intent;
     }
 
     @Override

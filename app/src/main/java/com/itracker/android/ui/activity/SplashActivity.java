@@ -19,6 +19,7 @@ import com.itracker.android.service.sensor.AppPersistentService;
 import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.PrefUtils;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.itracker.android.utils.LogUtils.LOGD;
 import static com.itracker.android.utils.LogUtils.LOGE;
 import static com.itracker.android.utils.LogUtils.makeLogTag;
@@ -37,6 +38,7 @@ public class SplashActivity extends SingleActivity {
     public static Intent createAuthenticateAccountIntent(Context context) {
         Intent intent = createIntent(context);
         intent.setAction(ACTION_AUTHENTICATE_ACCOUNT);
+        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
         return intent;
     }
 

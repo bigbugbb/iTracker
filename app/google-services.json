@@ -15,11 +15,19 @@
             },
             "oauth_client": [
                 {
+                    "client_id": "1055621041981-f4q90k8asrlh19m4hbuk9usqnnl0itog.apps.googleusercontent.com",
+                    "client_type": 1,
+                    "android_info": {
+                        "package_name": "com.itracker.android.dev",
+                        "certificate_hash": "41148A769692158A605E9F6CC3CC6ECEB0EB66F1"
+                    }
+                },
+                {
                     "client_id": "1055621041981-2r78n4nj58fa1pagv8crrhfsch7u00cl.apps.googleusercontent.com",
                     "client_type": 1,
                     "android_info": {
                         "package_name": "com.itracker.android.dev",
-                        "certificate_hash": "9F6375381815AD1BDDB36496F1CE4D26A0E719AE"
+                        "certificate_hash": "21FFAB26A2F5A1F5B155C97ED60073E8F7E76C63"
                     }
                 },
                 {
@@ -29,7 +37,7 @@
             ],
             "api_key": [
                 {
-                  "current_key": "AIzaSyBGi_pBG3iV8XT_PQdUB9Gvs257flRY0_I"
+                    "current_key": "AIzaSyBGi_pBG3iV8XT_PQdUB9Gvs257flRY0_I"
                 }
             ],
             "services": {
