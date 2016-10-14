@@ -30,6 +30,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.FutureTarget;
+import com.google.common.io.Files;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.Application;
@@ -52,11 +54,15 @@ import com.itracker.android.xmpp.address.Jid;
 
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.itracker.android.utils.LogUtils.LOGD;
@@ -322,7 +328,7 @@ public class TrackerActivity extends SingleActivity implements
 
         if (user == null) {
             LOGD(TAG, "Waiting for firebase user...");
-            onVCardSaveFailed(account);
+            Application.getInstance().runOnUiThread(() -> onVCardSaveFailed(account));
             return;
         }
 
@@ -330,8 +336,16 @@ public class TrackerActivity extends SingleActivity implements
         vCard.setEmailHome(user.getEmail());
         if (user.getPhotoUrl() != null) {
             try {
-                vCard.setAvatar(new URL(user.getPhotoUrl().toString()));
+                FutureTarget<File> target = Glide.with(TrackerActivity.this).load(user.getPhotoUrl()).downloadOnly(-1, -1);
+                File avatorImageFile = target.get(10, TimeUnit.SECONDS);
+                vCard.setAvatar(avatorImageFile.toURI().toURL());
             } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
                 e.printStackTrace();
             }
         }
@@ -343,7 +357,7 @@ public class TrackerActivity extends SingleActivity implements
     public void onVCardReceived(String account, String bareAddress, VCard vCard) {
         LOGD(TAG, "onVCardReceived: " + account);
         mVCard = vCard;
-        updateVCard(account, bareAddress, vCard);
+        Application.getInstance().runInBackground(() -> updateVCard(account, bareAddress, vCard));
     }
 
     @Override
