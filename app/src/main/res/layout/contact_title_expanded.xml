@@ -10,6 +10,7 @@
     tools:showIn="@layout/activity_contact_viewer">
 
     <ImageView
+        android:id="@+id/contact_appbar_bkg_image"
         android:layout_width="match_parent"
         android:layout_height="@dimen/collapsing_toolbar_image_height"
         android:layout_alignParentTop="true"
@@ -99,7 +100,7 @@
         android:layout_marginBottom="16dp"
         android:text="@string/send_message"
         android:textColor="@color/white"
-        android:background="@color/colorAccent"
+        android:background="@drawable/rounded_cornor_button"
         android:elevation="3dp" />
 
     <Button
@@ -116,7 +117,7 @@
         android:layout_marginBottom="24dp"
         android:text="@string/edit_account"
         android:textColor="@color/white"
-        android:background="@color/colorAccent"
+        android:background="@drawable/rounded_cornor_button"
         android:elevation="3dp" />
 
 </RelativeLayout>

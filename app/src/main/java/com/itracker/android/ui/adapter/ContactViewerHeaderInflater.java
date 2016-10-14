@@ -1,6 +1,7 @@
 package com.itracker.android.ui.adapter;
 
 import android.content.Context;
+import android.text.util.Linkify;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,6 +31,7 @@ public class ContactViewerHeaderInflater {
 
         final TextView emailView = (TextView) titleView.findViewById(R.id.email);
         emailView.setText(vCard.getEmailHome() != null ? vCard.getEmailHome() : vCard.getEmailWork());
+        Linkify.addLinks(emailView, Linkify.ALL);
     }
 
     public static void updateHeader(View titleView, final Context context, AbstractContact abstractContact) {

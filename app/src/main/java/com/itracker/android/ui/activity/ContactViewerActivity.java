@@ -5,7 +5,9 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -23,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.itracker.android.Application;
@@ -43,6 +46,7 @@ import com.itracker.android.ui.adapter.ContactTitleInflater;
 import com.itracker.android.ui.adapter.ContactViewerHeaderInflater;
 import com.itracker.android.ui.fragment.ConferenceInfoFragment;
 import com.itracker.android.ui.fragment.ContactVCardViewerFragment;
+import com.itracker.android.utils.BitmapUtils;
 import com.itracker.android.utils.SdkVersionUtils;
 import com.itracker.android.xmpp.address.Jid;
 
@@ -70,6 +74,7 @@ public class ContactViewerActivity extends BaseActivity implements
     protected String mBareAddress;
     protected View mContactViewerHeader;
     protected View mContactTitleCollapsed;
+    protected ImageView mAppBarBkgImage;
     protected AbstractContact mBestContact;
     protected AppBarLayout mAppBarLayout;
     protected CollapsingToolbarLayout mCollapsingToolbar;
@@ -155,6 +160,13 @@ public class ContactViewerActivity extends BaseActivity implements
         mBestContact = RosterManager.getInstance().getBestContact(mAccount, mBareAddress);
         int colorTransparent = ContextCompat.getColor(this, android.R.color.transparent);
         int colorPrimary = ContextCompat.getColor(this, R.color.colorPrimary);
+
+        mAppBarBkgImage = (ImageView) findViewById(R.id.contact_appbar_bkg_image);
+        Bitmap bitmap = ((BitmapDrawable) mAppBarBkgImage.getDrawable()).getBitmap();
+        float gradientHeight = getResources().getDimension(R.dimen.collapsing_toolbar_image_gradient_height);
+        bitmap = BitmapUtils.addTransparentGradient(bitmap, gradientHeight);
+        bitmap = BitmapUtils.addTransparentGradient(bitmap, gradientHeight / 2);
+        mAppBarBkgImage.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
 
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_left_white_24dp);
         mToolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(ContactViewerActivity.this));

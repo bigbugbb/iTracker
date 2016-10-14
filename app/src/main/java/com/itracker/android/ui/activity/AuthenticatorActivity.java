@@ -426,7 +426,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         intent.putExtras(result);
         setResult(RESULT_OK, intent);
         finish();
-        enableUi(true);
     }
 
     @Override

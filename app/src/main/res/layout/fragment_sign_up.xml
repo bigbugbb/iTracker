@@ -94,7 +94,7 @@
         android:textSize="14sp"
         android:textColor="@android:color/white"
         android:alpha="0.9"
-        android:background="@color/colorAccent"
+        android:background="@drawable/rounded_cornor_button"
         android:elevation="2dp"/>
 
     <Button
