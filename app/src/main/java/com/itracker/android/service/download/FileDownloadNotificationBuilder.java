@@ -62,13 +62,10 @@ class FileDownloadNotificationBuilder {
     public Notification newDownloadingNotification(String id, int progress, Map<String, String> downloadInfo) {
         final String sortKey = retrieveSortKey(id);
 
-        Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         // Build task stack so it can navigate correctly to the parent activity
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
         stackBuilder.addParentStack(MediaDownloadActivity.class);
-        stackBuilder.addNextIntent(intent);
+        stackBuilder.addNextIntent(MediaDownloadActivity.createNotificationDownloadIntent());
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Inflate the notification layout as RemoteViews
@@ -133,13 +130,10 @@ class FileDownloadNotificationBuilder {
     public Notification newFailedNotification(String id, Map<String, String> downloadInfo, String reason) {
         final String sortKey = retrieveSortKey(id);
 
-        Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         // Build task stack so it can navigate correctly to the parent activity
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
         stackBuilder.addParentStack(MediaDownloadActivity.class);
-        stackBuilder.addNextIntent(intent);
+        stackBuilder.addNextIntent(MediaDownloadActivity.createNotificationDownloadIntent());
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Inflate the notification layout as RemoteViews

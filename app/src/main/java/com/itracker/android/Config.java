@@ -88,9 +88,6 @@ public class Config {
 
     public static final String FILE_DOWNLOAD_DIR_PATH = ExternalStorageUtils.getSdCardPath() + "/iTracker/downloads/";
 
-    // Custom intent actions
-    public final static String ACTION_DOWNLOAD_MEDIA = "com.itracker.android.intent.action.DOWNLOAD_MEDIA";
-
     public static void enableStrictMode() {
         StrictMode.ThreadPolicy.Builder threadPolicyBuilder =
                 new StrictMode.ThreadPolicy.Builder()

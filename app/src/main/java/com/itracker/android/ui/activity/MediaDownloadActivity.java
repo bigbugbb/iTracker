@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.widget.Toast;
 
 import com.itracker.android.Application;
+import com.itracker.android.Config;
 import com.itracker.android.R;
 import com.itracker.android.data.FileDownloadManager;
 import com.itracker.android.data.model.Video;
@@ -38,9 +39,18 @@ public class MediaDownloadActivity extends BaseActivity
 
     public final static String EXTRA_VIDEOS_TO_DOWNLOAD = "extra_videos_to_download";
 
+    // Custom intent actions
+    public final static String ACTION_DOWNLOAD_MEDIA = "com.itracker.android.intent.action.DOWNLOAD_MEDIA";
+
     public static Intent createVideosDownloadIntent(Context context, List<Video> videosToDownload) {
         Intent intent = new Intent(context, MediaDownloadActivity.class);
         intent.putParcelableArrayListExtra(MediaDownloadActivity.EXTRA_VIDEOS_TO_DOWNLOAD, new ArrayList<>(videosToDownload));
+        return intent;
+    }
+
+    public static Intent createNotificationDownloadIntent() {
+        Intent intent = new Intent(ACTION_DOWNLOAD_MEDIA);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         return intent;
     }
 

@@ -236,13 +236,10 @@ public class FileDownloadManager extends ContentObserver implements OnLoadListen
                 .setContentTitle("File downloads")
                 .setContentText(message);
 
-        Intent intent = new Intent(Config.ACTION_DOWNLOAD_MEDIA);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         // Build task stack so it can navigate correctly to the parent activity
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(MediaDownloadActivity.class);
-        stackBuilder.addNextIntent(intent);
+        stackBuilder.addNextIntent(MediaDownloadActivity.createNotificationDownloadIntent());
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
