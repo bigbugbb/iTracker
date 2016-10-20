@@ -64,7 +64,7 @@
 
     <dimen name="status_bar_height">25dp</dimen>
 
-    <dimen name="collapsing_toolbar_height">336dp</dimen>
+    <dimen name="collapsing_toolbar_height">344dp</dimen>
     <dimen name="collapsing_toolbar_image_height">232dp</dimen>
     <dimen name="collapsing_toolbar_image_gradient_height">144dp</dimen>
     <dimen name="collapsing_toolbar_button_space_height">56dp</dimen>
