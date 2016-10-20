@@ -589,7 +589,7 @@ public class AccountInfoEditorFragment extends Fragment implements
 
     @Override
     public void onVCardSaveSuccess(String account) {
-        if (!Jid.getBareAddress(this.mAccount).equals(Jid.getBareAddress(account))) {
+        if (!Jid.getBareAddress(mAccount).equals(Jid.getBareAddress(account))) {
             return;
         }
 

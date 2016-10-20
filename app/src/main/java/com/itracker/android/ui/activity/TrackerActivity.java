@@ -189,7 +189,9 @@ public class TrackerActivity extends SingleActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        requestVCard(SettingsManager.getInstance().contactsSelectedAccount());
+        if (!PrefUtils.isVCardUpdated(this)) {
+            requestVCard(SettingsManager.getInstance().contactsSelectedAccount());
+        }
     }
 
     @Override
@@ -323,8 +325,14 @@ public class TrackerActivity extends SingleActivity implements
         }
     }
 
+    // Update the vcard with the user profile from the firebase user.
     private void updateVCard(String account, String bareAddress, VCard vCard) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (!account.startsWith(bareAddress)) {
+            LOGD(TAG, "Can't update with the vcard from another account...");
+            return;
+        }
 
         if (user == null) {
             LOGD(TAG, "Waiting for firebase user...");
@@ -372,6 +380,7 @@ public class TrackerActivity extends SingleActivity implements
     @Override
     public void onVCardSaveSuccess(String account) {
         LOGD(TAG, "onVCardSaveSuccess: " + account);
+        PrefUtils.markVCardUpdated(this);
     }
 
     @Override

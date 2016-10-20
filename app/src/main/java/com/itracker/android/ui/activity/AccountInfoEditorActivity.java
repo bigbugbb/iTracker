@@ -29,6 +29,7 @@ public class AccountInfoEditorActivity extends BaseActivity implements Toolbar.O
         return EntityIntentBuilder.getAccount(intent);
     }
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_info_editor);
@@ -84,7 +85,6 @@ public class AccountInfoEditorActivity extends BaseActivity implements Toolbar.O
         switch (item.getItemId()) {
             case R.id.action_save:
                 ((AccountInfoEditorFragment) getFragmentManager().findFragmentById(R.id.fragment_container)).saveVCard();
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
