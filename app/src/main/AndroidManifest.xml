@@ -71,12 +71,8 @@
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <data android:scheme="amp59b6d367575c8798a17acb0-9ccf239a-d9ac-11e5-aa99-00342b7f5075" />
-
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
 
@@ -165,8 +161,8 @@
                 <!-- http://blog.csdn.net/jason0539/article/details/10049899 -->
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:scheme="file" />
-                <data android:scheme="http" />
+                <!--<data android:scheme="file" />-->
+                <!--<data android:scheme="http" />-->
             </intent-filter>
         </activity>
 
@@ -300,9 +296,8 @@
             <intent-filter>
                 <action android:name="com.itracker.android.intent.action.START_SENSOR_MONITOR" />
                 <action android:name="com.itracker.android.intent.action.BOOTSTRAP_MONITOR_ALARM" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" /> />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
 
@@ -317,22 +312,6 @@
                 <action android:name="com.itracker.android.intent.action.IMPORT_DATA" />
             </intent-filter>
         </receiver>
-
-        <!-- [START Localytics Integration] -->
-        <meta-data
-            android:name="LOCALYTICS_APP_KEY"
-            android:value="dcdf9cb70fff87655848357-8f7e9180-385a-11e4-a3d0-009c5fda0a25" />
-
-        <!-- <activity android:name="com.itracker.android.PushTrackingActivity"/> -->
-
-
-        <!-- <receiver -->
-        <!-- android:name="com.itracker.android.ReferralReceiver" -->
-        <!-- android:exported="true"> -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="com.android.vending.INSTALL_REFERRER" /> -->
-        <!-- </intent-filter> -->
-        <!-- </receiver> -->
     </application>
 
 </manifest>

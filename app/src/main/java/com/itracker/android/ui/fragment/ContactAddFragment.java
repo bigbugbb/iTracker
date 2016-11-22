@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.itracker.android.Application;
+import com.itracker.android.Config;
 import com.itracker.android.R;
 import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.account.AccountManager;
@@ -108,22 +109,27 @@ public class ContactAddFragment extends Fragment {
         super.onDetach();
     }
 
+    private String jidFromUserAccount(String accountName) {
+        return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
+    }
+
     private void addContact() {
         if (getAccount() == null) {
-            Toast.makeText(getActivity(), getString(R.string.EMPTY_ACCOUNT),
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getString(R.string.EMPTY_ACCOUNT), Toast.LENGTH_LONG).show();
             return;
         }
 
         String user = mUserView.getText().toString();
         if ("".equals(user)) {
-            Toast.makeText(getActivity(), getString(R.string.EMPTY_USER_NAME),
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getString(R.string.EMPTY_USER_NAME), Toast.LENGTH_LONG).show();
             return;
         }
+        String name = mNameView.getText().toString();
+
+        user = jidFromUserAccount(user);
 
         try {
-            RosterManager.getInstance().createContact(mAccount, user, mNameView.getText().toString(), new ArrayList<>());
+            RosterManager.getInstance().createContact(mAccount, user, name, new ArrayList<>());
             PresenceManager.getInstance().requestSubscription(mAccount, user);
             MessageManager.getInstance().openChat(mAccount, user);
         } catch (SmackException.NotLoggedInException | SmackException.NotConnectedException e) {

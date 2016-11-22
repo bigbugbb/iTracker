@@ -159,6 +159,8 @@
 
     <string name="contacts_selected_account_key">contacts_selected_account</string>
 
+    <string name="contacts_default_username">contacts_default_username</string>
+
     <!-- preference_events -->
     <string name="events_sound_key">events_sound_uri</string>
     <string name="events_sound_default">@string/default_sound</string>

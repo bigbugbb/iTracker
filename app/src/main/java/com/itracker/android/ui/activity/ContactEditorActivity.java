@@ -56,6 +56,7 @@ public class ContactEditorActivity extends ContactViewerActivity {
             case R.id.action_remove_contact:
                 ContactDeleteDialogFragment.newInstance(getAccount(), getBareAddress())
                         .show(getFragmentManager(), "CONTACT_DELETE");
+                finish();
                 return true;
 
             default:
@@ -76,7 +77,6 @@ public class ContactEditorActivity extends ContactViewerActivity {
 
         builder.setPositiveButton(android.R.string.ok, (dialog, which) ->
             RosterManager.getInstance().setName(getAccount(), getBareAddress(), input.getText().toString()));
-
         builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
         builder.show();

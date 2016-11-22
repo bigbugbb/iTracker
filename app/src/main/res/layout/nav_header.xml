@@ -15,7 +15,7 @@
         android:layout_height="64dp"
         android:layout_margin="16dp"
         android:elevation="4dp"
-        tools:src="@drawable/ic_avatar_1"
+        android:src="@drawable/ic_avatar_1"
         app:civ_border_width="1.5dp" />
 
     <TextView

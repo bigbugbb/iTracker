@@ -265,6 +265,15 @@ public class ContactVCardViewerFragment extends Fragment implements OnContactCha
         addAddresses(mVCard);
         addPhones(mVCard);
         addEmails(mVCard);
+
+        if (mContactInfoItems.getChildCount() == 0) {
+            LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+            View emptyVCard = inflater.inflate(R.layout.empty_vcard, mContactInfoItems, true);
+            if (Jid.getBareAddress(mUser).equals(Jid.getBareAddress(mAccount))) {
+                View suggestion = emptyVCard.findViewById(R.id.suggestion);
+                suggestion.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     private void addEmails(VCard vCard) {

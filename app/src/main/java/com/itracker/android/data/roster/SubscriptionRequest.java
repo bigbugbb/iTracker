@@ -21,6 +21,7 @@ import com.itracker.android.R;
 import com.itracker.android.data.account.AccountManager;
 import com.itracker.android.data.entity.BaseEntity;
 import com.itracker.android.data.notification.EntityNotificationItem;
+import com.itracker.android.ui.activity.TrackerActivity;
 //import com.itracker.android.ui.activity.ContactList;
 
 public class SubscriptionRequest extends BaseEntity implements EntityNotificationItem {
@@ -31,14 +32,12 @@ public class SubscriptionRequest extends BaseEntity implements EntityNotificatio
 
     @Override
     public Intent getIntent() {
-//        return ContactList.createContactSubscriptionIntent(Application.getInstance(), account, user);
-        return new Intent();
+        return TrackerActivity.createContactSubscriptionIntent(Application.getInstance(), account, user);
     }
 
     @Override
     public String getText() {
-        return Application.getInstance().getString(
-                R.string.subscription_request_message);
+        return Application.getInstance().getString(R.string.subscription_request_message);
     }
 
     @Override

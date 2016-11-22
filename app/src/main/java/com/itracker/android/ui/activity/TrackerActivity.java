@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -20,6 +21,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,22 +38,31 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.itracker.android.Application;
 import com.itracker.android.R;
+import com.itracker.android.data.NetworkException;
 import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.account.AccountManager;
 import com.itracker.android.data.extension.vcard.OnVCardListener;
 import com.itracker.android.data.extension.vcard.OnVCardSaveListener;
 import com.itracker.android.data.extension.vcard.VCardManager;
+import com.itracker.android.data.intent.EntityIntentBuilder;
+import com.itracker.android.data.message.MessageManager;
+import com.itracker.android.data.roster.PresenceManager;
+import com.itracker.android.data.roster.RosterManager;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
+import com.itracker.android.ui.dialog.ContactSubscriptionDialog;
 import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
 import com.itracker.android.ui.fragment.MediaFragment;
 import com.itracker.android.ui.fragment.PhotoFragment;
 import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
+import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.ServerUtils;
 import com.itracker.android.xmpp.address.Jid;
 
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 import java.io.File;
@@ -76,6 +87,8 @@ public class TrackerActivity extends SingleActivity implements
 
     private static final String TAG = LogUtils.makeLogTag(TrackerActivity.class);
 
+    private static final String ACTION_CONTACT_SUBSCRIPTION = "com.itracker.android.ui.activity.TrackerActivity.ACTION_CONTACT_SUBSCRIPTION";
+
     private static int VCARD_REQUEST_RETRY_COUNT = 5;
     private static int VCARD_UPDATE_RETRY_COUNT = 3;
 
@@ -90,6 +103,8 @@ public class TrackerActivity extends SingleActivity implements
     private VCard mVCard;
     private int mVCardRequestRetries = VCARD_REQUEST_RETRY_COUNT;
     private int mVCardUpdateRetries = VCARD_UPDATE_RETRY_COUNT;
+
+    private String mAction;
 
     private Handler mHandler = new Handler();
 
@@ -122,6 +137,13 @@ public class TrackerActivity extends SingleActivity implements
         return intent;
     }
 
+    public static Intent createContactSubscriptionIntent(Context context, String account, String user) {
+        Intent intent = new EntityIntentBuilder(context, TrackerActivity.class)
+                .setAccount(account).setUser(user).build();
+        intent.setAction(ACTION_CONTACT_SUBSCRIPTION);
+        return intent;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,9 +151,9 @@ public class TrackerActivity extends SingleActivity implements
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(
-                this,                  /* host Activity */
-                mDrawerLayout,         /* DrawerLayout object */
-                mToolbar,              /* Toolbar object */
+                this,                      /* host Activity */
+                mDrawerLayout,             /* DrawerLayout object */
+                mToolbar,                  /* Toolbar object */
                 R.string.drawer_open,  /* "open drawer" description */
                 R.string.drawer_close  /* "close drawer" description */
         ) {
@@ -178,10 +200,18 @@ public class TrackerActivity extends SingleActivity implements
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        mAction = getIntent().getAction();
+        getIntent().setAction(null);
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         mViewPager.setCurrentItem(PrefUtils.getLastSelectedTab(this));
-        Application.getInstance().runInBackground(() -> ServerUtils.ping());
+//        Application.getInstance().runInBackground(() -> ServerUtils.ping());
         Application.getInstance().addUIListener(OnVCardListener.class, this);
         Application.getInstance().addUIListener(OnVCardSaveListener.class, this);
     }
@@ -191,6 +221,56 @@ public class TrackerActivity extends SingleActivity implements
         super.onResume();
         if (!PrefUtils.isVCardUpdated(this)) {
             requestVCard(SettingsManager.getInstance().contactsSelectedAccount());
+        }
+
+        if (mAction != null) {
+            switch (mAction) {
+//                case ContactList.ACTION_ROOM_INVITE:
+//                case Intent.ACTION_SEND:
+//                case Intent.ACTION_CREATE_SHORTCUT:
+//                    if (Intent.ACTION_SEND.equals(action)) {
+//                        sendText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+//                    }
+//                    Toast.makeText(this, getString(R.string.select_contact), Toast.LENGTH_LONG).show();
+//                    break;
+//                case Intent.ACTION_VIEW: {
+//                    action = null;
+//                    Uri data = getIntent().getData();
+//                    if (data != null && "xmpp".equals(data.getScheme())) {
+//                        XMPPUri xmppUri;
+//                        try {
+//                            xmppUri = XMPPUri.parse(data);
+//                        } catch (IllegalArgumentException e) {
+//                            xmppUri = null;
+//                        }
+//                        if (xmppUri != null && "message".equals(xmppUri.getQueryType())) {
+//                            ArrayList<String> texts = xmppUri.getValues("body");
+//                            String text = null;
+//                            if (texts != null && !texts.isEmpty()) {
+//                                text = texts.get(0);
+//                            }
+//                            openChat(xmppUri.getPath(), text);
+//                        }
+//                    }
+//                    break;
+//                }
+//                case Intent.ACTION_SENDTO: {
+//                    action = null;
+//                    Uri data = getIntent().getData();
+//                    if (data != null) {
+//                        String path = data.getPath();
+//                        if (path != null && path.startsWith("/")) {
+//                            openChat(path.substring(1), null);
+//                        }
+//                    }
+//                    break;
+//                }
+
+                case TrackerActivity.ACTION_CONTACT_SUBSCRIPTION:
+                    mAction = null;
+                    acceptAndRequestContactSubscription();
+                    break;
+            }
         }
     }
 
@@ -206,11 +286,6 @@ public class TrackerActivity extends SingleActivity implements
         Application.getInstance().removeUIListener(OnVCardListener.class, this);
         Application.getInstance().removeUIListener(OnVCardSaveListener.class, this);
         mHandler.removeCallbacksAndMessages(null);
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
     }
 
     @Override
@@ -269,6 +344,25 @@ public class TrackerActivity extends SingleActivity implements
         super.onBackPressed();
     }
 
+    private void acceptAndRequestContactSubscription() {
+        Intent intent = getIntent();
+        String account = EntityIntentBuilder.getAccount(intent);
+        String user = EntityIntentBuilder.getUser(intent);
+        if (account != null && user != null) {
+            try {
+                PresenceManager.getInstance().acceptSubscription(account, user);
+            } catch (NetworkException e) {
+                Application.getInstance().onError(e);
+            }
+        }
+
+        try {
+            PresenceManager.getInstance().requestSubscription(account, user);
+        } catch (NetworkException e) {
+            Application.getInstance().onError(e);
+        }
+    }
+
     private void updateNavigationHeader() {
         ImageView avatar = (ImageView) findViewById(R.id.avatar);
         TextView tvUsername = (TextView) findViewById(R.id.username);
@@ -276,10 +370,16 @@ public class TrackerActivity extends SingleActivity implements
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            tvUsername.setText(user.getDisplayName());
-            tvEmail.setText(user.getEmail());
+            String userName = user.getDisplayName();
+            userName = TextUtils.isEmpty(userName) ? SettingsManager.contactsDefaultUsername() : userName;
+            String email = user.getEmail();
+            email = TextUtils.isEmpty(email) ? AccountUtils.getActiveAccountName(this) : email;
+            tvUsername.setText(userName);
+            tvEmail.setText(email);
+            Uri photoUri = user.getPhotoUrl();
+            photoUri = photoUri == null ? Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.baozou_avatar) : photoUri;
             // stackoverflow.com/question/36384789/glide-not-loading-real-image-and-stuck-with-placeholder
-            Glide.with(this).load(user.getPhotoUrl()).placeholder(R.drawable.ic_avatar_1).dontAnimate().into(avatar);
+            Glide.with(this).load(photoUri).placeholder(R.drawable.baozou_avatar).dontAnimate().into(avatar);
         } else {
             tvUsername.setText(getString(R.string.username_placeholder));
             tvEmail.setText(getString(R.string.email_placeholder));
@@ -340,22 +440,30 @@ public class TrackerActivity extends SingleActivity implements
             return;
         }
 
-        vCard.setNickName(user.getDisplayName());
-        vCard.setEmailHome(user.getEmail());
-        if (user.getPhotoUrl() != null) {
-            try {
-                FutureTarget<File> target = Glide.with(TrackerActivity.this).load(user.getPhotoUrl()).downloadOnly(-1, -1);
-                File avatorImageFile = target.get(10, TimeUnit.SECONDS);
-                vCard.setAvatar(avatorImageFile.toURI().toURL());
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
+        String name = user.getDisplayName();
+        String email = user.getEmail();
+        name = TextUtils.isEmpty(name) ? SettingsManager.contactsDefaultUsername() : name;
+        email = TextUtils.isEmpty(email) ? AccountUtils.getActiveAccountName(this) : email;
+
+        vCard.setNickName(name);
+        vCard.setEmailHome(email);
+
+        try {
+            Uri photoUri = user.getPhotoUrl();
+            if (user.getPhotoUrl() == null) {
+                photoUri = photoUri == null ? Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.baozou_avatar) : photoUri;
             }
+            FutureTarget<File> target = Glide.with(this).load(photoUri).downloadOnly(-1, -1);
+            File avatorImageFile = target.get(10, TimeUnit.SECONDS);
+            vCard.setAvatar(avatorImageFile.toURI().toURL());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
         }
 
         VCardManager.getInstance().saveVCard(account, vCard);

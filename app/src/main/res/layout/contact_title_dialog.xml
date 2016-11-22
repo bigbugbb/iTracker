@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/actionBarSize"
+    android:orientation="horizontal"
+    android:paddingTop="16dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp">
+
+    <com.mikhaellopez.circularimageview.CircularImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/avatar_size_toolbar"
+        android:layout_height="@dimen/avatar_size_toolbar"
+        android:src="@drawable/ic_avatar_1"
+        app:civ_border_width="0dp" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_marginLeft="8dp"
+        android:layout_toRightOf="@id/avatar"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        tools:text="Lorem Ipsum" />
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_marginLeft="8dp"
+        android:layout_toRightOf="@id/avatar"
+        android:layout_below="@id/name"
+        tools:text="Lorem ipsum dolor sit amet" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/dialog_message"
+        android:layout_below="@id/avatar"
+        android:layout_marginTop="16dp"
+        tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." />
+
+</RelativeLayout>

@@ -301,7 +301,7 @@ public class AvatarManager implements OnLoadListener, OnLowMemoryListener, OnPac
     public Drawable getDefaultAccountAvatar(String account) {
         Drawable[] layers = new Drawable[2];
         layers[0] = new ColorDrawable(ColorManager.getInstance().getAccountPainter().getAccountMainColor(account));
-        layers[1] = application.getResources().getDrawable(R.drawable.ic_avatar_1);
+        layers[1] = application.getResources().getDrawable(R.drawable.baozou_avatar);
         return new LayerDrawable(layers);
     }
 

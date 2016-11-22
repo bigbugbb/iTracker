@@ -214,6 +214,16 @@ public class SettingsManager implements OnInitializedListener,
         setString(R.string.contacts_selected_account_key, value);
     }
 
+    public static String contactsDefaultUsername() {
+        return getString(R.string.contacts_default_username, "");
+    }
+
+    public static void setContactsDefaultUsername(String value) {
+        if (value == null)
+            value = "";
+        setString(R.string.contacts_default_username, value);
+    }
+
     public static void enableContactsShowAccount() {
         setBoolean(R.string.contacts_enable_show_accounts_key, false);
         setBoolean(R.string.contacts_show_accounts_key, true);

@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.itracker.android.R;
+import com.itracker.android.data.SettingsManager;
 import com.itracker.android.data.extension.avatar.AvatarManager;
 import com.itracker.android.data.extension.cs.ChatStateManager;
 import com.itracker.android.data.roster.AbstractContact;
@@ -23,6 +24,7 @@ public class ContactTitleInflater {
 
         // if it is account, not simple user contact
         if (Jid.getBareAddress(abstractContact.getUser()).equals(Jid.getBareAddress(abstractContact.getAccount()))) {
+            nameView.setText(SettingsManager.contactsDefaultUsername());
             avatarView.setImageDrawable(AvatarManager.getInstance().getAccountAvatar(abstractContact.getAccount()));
         } else {
             avatarView.setImageDrawable(abstractContact.getAvatar());

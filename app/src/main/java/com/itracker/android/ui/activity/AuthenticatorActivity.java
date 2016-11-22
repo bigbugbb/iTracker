@@ -214,6 +214,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         boolean createAccount = data.getBoolean(CREATE_ACCOUNT, false);
         String authToken = data.getString(AccountManager.KEY_AUTHTOKEN);
 
+        String userName = data.getString(AuthenticatorActivity.USERNAME);
+        SettingsManager.setContactsDefaultUsername(userName);
+
         updateChatAccount(accountName, null, createAccount);
         updateAppAccount(accountName, accountPassword, authToken, userdata);
 
@@ -322,6 +325,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             payload.put("family_name", account.getFamilyName());
             payload.put("given_name", account.getGivenName());
             payload.put("photo_url", account.getPhotoUrl());
+            SettingsManager.setContactsDefaultUsername(account.getDisplayName());
         } catch (JSONException e) {
             e.printStackTrace();
         }
