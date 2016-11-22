@@ -37,8 +37,7 @@ public class ContactDeleteDialogFragment extends DialogFragment implements Dialo
 
         return new AlertDialog.Builder(getActivity())
                 .setMessage(String.format(getActivity().getString(R.string.contact_delete_confirm),
-                        RosterManager.getInstance().getName(mAccount, mUser),
-                        AccountManager.getInstance().getVerboseName(mAccount)))
+                        RosterManager.getInstance().getName(mAccount, mUser)))
                 .setPositiveButton(R.string.contact_delete, this)
                 .setNegativeButton(android.R.string.cancel, this).create();
     }
@@ -49,6 +48,7 @@ public class ContactDeleteDialogFragment extends DialogFragment implements Dialo
             RosterManager.getInstance().removeContact(mAccount, mUser);
 
             if (getActivity() instanceof ContactViewerActivity) {
+                getActivity().finish();
 //                startAnimationActivity(ContactList.createIntent(getActivity()));
             }
         }

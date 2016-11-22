@@ -56,7 +56,6 @@ public class ContactEditorActivity extends ContactViewerActivity {
             case R.id.action_remove_contact:
                 ContactDeleteDialogFragment.newInstance(getAccount(), getBareAddress())
                         .show(getFragmentManager(), "CONTACT_DELETE");
-                finish();
                 return true;
 
             default:

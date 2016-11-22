@@ -39,6 +39,8 @@ import com.itracker.android.R;
 import com.itracker.android.data.model.Photo;
 import com.itracker.android.ui.activity.PhotoDetailActivity;
 import com.itracker.android.ui.activity.TrackerActivity;
+import com.itracker.android.ui.listener.OnPhotoInventoryUpdatedListener;
+import com.itracker.android.ui.listener.OnSelectedTrackChangedListener;
 import com.itracker.android.ui.widget.CollectionView;
 import com.itracker.android.ui.widget.CollectionViewCallbacks;
 import com.itracker.android.ui.widget.PhotoCoordinatorLayout;
@@ -375,7 +377,7 @@ public class PhotoFragment extends TrackerFragment {
             case PhotosQuery.TOKEN_NORMAL: {
                 CollectionView.Inventory newInventory = Photo.photoInventoryFromCursor(data);
                 if (newInventory != null && !Photo.containSamePhotos(mPhotoInventory, newInventory)) {
-                    mPhotoInventory = newInventory;
+                    updatePhotoInventory(newInventory);
                     updateInventoryDisplayColumns(mPhotoInventory);
                     mPhotoCollectionView.updateInventory(mPhotoInventory, true);
                 }
@@ -390,6 +392,14 @@ public class PhotoFragment extends TrackerFragment {
             case PhotosQuery.TOKEN_NORMAL: {
                 break;
             }
+        }
+    }
+
+    private void updatePhotoInventory(CollectionView.Inventory newInventory) {
+        mPhotoInventory = newInventory;
+        for (OnPhotoInventoryUpdatedListener listener :
+                Application.getInstance().getUIListeners(OnPhotoInventoryUpdatedListener.class)) {
+            listener.onPhotoInventoryUpdated(newInventory);
         }
     }
 
@@ -428,19 +438,6 @@ public class PhotoFragment extends TrackerFragment {
                 group.setDisplayCols(5);
             }
         }
-    }
-
-    private ArrayList<Photo> inventoryToList(CollectionView.Inventory inventory) {
-        ArrayList<Photo> photos = new ArrayList<>();
-        for (CollectionView.InventoryGroup group : inventory) {
-            for (int i = 0; i < group.getItemCount(); ++i) {
-                Object itemTag = group.getItemTag(i);
-                if (itemTag instanceof Photo) {
-                    photos.add((Photo) itemTag);
-                }
-            }
-        }
-        return photos;
     }
 
     private class PhotoCollectionAdapter implements CollectionViewCallbacks {
@@ -517,7 +514,7 @@ public class PhotoFragment extends TrackerFragment {
             void registerListener(final View view, final Photo photo) {
                 photoImage.setOnClickListener(v -> {
                     Intent intent = PhotoDetailActivity.createIntent(Application.getInstance(),
-                            photo, inventoryToList(mPhotoInventory));
+                            photo, Photo.inventoryToList(mPhotoInventory));
                     ActivityOptions options =
                             ActivityOptions.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
                     startActivity(intent, options.toBundle());

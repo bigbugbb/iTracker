@@ -24,7 +24,6 @@ public abstract class BaseContactDialog extends DialogFragment
 
     private String mAccount;
     private String mContact;
-    private AccountPainter mAccountPainter;
     private AlertDialog mDialog;
 
     protected abstract int getDialogTitleTextResource();
@@ -54,9 +53,9 @@ public abstract class BaseContactDialog extends DialogFragment
     protected void setUpContactTitleView(View view) {
         final AbstractContact bestContact = RosterManager.getInstance().getBestContact(mAccount, mContact);
 
-        ((ImageView)view.findViewById(R.id.avatar)).setImageDrawable(bestContact.getAvatar());
-        ((TextView)view.findViewById(R.id.name)).setText(bestContact.getName());
-        ((TextView)view.findViewById(R.id.status_text)).setText(mContact);
+        ((ImageView) view.findViewById(R.id.avatar)).setImageDrawable(bestContact.getAvatar());
+        ((TextView) view.findViewById(R.id.name)).setText(bestContact.getName());
+//        ((TextView) view.findViewById(R.id.status_text)).setText(bestContact.getAccount());
     }
 
     @Override
@@ -64,8 +63,6 @@ public abstract class BaseContactDialog extends DialogFragment
         Bundle args = getArguments();
         mAccount = args.getString(ARGUMENT_ACCOUNT, null);
         mContact = args.getString(ARGUMENT_CONTACT, null);
-
-        mAccountPainter = ColorManager.getInstance().getAccountPainter();
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setCustomTitle(setUpDialogTitle())
@@ -87,7 +84,7 @@ public abstract class BaseContactDialog extends DialogFragment
     private View setUpDialogTitle() {
         View dialogTitleView = getActivity().getLayoutInflater().inflate(R.layout.dialog_title, null);
         final TextView dialogTitle = (TextView) dialogTitleView.findViewById(R.id.dialog_title_text_view);
-        dialogTitle.setTextColor(mAccountPainter.getAccountTextColor(mAccount));
+        dialogTitle.setTextColor(getResources().getColor(R.color.colorPrimary));
         dialogTitle.setText(getDialogTitleTextResource());
         return dialogTitleView;
     }
@@ -102,9 +99,9 @@ public abstract class BaseContactDialog extends DialogFragment
 
     @Override
     public void onShow(DialogInterface dialog) {
-        this.mDialog.getButton(Dialog.BUTTON_POSITIVE).setTextColor(mAccountPainter.getAccountTextColor(mAccount));
-        this.mDialog.getButton(Dialog.BUTTON_NEGATIVE).setTextColor(mAccountPainter.getGreyMain());
-        this.mDialog.getButton(Dialog.BUTTON_NEUTRAL).setTextColor(mAccountPainter.getGreyMain());
+        this.mDialog.getButton(Dialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+        this.mDialog.getButton(Dialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+        this.mDialog.getButton(Dialog.BUTTON_NEUTRAL).setTextColor(getResources().getColor(R.color.colorAccent));
     }
 
     @Override

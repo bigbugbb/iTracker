@@ -5,7 +5,9 @@ import android.app.DialogFragment;
 import com.itracker.android.Application;
 import com.itracker.android.R;
 import com.itracker.android.data.NetworkException;
+import com.itracker.android.data.roster.AbstractContact;
 import com.itracker.android.data.roster.PresenceManager;
+import com.itracker.android.data.roster.RosterManager;
 import com.itracker.android.ui.activity.ContactAddActivity;
 import com.itracker.android.xmpp.address.Jid;
 
@@ -24,7 +26,8 @@ public class ContactSubscriptionDialog extends BaseContactDialog {
 
     @Override
     protected String getMessage() {
-        return getString(R.string.contact_subscribe_confirm, Jid.getBareAddress(getContact()));
+        final AbstractContact bestContact = RosterManager.getInstance().getBestContact(getAccount(), getContact());
+        return getString(R.string.contact_subscribe_confirm, bestContact.getName());
     }
 
     @Override
@@ -60,10 +63,10 @@ public class ContactSubscriptionDialog extends BaseContactDialog {
     public void onAccept() {
         try {
             PresenceManager.getInstance().acceptSubscription(getAccount(), getContact());
+            PresenceManager.getInstance().requestSubscription(getAccount(), getContact());
         } catch (NetworkException e) {
             Application.getInstance().onError(e);
         }
-        startActivity(ContactAddActivity.createIntent(getActivity(), getAccount(), getContact()));
     }
 
     public void onDecline() {

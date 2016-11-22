@@ -20,7 +20,8 @@
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/avatar_size_toolbar"
+        android:gravity="center_vertical"
         android:maxLines="1"
         android:textColor="?android:attr/textColorPrimary"
         android:layout_marginLeft="8dp"
@@ -28,15 +29,15 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         tools:text="Lorem Ipsum" />
 
-    <TextView
-        android:id="@+id/status_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:layout_marginLeft="8dp"
-        android:layout_toRightOf="@id/avatar"
-        android:layout_below="@id/name"
-        tools:text="Lorem ipsum dolor sit amet" />
+    <!--<TextView-->
+        <!--android:id="@+id/status_text"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:maxLines="1"-->
+        <!--android:layout_marginLeft="8dp"-->
+        <!--android:layout_toRightOf="@id/avatar"-->
+        <!--android:layout_below="@id/name"-->
+        <!--tools:text="Lorem ipsum dolor sit amet" />-->
 
     <TextView
         android:layout_width="wrap_content"

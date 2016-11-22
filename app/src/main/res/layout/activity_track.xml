@@ -65,6 +65,8 @@
         android:layout_width="wrap_content"
         android:layout_gravity="left|start"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/menu_drawer_view"/>
+        app:menu="@menu/menu_drawer_view"
+        app:itemIconTint="@color/drawer_item"
+        app:itemTextColor="@color/drawer_item" />
 
 </android.support.v4.widget.DrawerLayout>

@@ -54,6 +54,12 @@ public class MediaDownloadActivity extends BaseActivity
         return intent;
     }
 
+    public static Intent createIntent(Context context) {
+        Intent intent = new Intent(context, MediaDownloadActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return intent;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

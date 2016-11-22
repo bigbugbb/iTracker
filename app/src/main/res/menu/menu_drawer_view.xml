@@ -35,15 +35,21 @@
             android:id="@+id/nav_messages"
             android:icon="@drawable/ic_action_chat"
             android:title="Messages" />
+        <item
+            android:id="@+id/nav_contacts"
+            android:icon="@drawable/ic_action_contacts"
+            android:title="Contacts" />
     </group>
 
     <group
         android:id="@+id/menu_bottom"
         android:checkableBehavior="none">
         <item
+            android:id="@+id/nav_settings"
             android:icon="@drawable/ic_drawer_settings"
             android:title="Settings" />
         <item
+            android:id="@+id/nav_exit"
             android:icon="@drawable/ic_exit_grey600_24dp"
             android:title="@string/exit" />
     </group>

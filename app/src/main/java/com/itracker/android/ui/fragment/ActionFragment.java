@@ -1,7 +1,6 @@
 package com.itracker.android.ui.fragment;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Build;
@@ -32,6 +31,7 @@ import com.itracker.android.provider.TrackerContract;
 import com.itracker.android.ui.activity.FootprintActivity;
 import com.itracker.android.ui.adapter.TrackItemAdapter;
 import com.itracker.android.ui.listener.OnTrackItemSelectedListener;
+import com.itracker.android.ui.listener.OnSelectedTrackChangedListener;
 import com.itracker.android.ui.widget.ActionFrameLayout;
 import com.itracker.android.ui.widget.MotionsView;
 import com.itracker.android.ui.widget.TimeRangeController;
@@ -112,7 +112,7 @@ public class ActionFragment extends TrackerFragment implements OnTrackItemSelect
     public void onDetach() {
         super.onDetach();
 
-        mSelectedTrack = null;
+        updateSelectedTrack(null);
 
         getActivity().getContentResolver().unregisterContentObserver(mTracksObserver);
         getActivity().getContentResolver().unregisterContentObserver(mMotionsObserver);
@@ -137,9 +137,7 @@ public class ActionFragment extends TrackerFragment implements OnTrackItemSelect
         mShowTimelinesView = (TextView) layout.findViewById(R.id.show_timeline);
 
         layout.setOnFootprintFabClickedListener(() -> {
-            Intent intent = new Intent(getActivity(), FootprintActivity.class);
-            intent.putExtra(SELECTED_TRACK, mSelectedTrack);
-            startActivity(intent);
+            startActivity(FootprintActivity.createIntent(getActivity(), mSelectedTrack));
         });
 
         mTrackItemAdapter = new TrackItemAdapter(getActivity());
@@ -260,9 +258,17 @@ public class ActionFragment extends TrackerFragment implements OnTrackItemSelect
     @Override
     public void onTrackItemSelected(View view, int position) {
         showLoadingProgress();
-        mSelectedTrack = mTrackItemAdapter.getItem(position);
+        updateSelectedTrack(mTrackItemAdapter.getItem(position));
         reloadMotions(getLoaderManager(), mSelectedTrack, ActionFragment.this);
         reloadActivities(getLoaderManager(), mSelectedTrack, ActionFragment.this);
+    }
+
+    private void updateSelectedTrack(Track track) {
+        mSelectedTrack = track;
+        for (OnSelectedTrackChangedListener listener :
+                Application.getInstance().getUIListeners(OnSelectedTrackChangedListener.class)) {
+            listener.onSelectedTrackChanged(mSelectedTrack);
+        }
     }
 
     @Override

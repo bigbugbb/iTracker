@@ -11,6 +11,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
+
 
 public final class Photo extends BaseData implements Parcelable {
 
@@ -89,6 +91,19 @@ public final class Photo extends BaseData implements Parcelable {
         }
 
         return inventory;
+    }
+
+    public static ArrayList<Photo> inventoryToList(CollectionView.Inventory inventory) {
+        ArrayList<Photo> photos = new ArrayList<>();
+        for (CollectionView.InventoryGroup group : inventory) {
+            for (int i = 0; i < group.getItemCount(); ++i) {
+                Object itemTag = group.getItemTag(i);
+                if (itemTag instanceof Photo) {
+                    photos.add((Photo) itemTag);
+                }
+            }
+        }
+        return photos;
     }
 
     public static boolean containSamePhotos(CollectionView.Inventory oldInv, CollectionView.Inventory newInv) {

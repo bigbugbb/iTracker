@@ -19,6 +19,8 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
 public class FriendFragment extends TrackerFragment {
     private static final String TAG = makeLogTag(FriendFragment.class);
 
+    private ViewPager mViewPager;
+
     public FriendFragment() {
         // Required empty public constructor
     }
@@ -32,11 +34,11 @@ public class FriendFragment extends TrackerFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_friend, container, false);
 
-        ViewPager pager = (ViewPager) view.findViewById(R.id.pager);
-        pager.setAdapter(new FriendFragmentPagerAdapter(getActivity(), getChildFragmentManager()));
+        mViewPager = (ViewPager) view.findViewById(R.id.pager);
+        mViewPager.setAdapter(new FriendFragmentPagerAdapter(getActivity(), getChildFragmentManager()));
 
         TabLayout tabs = (TabLayout) view.findViewById(R.id.tabs_friend);
-        tabs.setupWithViewPager(pager);
+        tabs.setupWithViewPager(mViewPager);
 
         return view;
     }
@@ -49,6 +51,14 @@ public class FriendFragment extends TrackerFragment {
     @Override
     public void onUnselected() {
 
+    }
+
+    public void switchToMessagesPage() {
+        mViewPager.setCurrentItem(0);
+    }
+
+    public void switchToContactsPage() {
+        mViewPager.setCurrentItem(1);
     }
 
     private class FriendFragmentPagerAdapter extends FragmentPagerAdapter {

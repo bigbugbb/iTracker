@@ -46,6 +46,8 @@ import com.itracker.android.data.extension.vcard.OnVCardSaveListener;
 import com.itracker.android.data.extension.vcard.VCardManager;
 import com.itracker.android.data.intent.EntityIntentBuilder;
 import com.itracker.android.data.message.MessageManager;
+import com.itracker.android.data.model.Photo;
+import com.itracker.android.data.model.Track;
 import com.itracker.android.data.roster.PresenceManager;
 import com.itracker.android.data.roster.RosterManager;
 import com.itracker.android.ui.adapter.FragmentPagerAdapter;
@@ -54,7 +56,11 @@ import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
 import com.itracker.android.ui.fragment.MediaFragment;
 import com.itracker.android.ui.fragment.PhotoFragment;
+import com.itracker.android.ui.listener.OnPhotoInventoryUpdatedListener;
 import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
+import com.itracker.android.ui.listener.OnSelectedTrackChangedListener;
+import com.itracker.android.ui.listener.OnTrackItemSelectedListener;
+import com.itracker.android.ui.widget.CollectionView;
 import com.itracker.android.utils.AccountUtils;
 import com.itracker.android.utils.LogUtils;
 import com.itracker.android.utils.PrefUtils;
@@ -82,6 +88,8 @@ import static com.itracker.android.utils.LogUtils.LOGD;
 public class TrackerActivity extends SingleActivity implements
         NavigationView.OnNavigationItemSelectedListener,
         TabLayout.OnTabSelectedListener,
+        OnSelectedTrackChangedListener,
+        OnPhotoInventoryUpdatedListener,
         OnVCardListener,
         OnVCardSaveListener {
 
@@ -103,6 +111,9 @@ public class TrackerActivity extends SingleActivity implements
     private VCard mVCard;
     private int mVCardRequestRetries = VCARD_REQUEST_RETRY_COUNT;
     private int mVCardUpdateRetries = VCARD_UPDATE_RETRY_COUNT;
+
+    private Track mSelectedTrack;
+    private CollectionView.Inventory mPhotoInventory;
 
     private String mAction;
 
@@ -211,9 +222,10 @@ public class TrackerActivity extends SingleActivity implements
     protected void onStart() {
         super.onStart();
         mViewPager.setCurrentItem(PrefUtils.getLastSelectedTab(this));
-//        Application.getInstance().runInBackground(() -> ServerUtils.ping());
         Application.getInstance().addUIListener(OnVCardListener.class, this);
         Application.getInstance().addUIListener(OnVCardSaveListener.class, this);
+        Application.getInstance().addUIListener(OnSelectedTrackChangedListener.class, this);
+        Application.getInstance().addUIListener(OnPhotoInventoryUpdatedListener.class, this);
     }
 
     @Override
@@ -268,7 +280,7 @@ public class TrackerActivity extends SingleActivity implements
 
                 case TrackerActivity.ACTION_CONTACT_SUBSCRIPTION:
                     mAction = null;
-                    acceptAndRequestContactSubscription();
+                    showContactSubscriptionDialog();
                     break;
             }
         }
@@ -285,6 +297,8 @@ public class TrackerActivity extends SingleActivity implements
         PrefUtils.setLastSelectedTab(this, mViewPager.getCurrentItem());
         Application.getInstance().removeUIListener(OnVCardListener.class, this);
         Application.getInstance().removeUIListener(OnVCardSaveListener.class, this);
+        Application.getInstance().removeUIListener(OnSelectedTrackChangedListener.class, this);
+        Application.getInstance().removeUIListener(OnPhotoInventoryUpdatedListener.class, this);
         mHandler.removeCallbacksAndMessages(null);
     }
 
@@ -307,6 +321,34 @@ public class TrackerActivity extends SingleActivity implements
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_footprint) {
+            if (mSelectedTrack != null) {
+                startActivity(FootprintActivity.createIntent(this, mSelectedTrack));
+            }
+        } else if (id == R.id.nav_gallery) {
+            if (mPhotoInventory != null) {
+                startActivity(PhotoDetailActivity.createIntent(this, null, Photo.inventoryToList(mPhotoInventory)));
+            }
+        } else if (id == R.id.nav_downloaded) {
+            startActivity(MediaDownloadActivity.createIntent(this));
+        } else if (id == R.id.nav_messages) {
+            selectTab(3, null);
+            ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+            FriendFragment fragment = (FriendFragment) adapter.mFragments.get(3);
+            fragment.switchToMessagesPage();
+        } else if (id == R.id.nav_contacts) {
+            selectTab(3, null);
+            ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+            FriendFragment fragment = (FriendFragment) adapter.mFragments.get(3);
+            fragment.switchToContactsPage();
+        } else if (id == R.id.nav_settings) {
+
+        } else if (id == R.id.nav_exit) {
+            finish();
+        }
+
         mDrawerLayout.closeDrawers();
         return true;
     }
@@ -344,22 +386,12 @@ public class TrackerActivity extends SingleActivity implements
         super.onBackPressed();
     }
 
-    private void acceptAndRequestContactSubscription() {
+    private void showContactSubscriptionDialog() {
         Intent intent = getIntent();
         String account = EntityIntentBuilder.getAccount(intent);
         String user = EntityIntentBuilder.getUser(intent);
         if (account != null && user != null) {
-            try {
-                PresenceManager.getInstance().acceptSubscription(account, user);
-            } catch (NetworkException e) {
-                Application.getInstance().onError(e);
-            }
-        }
-
-        try {
-            PresenceManager.getInstance().requestSubscription(account, user);
-        } catch (NetworkException e) {
-            Application.getInstance().onError(e);
+            ContactSubscriptionDialog.newInstance(account, user).show(getFragmentManager(), ContactSubscriptionDialog.class.getName());
         }
     }
 
@@ -536,12 +568,16 @@ public class TrackerActivity extends SingleActivity implements
     }
 
     private void selectTab(TabLayout.Tab tab) {
+        selectTab(tab.getPosition(), tab.getCustomView());
+    }
+
+    private void selectTab(int position, View customViewFromTab) {
         int colorAccent = ContextCompat.getColor(this, R.color.colorAccent);
         int colorOrigin = ContextCompat.getColor(this, R.color.tab_text_color);
 
         // Clear the color of the unselected tab views
         for (int i = 0; i < mTabLayout.getTabCount(); ++i) {
-            if (i == tab.getPosition()) {
+            if (i == position) {
                 continue;
             }
             TextView view = (TextView) mTabLayout.getTabAt(i).getCustomView();
@@ -558,19 +594,31 @@ public class TrackerActivity extends SingleActivity implements
         // For the later case the event generates from the tab layout, so view pager must be notified.
         // Stop using smooth scroll is necessary otherwise onPageChanged will still be called during
         // the settling state even after the unselected tabs are cleared their color.
-        mViewPager.setCurrentItem(tab.getPosition(), false);
+        mViewPager.setCurrentItem(position, false);
 
         // Update the color of the selected tab view
-        TextView view = (TextView) tab.getCustomView();
-        view.setTextColor(colorAccent);
-        Drawable[] drawables = view.getCompoundDrawables();
-        if (drawables[1] != null) {
-            drawables[1].setColorFilter(colorAccent, PorterDuff.Mode.SRC_ATOP);
+        if (customViewFromTab != null) {
+            TextView view = (TextView) customViewFromTab;
+            view.setTextColor(colorAccent);
+            Drawable[] drawables = view.getCompoundDrawables();
+            if (drawables[1] != null) {
+                drawables[1].setColorFilter(colorAccent, PorterDuff.Mode.SRC_ATOP);
+            }
         }
 
         ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
-        OnSelectedStateChangedListener listener = (OnSelectedStateChangedListener) adapter.getItem(tab.getPosition());
+        OnSelectedStateChangedListener listener = (OnSelectedStateChangedListener) adapter.getItem(position);
         listener.onSelected();
+    }
+
+    @Override
+    public void onSelectedTrackChanged(Track track) {
+        mSelectedTrack = track;
+    }
+
+    @Override
+    public void onPhotoInventoryUpdated(CollectionView.Inventory photoInventory) {
+        mPhotoInventory = photoInventory;
     }
 
     private static class TrackerOnPageChangeListener extends SimpleOnPageChangeListener {
