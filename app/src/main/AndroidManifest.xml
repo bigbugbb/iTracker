@@ -164,7 +164,6 @@
                 <action android:name="android.intent.action.VIEW" />
                 <!-- http://blog.csdn.net/jason0539/article/details/10049899 -->
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="file" />
                 <data android:scheme="http" />
@@ -220,6 +219,16 @@
             android:authorities="com.itracker.android"
             android:exported="false"
             android:label="@string/provider_name" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.media.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
 
         <service android:name="com.itracker.android.service.sensor.AppPersistentService" />
 
