@@ -344,7 +344,7 @@ public class TrackerActivity extends SingleActivity implements
             FriendFragment fragment = (FriendFragment) adapter.mFragments.get(3);
             fragment.switchToContactsPage();
         } else if (id == R.id.nav_settings) {
-
+            startActivity(SettingsActivity.createIntent(this));
         } else if (id == R.id.nav_exit) {
             finish();
         }

@@ -43,7 +43,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
  *   this.updateSession():
  *     send addstar/removestar to contentProvider
  *     send broadcast to update any dependent UI
- *     save user actions as pending in shared preferences
+ *     save user actions as pending in shared app_preferences
  *
  *   // on sync
  *   syncadapter: call this.sync()

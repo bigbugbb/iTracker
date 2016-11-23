@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.itracker.android.ui.helper.PreferenceSummaryHelper;
-import com.itracker.android.ui.widget.RingtonePreference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -174,8 +173,6 @@ public abstract class BaseSettingsFragment extends PreferenceFragment
             ((SwitchPreference) preference).setChecked((Boolean) value);
         } else if (preference instanceof ListPreference) {
             ((ListPreference) preference).setValueIndex((Integer) value);
-        } else if (preference instanceof RingtonePreference) {
-            ((RingtonePreference) preference).setUri((Uri) value);
         }
     }
 
@@ -222,8 +219,6 @@ public abstract class BaseSettingsFragment extends PreferenceFragment
         } else if (preference instanceof ListPreference) {
             return ((ListPreference) preference)
                     .findIndexOfValue(((ListPreference) preference).getValue());
-        } else if (preference instanceof RingtonePreference) {
-            return ((RingtonePreference) preference).getUri();
         }
         throw new IllegalStateException();
     }

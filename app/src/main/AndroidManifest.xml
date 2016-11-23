@@ -204,6 +204,19 @@
         </activity>
 
         <activity
+            android:name="com.itracker.android.ui.activity.SettingsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName="com.itracker.android.ui.activity.TrackerActivity"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <!--https://developer.android.com/guide/topics/ui/settings.html#NetworkUsage-->
+            <intent-filter>
+                <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name="com.itracker.android.ui.activity.AuthenticatorActivity"
             android:label="@string/login_label"
             android:launchMode="singleTask"

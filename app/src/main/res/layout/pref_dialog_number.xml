@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout for the NumberPickerPreference Dialog -->
+<NumberPicker
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edit"
+    android:layout_width="56dp"
+    android:layout_height="80dp"
+    android:paddingBottom="@dimen/dialog_alert_default_padding"
+    android:paddingTop="@dimen/dialog_alert_default_padding"
+    android:layout_gravity="center"
+    android:theme="@style/AppTheme.AppAlertDialogContent"/>

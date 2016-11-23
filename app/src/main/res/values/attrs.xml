@@ -83,6 +83,14 @@
         <attr name="scaleType" />
     </declare-styleable>
 
+    <declare-styleable name="NumberPickerPreference">
+        <attr name="min" format="integer" />
+        <attr name="max" format="integer" />
+        <attr name="positive_button_text" format="reference" />
+        <attr name="negative_button_text" format="reference" />
+        <attr name="dialog_layout" format="reference" />
+    </declare-styleable>
+
     <declare-styleable name="ContactList">
         <attr name="toolbar_popup_theme" format="reference" />
         <attr name="recent_chats_background" format="reference" />

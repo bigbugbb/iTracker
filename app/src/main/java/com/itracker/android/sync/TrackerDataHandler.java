@@ -31,7 +31,7 @@ import static com.itracker.android.utils.LogUtils.makeLogTag;
 public class TrackerDataHandler {
     private static final String TAG = makeLogTag(SyncHelper.class);
 
-    // Shared preferences key under which we store the timestamp that corresponds to
+    // Shared app_preferences key under which we store the timestamp that corresponds to
     // the data we currently have in our content provider.
     private static final String SP_KEY_DATA_TIMESTAMP = "data_timestamp";
 

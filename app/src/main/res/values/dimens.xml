@@ -32,6 +32,8 @@
     <dimen name="tab_label">12sp</dimen>
     <dimen name="tab_layout_height">56dp</dimen>
 
+    <dimen name="dialog_alert_default_padding">18dp</dimen>
+
     <!-- summary image -->
     <dimen name="summary_image_height">180dp</dimen>
     <dimen name="summary_image_padding_top">16dp</dimen>

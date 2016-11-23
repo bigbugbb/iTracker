@@ -15,7 +15,7 @@
 package com.itracker.android.data.extension.archive;
 
 /**
- * Matching mode for message archive preferences.
+ * Matching mode for message archive app_preferences.
  * <p/>
  * http://xmpp.org/extensions/xep-0136.html#impl-jidmatch
  *

@@ -1,0 +1,22 @@
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="Category 1">
+
+        <com.itracker.android.ui.fragment.preferences.NumberPickerPreference
+            android:key="@string/data_sync_interval_time_key"
+            android:title="@string/data_sync_interval_time_title"
+            android:summary="@string/data_sync_interval_time_summary"
+            android:dialogMessage="@string/data_sync_interval_time_title"
+            android:defaultValue="5" />
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="key1"
+            android:title="Switch Preference"
+            android:summary="Switch Summary"
+            android:defaultValue="true" />
+
+    </android.support.v7.preference.PreferenceCategory>
+
+</android.support.v7.preference.PreferenceScreen>

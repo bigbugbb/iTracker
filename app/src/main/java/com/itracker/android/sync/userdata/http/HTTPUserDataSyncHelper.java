@@ -75,13 +75,13 @@ public class HTTPUserDataSyncHelper extends AbstractUserDataSyncHelper {
     }
 
     /**
-     * Syncs the preferences file with an appdata preferences file.
+     * Syncs the app_preferences file with an appdata app_preferences file.
      *
      * Synchronization steps:
      * 1. If there are local changes, sync the latest local version with remote
      *    and ignore merge conflicts. The last write wins.
      * 2. If there are no local changes, fetch the latest remote version. If
-     *    it includes changes, notify that preferences have changed.
+     *    it includes changes, notify that app_preferences have changed.
      */
     protected boolean syncImpl(List<UserAction> actions, boolean hasPendingLocalData) {
         try {
@@ -157,7 +157,7 @@ public class HTTPUserDataSyncHelper extends AbstractUserDataSyncHelper {
 //    }
 
     /**
-     * Updates the remote preferences file with the given JSON content.
+     * Updates the remote app_preferences file with the given JSON content.
      * @throws IOException
      */
     private Set<String> mergeDirtyActions(List<UserAction> actions, Set<String> starredSessions)

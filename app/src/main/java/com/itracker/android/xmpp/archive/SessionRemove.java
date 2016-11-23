@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Packet to remove sessions from the message archive preferences.
+ * Packet to remove sessions from the message archive app_preferences.
  * <p/>
  * http://xmpp.org/extensions/xep-0136.html
  *

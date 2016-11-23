@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Message archive preferences.
+ * Message archive app_preferences.
  * <p/>
  * http://xmpp.org/extensions/xep-0136.html
  *

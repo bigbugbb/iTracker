@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 import com.itracker.android.Config;
 
 /**
- * Utilities and constants related to app preferences.
+ * Utilities and constants related to app app_preferences.
  */
 public class PrefUtils {
 
