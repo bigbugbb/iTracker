@@ -1,0 +1,53 @@
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.itracker.android.ui.fragment.preferences.NumberPickerPreference
+        style="@style/AppPreference.DialogPreference"
+        android:key="@string/data_sync_interval_time_key"
+        android:title="@string/data_sync_interval_time_title"
+        android:summary="@string/data_sync_interval_time_summary"
+        android:dialogMessage="@string/data_sync_interval_time_title"
+        android:defaultValue="5"
+        app:min="4"
+        app:max="30" />
+
+    <com.itracker.android.ui.fragment.preferences.NumberPickerPreference
+        style="@style/AppPreference.DialogPreference"
+        android:key="@string/restored_data_items_per_sync_key"
+        android:title="@string/restored_data_items_per_sync_title"
+        android:summary="@string/restored_data_items_per_sync_summary"
+        android:dialogMessage="@string/restored_data_items_per_sync_title"
+        android:defaultValue="500"
+        app:min="300"
+        app:max="1200"
+        app:step="100" />
+
+    <com.itracker.android.ui.fragment.preferences.NumberPickerPreference
+        style="@style/AppPreference.DialogPreference"
+        android:key="@string/max_download_tasks_key"
+        android:title="@string/max_download_tasks_title"
+        android:summary="@string/max_download_tasks_summary"
+        android:dialogMessage="@string/max_download_tasks_title"
+        android:defaultValue="3"
+        app:min="2"
+        app:max="6" />
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:key="@string/notification_sound_key"
+        android:title="@string/notification_sound_title"
+        android:summary="@string/notification_sound_summary"
+        android:defaultValue="true" />
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:key="@string/notification_vibrate_key"
+        android:title="@string/notification_vibrate_title"
+        android:summary="@string/notification_vibrate_summary"
+        android:defaultValue="true" />
+
+    <Preference android:title="@string/rate_app_title" >
+        <intent android:action="android.intent.action.VIEW"
+                android:data="http://www.google.com" />
+    </Preference>
+
+</android.support.v7.preference.PreferenceScreen>

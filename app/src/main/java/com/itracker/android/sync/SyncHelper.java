@@ -158,10 +158,10 @@ public class SyncHelper {
         long timeSinceAttempt = now - lastAttemptTime;
         final boolean manualSync = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 
-        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < Config.MIN_INTERVAL_BETWEEN_SYNCS) {
+        if (!manualSync && timeSinceAttempt >= 0 && timeSinceAttempt < PrefUtils.getMinIntervalBetweenDataSync(mContext)) {
 //            Random r = new Random();
 //            long toWait = 10000 + r.nextInt(30000) // random jitter between 10 - 40 seconds
-//                    + Config.MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
+//                    + Config.DEFAULT_MIN_INTERVAL_BETWEEN_SYNCS - timeSinceAttempt;
 //            LOGW(TAG, "Sync throttled!! Another sync was attempted just " + timeSinceAttempt
 //                    + "ms ago. Requesting delay of " + toWait + "ms.");
 //            syncResult.delayUntil = (System.currentTimeMillis() + toWait) / 1000L;
@@ -377,7 +377,7 @@ public class SyncHelper {
                     null,
                     TrackerContract.SELECTION_BY_SYNC,
                     new String[] {SyncState.PENDING.value()},
-                    Backups.DATE + " DESC " + "LIMIT " + Config.RESTORE_BACKUP_DATA_ITEMS_PER_SYNC);
+                    Backups.DATE + " DESC " + "LIMIT " + PrefUtils.getMaxRestoredDataItemsPerSync(mContext));
             if (cursor != null) {
                 List<Backup> pendingBackups = new ArrayList<>(cursor.getCount());
                 while (cursor.moveToNext()) {

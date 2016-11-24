@@ -3,8 +3,10 @@ package com.itracker.android.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.format.DateUtils;
 
 import com.itracker.android.Config;
+import com.itracker.android.R;
 
 /**
  * Utilities and constants related to app app_preferences.
@@ -51,8 +53,6 @@ public class PrefUtils {
 
     /** String indicating the chosen google account name for youtube data */
     public static final String PREF_CHOSEN_GOOGLE_ACCOUNT_NAME = "_pref_chosen_google_account_name";
-
-    public static final String PREF_MAX_FILE_DOWNLOAD_TASKS = "_pref_max_file_download_tasks";
 
     public static final String PREF_CURRENT_DOWNLOAD_FILE_SIZE = "_pref_current_download_file_size_";
 
@@ -172,12 +172,18 @@ public class PrefUtils {
 
     public static int getMaxFileDownloadTasks(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getInt(PREF_MAX_FILE_DOWNLOAD_TASKS, Config.DEFAULT_MAX_FILE_DOWNLOAD_TASKS);
+        return sp.getInt(context.getString(R.string.max_download_tasks_key), Config.DEFAULT_MAX_FILE_DOWNLOAD_TASKS);
     }
 
-    public static void setMaxFileDownloadTasks(final Context context, int maxFileDownloadTasks) {
+    public static long getMinIntervalBetweenDataSync(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putInt(PREF_MAX_FILE_DOWNLOAD_TASKS, maxFileDownloadTasks).apply();
+        int minute = sp.getInt(context.getString(R.string.data_sync_interval_time_key), Config.DEFAULT_MIN_INTERVAL_BETWEEN_SYNCS);
+        return minute * DateUtils.MINUTE_IN_MILLIS;
+    }
+
+    public static int getMaxRestoredDataItemsPerSync(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getInt(context.getString(R.string.restored_data_items_per_sync_key), Config.DEFAULT_RESTORED_BACKUP_DATA_ITEMS_PER_SYNC);
     }
 
     public static long getCurrentDownloadFileSize(final Context context, final String downloadId) {

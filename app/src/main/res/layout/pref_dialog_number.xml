@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Layout for the NumberPickerPreference Dialog -->
-<NumberPicker
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/edit"
-    android:layout_width="56dp"
-    android:layout_height="80dp"
-    android:paddingBottom="@dimen/dialog_alert_default_padding"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:paddingTop="@dimen/dialog_alert_default_padding"
-    android:layout_gravity="center"
-    android:theme="@style/AppTheme.AppAlertDialogContent"/>
+    android:paddingBottom="@dimen/dialog_alert_default_padding"
+    android:paddingStart="?dialogPreferredPadding"
+    android:paddingLeft="?dialogPreferredPadding"
+    android:paddingEnd="?dialogPreferredPadding"
+    android:paddingRight="?dialogPreferredPadding"
+    android:orientation="vertical">
+
+    <com.itracker.android.ui.widget.NumberPicker
+        android:id="@+id/number_picker"
+        android:layout_width="88dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:theme="@style/AppAlertDialogContent" />
+
+</LinearLayout>

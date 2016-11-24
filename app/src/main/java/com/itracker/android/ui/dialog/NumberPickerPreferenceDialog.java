@@ -41,7 +41,7 @@ public class NumberPickerPreferenceDialog extends PreferenceDialogFragmentCompat
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
 
-        mNumberPicker = (NumberPicker) view.findViewById(R.id.edit);
+        mNumberPicker = (NumberPicker) view.findViewById(R.id.number_picker);
 
         // Exception: There is no TimePicker with the id 'edit' in the dialog.
         if (mNumberPicker == null) {
@@ -49,14 +49,25 @@ public class NumberPickerPreferenceDialog extends PreferenceDialogFragmentCompat
         }
 
         // Get the time from the related Preference
-        Integer number = null;
+        Integer number;
         DialogPreference preference = getPreference();
         if (preference instanceof NumberPickerPreference) {
             NumberPickerPreference numberPickerPreference = (NumberPickerPreference) preference;
             number = numberPickerPreference.getNumber();
-            mNumberPicker.setMinValue(numberPickerPreference.getMin());
-            mNumberPicker.setMaxValue(numberPickerPreference.getMax());
+            int step = numberPickerPreference.getStep();
+            int min = numberPickerPreference.getMin() / step;
+            int max = numberPickerPreference.getMax() / step;
+
+            String[] displayedValues = new String[max - min + 1];
+            for (int i = min; i <= max; ++i) {
+                displayedValues[i - min] = String.valueOf(step * i);
+            }
+
+            mNumberPicker.setMinValue(min);
+            mNumberPicker.setMaxValue(max);
+            mNumberPicker.setDisplayedValues(displayedValues);
             mNumberPicker.setWrapSelectorWheel(false);
+
             if (number != null) mNumberPicker.setValue(number);
         }
     }

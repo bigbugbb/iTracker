@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ import com.itracker.android.data.extension.vcard.OnVCardListener;
 import com.itracker.android.data.extension.vcard.OnVCardSaveListener;
 import com.itracker.android.data.extension.vcard.VCardManager;
 import com.itracker.android.ui.activity.ChatViewerActivity;
+import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.ui.helper.PermissionsRequester;
 import com.itracker.android.xmpp.address.Jid;
 import com.itracker.android.xmpp.vcard.AddressProperty;
@@ -372,9 +374,10 @@ public class AccountInfoEditorFragment extends Fragment implements
             }
 
             if (imageFile != null) {
-                mPhotoFileUri = Uri.fromFile(imageFile);
+                mPhotoFileUri = FileProvider.getUriForFile(getActivity(), getActivity().getPackageName() + ".media.provider", imageFile);
 
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoFileUri);
+                takePictureIntent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }

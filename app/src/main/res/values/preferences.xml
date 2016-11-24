@@ -520,7 +520,7 @@
 
     <!-- app settings keys -->
     <string name="data_sync_interval_time_key">data_sync_interval_time_key</string>
-    <string name="data_items_per_sync_key">data_items_per_sync_key</string>
+    <string name="restored_data_items_per_sync_key">restored_data_items_per_sync_key</string>
     <string name="max_download_tasks_key">max_download_tasks_key</string>
     <string name="notification_sound_key">notification_sound_key</string>
     <string name="notification_vibrate_key">notification_vibrate_key</string>
@@ -529,16 +529,16 @@
 
     <!-- app settings titles -->
     <string name="data_sync_interval_time_title">Data sync interval</string>
-    <string name="data_items_per_sync_title">Items per sync</string>
+    <string name="restored_data_items_per_sync_title">Restored data items per sync</string>
     <string name="max_download_tasks_title">Number of download tasks</string>
     <string name="notification_sound_title">Notification sound</string>
     <string name="notification_vibrate_title">Notification vibrate</string>
-    <string name="rate_app_title">Rate me</string>
-    <string name="about_title">About app</string>
+    <string name="rate_app_title">Rate this app</string>
+    <string name="about_title">About</string>
 
     <!-- app settings summaries -->
     <string name="data_sync_interval_time_summary">Minimum time in minute between each data sync.</string>
-    <string name="data_items_per_sync_summary">Maximum number of data items handled per sync</string>
+    <string name="restored_data_items_per_sync_summary">Maximum number of restored data items for each sync</string>
     <string name="max_download_tasks_summary">Maximum allowed number of youtube downloading tasks</string>
     <string name="notification_sound_summary">Turn on/off notification sound</string>
     <string name="notification_vibrate_summary">Turn on/off notification vibrate</string>

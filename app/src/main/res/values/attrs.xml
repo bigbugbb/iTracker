@@ -86,8 +86,7 @@
     <declare-styleable name="NumberPickerPreference">
         <attr name="min" format="integer" />
         <attr name="max" format="integer" />
-        <attr name="positive_button_text" format="reference" />
-        <attr name="negative_button_text" format="reference" />
+        <attr name="step" format="integer" />
         <attr name="dialog_layout" format="reference" />
     </declare-styleable>
 

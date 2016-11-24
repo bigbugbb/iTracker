@@ -14,7 +14,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
         // Load the Preferences from the XML file
-        addPreferencesFromResource(R.xml.app_preferences);
+        addPreferencesFromResource(R.xml.preferences);
     }
 
     @Override
@@ -27,16 +27,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             dialogFragment = NumberPickerPreferenceDialog.newInstance(preference.getKey());
         }
 
-
         if (dialogFragment != null) {
             // The dialog was created (it was one of our custom Preferences), show the dialog for it
             dialogFragment.setTargetFragment(this, 0);
-            dialogFragment.show(this.getFragmentManager(), "android.support.v7.preference" +
-                    ".PreferenceFragment.DIALOG");
+            dialogFragment.show(getFragmentManager(), "android.support.v7.preference.PreferenceFragment.DIALOG");
         } else {
             // Dialog creation could not be handled here. Try with the super method.
             super.onDisplayPreferenceDialog(preference);
         }
-
     }
 }

@@ -9,13 +9,9 @@ import com.itracker.android.R;
 
 public class NumberPickerPreference extends DialogPreference {
 
-    // allowed range
     private int mMin;
     private int mMax;
-
-    // button text
-    private String mPositiveButtonText;
-    private String mNegativeButtonText;
+    private int mStep;
 
     private int mNumber;
 
@@ -40,17 +36,12 @@ public class NumberPickerPreference extends DialogPreference {
 
         mMin = a.getInt(R.styleable.NumberPickerPreference_min, 0);
         mMax = a.getInt(R.styleable.NumberPickerPreference_max, 100);
-
-        mPositiveButtonText = a.getString(R.styleable.NumberPickerPreference_positive_button_text);
-        mNegativeButtonText = a.getString(R.styleable.NumberPickerPreference_negative_button_text);
-
+        mStep = a.getInt(R.styleable.NumberPickerPreference_step, 1);
         mDialogLayoutResId = a.getResourceId(R.styleable.NumberPickerPreference_dialog_layout, R.layout.pref_dialog_number);
 
         a.recycle();
 
         setDialogLayoutResource(mDialogLayoutResId);
-        setPositiveButtonText(mPositiveButtonText);
-        setNegativeButtonText(mNegativeButtonText);
         setDialogIcon(null);
     }
 
@@ -62,12 +53,8 @@ public class NumberPickerPreference extends DialogPreference {
         return mMax;
     }
 
-    public CharSequence getPositiveButtonText() {
-        return mPositiveButtonText;
-    }
-
-    public CharSequence getNegativeButtonText() {
-        return mNegativeButtonText;
+    public int getStep() {
+        return mStep;
     }
 
     /**
