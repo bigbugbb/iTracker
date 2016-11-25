@@ -14,10 +14,6 @@ import com.itracker.android.utils.HelpUtils;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
-    private int mClickCount;
-    private Handler mHandler = new Handler();
-    private static final String EMOJI_WITH_ABOUT = "\uD83D\uDE0E";
-
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
         // Load the Preferences from the XML file
@@ -27,12 +23,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
         super.onPreferenceTreeClick(preference);
-        if (preference.getKey().equals(getString(R.string.about_key))) {
-//            if (++mClickCount == 3) {
-//                Toast.makeText(getActivity(), EMOJI_WITH_ABOUT, Toast.LENGTH_SHORT).show();
-//            }
-//            mHandler.removeCallbacksAndMessages(null);
-//            mHandler.postDelayed(() -> mClickCount = 0, 1000);
+        if (getString(R.string.about_key).equals(preference.getKey())) {
             HelpUtils.showAbout(getActivity());
         }
         return false;

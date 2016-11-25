@@ -316,6 +316,7 @@ public class TrackerActivity extends SingleActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings: {
+                startActivity(SettingsActivity.createIntent(this));
                 return true;
             }
         }
