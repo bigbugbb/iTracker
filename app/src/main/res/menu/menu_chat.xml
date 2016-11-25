@@ -56,29 +56,29 @@
         android:title="@string/clear_history"
         app:showAsAction="never" />
 
-    <item android:id="@+id/action_export_chat"
-        android:orderInCategory="170"
-        android:title="@string/export_chat"
-        app:showAsAction="never" />
+    <!--<item android:id="@+id/action_export_chat"-->
+        <!--android:orderInCategory="170"-->
+        <!--android:title="@string/export_chat"-->
+        <!--app:showAsAction="never" />-->
 
-    <item android:id="@+id/action_call_attention"
-        android:orderInCategory="180"
-        android:title="@string/call_attention"
-        app:showAsAction="never" />
+    <!--<item android:id="@+id/action_call_attention"-->
+        <!--android:orderInCategory="180"-->
+        <!--android:title="@string/call_attention"-->
+        <!--app:showAsAction="never" />-->
 
-    <item android:id="@+id/action_list_of_occupants"
-        android:orderInCategory="200"
-        android:title="@string/occupant_list"
-        android:visible="false"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_account_multiple_white_24dp" />
+    <!--<item android:id="@+id/action_list_of_occupants"-->
+        <!--android:orderInCategory="200"-->
+        <!--android:title="@string/occupant_list"-->
+        <!--android:visible="false"-->
+        <!--app:showAsAction="always"-->
+        <!--android:icon="@drawable/ic_account_multiple_white_24dp" />-->
 
-    <item
-        android:id="@+id/action_block_contact"
-        android:orderInCategory="205"
-        android:title="@string/contact_block"
-        android:visible="false"
-        app:showAsAction="never" />
+    <!--<item-->
+        <!--android:id="@+id/action_block_contact"-->
+        <!--android:orderInCategory="205"-->
+        <!--android:title="@string/contact_block"-->
+        <!--android:visible="false"-->
+        <!--app:showAsAction="never" />-->
 
     <item
         android:id="@+id/action_close_chat"

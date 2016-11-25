@@ -533,9 +533,9 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         if (abstractChat instanceof RoomChat) {
             RoomState chatState = ((RoomChat) abstractChat).getState();
 
-            if (chatState == RoomState.available) {
-                menu.findItem(R.id.action_list_of_occupants).setVisible(true);
-            }
+//            if (chatState == RoomState.available) {
+//                menu.findItem(R.id.action_list_of_occupants).setVisible(true);
+//            }
 
             if (chatState == RoomState.unavailable) {
                 menu.findItem(R.id.action_join_conference).setVisible(true);
@@ -554,7 +554,7 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
         if (abstractChat instanceof RegularChat) {
             menu.findItem(R.id.action_view_contact).setVisible(true);
             menu.findItem(R.id.action_close_chat).setVisible(true);
-            menu.findItem(R.id.action_block_contact).setVisible(true);
+//            menu.findItem(R.id.action_block_contact).setVisible(true);
         }
     }
 
@@ -658,17 +658,17 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 clearHistory(mAccount, mUser);
                 return true;
 
-            case R.id.action_export_chat:
-                onExportChatClick();
-                return true;
+//            case R.id.action_export_chat:
+//                onExportChatClick();
+//                return true;
 
-            case R.id.action_call_attention:
-                callAttention();
-                return true;
+//            case R.id.action_call_attention:
+//                callAttention();
+//                return true;
 
-            case R.id.action_block_contact:
+//            case R.id.action_block_contact:
 //                BlockContactDialog.newInstance(account, user).show(getFragmentManager(), BlockContactDialog.class.getName());
-                return true;
+//                return true;
 
             /* conference specific options menu */
 
@@ -684,9 +684,9 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 leaveConference(mAccount, mUser);
                 return true;
 
-            case R.id.action_list_of_occupants:
+//            case R.id.action_list_of_occupants:
 //                startActivity(OccupantList.createIntent(getActivity(), account, user));
-                return true;
+//                return true;
 
             /* message popup menu */
 

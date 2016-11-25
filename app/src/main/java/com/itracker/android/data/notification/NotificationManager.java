@@ -44,6 +44,7 @@ import com.itracker.android.data.message.MessageManager;
 import com.itracker.android.data.message.chat.ChatManager;
 import com.itracker.android.data.message.phrase.PhraseManager;
 import com.itracker.android.data.roster.RosterManager;
+import com.itracker.android.utils.PrefUtils;
 import com.itracker.android.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -52,10 +53,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-//import com.itracker.android.ui.activity.ClearNotifications;
-//import com.itracker.android.ui.activity.ContactList;
-//import com.itracker.android.ui.activity.ReconnectionActivity;
-//import com.itracker.android.ui.color.ColorManager;
 
 /**
  * Manage notifications about message, subscription and authentication.
@@ -161,10 +158,13 @@ public class NotificationManager implements OnInitializedListener, OnAccountChan
             return;
         }
         if (messageItem.getChat().getFirstNotification() || !SettingsManager.eventsFirstOnly()) {
-            Uri sound = PhraseManager.getInstance().getSound(messageItem.getChat().getAccount(),
-                    messageItem.getChat().getUser(), messageItem.getText());
-            boolean makeVibration = ChatManager.getInstance().isMakeVibro(messageItem.getChat().getAccount(),
-                    messageItem.getChat().getUser());
+//            boolean makeVibration = ChatManager.getInstance().isMakeVibro(messageItem.getChat().getAccount(),
+//                    messageItem.getChat().getUser());
+            boolean makeSound = PrefUtils.isNotificationMakeSound(Application.getInstance());
+            boolean makeVibration = PrefUtils.isNotificationMakeVibration(Application.getInstance());
+
+            Uri sound = makeSound ? PhraseManager.getInstance().getSound(messageItem.getChat().getAccount(),
+                    messageItem.getChat().getUser(), messageItem.getText()) : null;
 
             NotificationManager.getInstance().setNotificationDefaults(notificationBuilder,
                     makeVibration, sound, AudioManager.STREAM_NOTIFICATION);
@@ -383,13 +383,15 @@ public class NotificationManager implements OnInitializedListener, OnAccountChan
 //        }
         persistentIntent = new Intent();
 
-        if (connected > 0) {
-            persistentNotificationBuilder.setColor(persistentNotificationColor);
-            persistentNotificationBuilder.setSmallIcon(R.drawable.ic_stat_online);
-        } else {
-            persistentNotificationBuilder.setColor(NotificationCompat.COLOR_DEFAULT);
-            persistentNotificationBuilder.setSmallIcon(R.drawable.ic_stat_offline);
-        }
+//        if (connected > 0) {
+//            persistentNotificationBuilder.setColor(persistentNotificationColor);
+//            persistentNotificationBuilder.setSmallIcon(R.drawable.ic_stat_online);
+//        } else {
+//            persistentNotificationBuilder.setColor(NotificationCompat.COLOR_DEFAULT);
+//            persistentNotificationBuilder.setSmallIcon(R.drawable.ic_stat_offline);
+//        }
+        persistentNotificationBuilder.setColor(NotificationCompat.COLOR_DEFAULT);
+        persistentNotificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
 
         persistentNotificationBuilder.setContentText(getConnectionState(waiting, connecting, connected, accountList.size()));
         persistentNotificationBuilder.setContentIntent(PendingIntent.getActivity(application, 0, persistentIntent,

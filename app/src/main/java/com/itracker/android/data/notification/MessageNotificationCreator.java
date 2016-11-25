@@ -20,9 +20,6 @@ import com.itracker.android.utils.StringUtils;
 
 import java.util.List;
 
-//import com.itracker.android.ui.activity.ChatViewer;
-//import com.itracker.android.ui.activity.ContactList;
-//import com.itracker.android.ui.color.ColorManager;
 
 public class MessageNotificationCreator {
 
@@ -56,7 +53,7 @@ public class MessageNotificationCreator {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(application);
         notificationBuilder.setContentTitle(getTitle(message, messageCount));
         notificationBuilder.setContentText(getText(message, showText));
-        notificationBuilder.setSubText(message.getAccount());
+//        notificationBuilder.setSubText(message.getAccount());
 
         notificationBuilder.setTicker(getText(message, showText));
 
@@ -150,7 +147,7 @@ public class MessageNotificationCreator {
             if (showText) {
                 bigTextStyle.bigText(message.getText());
             }
-            bigTextStyle.setSummaryText(message.getAccount());
+//            bigTextStyle.setSummaryText(message.getAccount());
 
             return bigTextStyle;
         } else {
@@ -172,7 +169,7 @@ public class MessageNotificationCreator {
             inboxStyle.addLine(getContactNameAndMessage(messageNotification, showTextForThisContact));
         }
 
-        inboxStyle.setSummaryText(accountName);
+//        inboxStyle.setSummaryText(accountName);
 
         return inboxStyle;
     }

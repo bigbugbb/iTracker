@@ -186,6 +186,16 @@ public class PrefUtils {
         return sp.getInt(context.getString(R.string.restored_data_items_per_sync_key), Config.DEFAULT_RESTORED_BACKUP_DATA_ITEMS_PER_SYNC);
     }
 
+    public static boolean isNotificationMakeVibration(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(context.getString(R.string.notification_vibrate_key), true);
+    }
+
+    public static boolean isNotificationMakeSound(final Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(context.getString(R.string.notification_sound_key), true);
+    }
+
     public static long getCurrentDownloadFileSize(final Context context, final String downloadId) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getLong(PREF_CURRENT_DOWNLOAD_FILE_SIZE + downloadId, 0);
