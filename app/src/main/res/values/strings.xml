@@ -104,8 +104,8 @@
     <string name="about_body"><![CDATA[
         <b>iTracker</b><br>
         Version %s<br><br>
-        <a href="http://m.google.com/utos">Terms of Service</a><br><br>
-        <a href="http://www.google.com/policies/privacy/">Privacy Policy</a>
+        Author <a href="mailto:bigbugbb@gmail.com?subject=iTracker">binbo</a><br><br>
+        <a href="https://github.com/bigbugbb/iTracker">Source Code</a>
     ]]></string>
 
     <!-- Shown as a link in the About screen of the app; user can click to see the EULA. -->

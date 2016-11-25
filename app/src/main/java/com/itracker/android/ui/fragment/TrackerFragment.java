@@ -90,6 +90,10 @@ public abstract class TrackerFragment extends Fragment
         return false;
     }
 
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return false;
+    }
+
     public static void reloadTracks(LoaderManager loaderManager, long beginTime, long endTime, LoaderCallbacks callbacks) {
         Bundle args = new Bundle();
         args.putLong(BEGIN_DATE, beginTime);

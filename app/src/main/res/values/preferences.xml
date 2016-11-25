@@ -542,5 +542,6 @@
     <string name="max_download_tasks_summary">Maximum allowed number of youtube downloading tasks</string>
     <string name="notification_sound_summary">Turn on/off notification sound</string>
     <string name="notification_vibrate_summary">Turn on/off notification vibrate</string>
+    <string name="rate_app_summary">Rate this app on play store</string>
 
 </resources>

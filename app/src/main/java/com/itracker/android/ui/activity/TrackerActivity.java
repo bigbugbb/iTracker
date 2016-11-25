@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -23,6 +24,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,6 +58,7 @@ import com.itracker.android.ui.fragment.ActionFragment;
 import com.itracker.android.ui.fragment.FriendFragment;
 import com.itracker.android.ui.fragment.MediaFragment;
 import com.itracker.android.ui.fragment.PhotoFragment;
+import com.itracker.android.ui.fragment.TrackerFragment;
 import com.itracker.android.ui.listener.OnPhotoInventoryUpdatedListener;
 import com.itracker.android.ui.listener.OnSelectedStateChangedListener;
 import com.itracker.android.ui.listener.OnSelectedTrackChangedListener;
@@ -368,21 +371,43 @@ public class TrackerActivity extends SingleActivity implements
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mDrawerLayout.isDrawerVisible(mNavView)) {
+                mDrawerLayout.closeDrawers();
+                return true;
+            }
+        }
+
+        ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+        for (Fragment fragment : adapter.mFragments) {
+            TrackerFragment trackerFragment = (TrackerFragment) fragment;
+            Fragment current = adapter.mFragments.get(mViewPager.getCurrentItem());
+            if (trackerFragment == current) {
+                if (trackerFragment.onKeyDown(keyCode, event)) {
+                    return true;
+                }
+            }
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (!mReadyToFinish) {
+                mReadyToFinish = true;
+                mHandler.postDelayed(() -> mReadyToFinish = false, 2000);
+                Toast.makeText(this, getString(R.string.back_pressed_prompt), Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
     /**
      * Take care of popping the fragment back stack or finishing the activity
      * as appropriate.
      */
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerVisible(mNavView)) {
-            mDrawerLayout.closeDrawers();
-            return;
-        } else if (!mReadyToFinish) {
-            mReadyToFinish = true;
-            mHandler.postDelayed(() -> mReadyToFinish = false, 2000);
-            Toast.makeText(this, getString(R.string.back_pressed_prompt), Toast.LENGTH_SHORT).show();
-            return;
-        }
         super.onBackPressed();
     }
 

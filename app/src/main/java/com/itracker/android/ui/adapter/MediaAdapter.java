@@ -111,8 +111,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View item = LayoutInflater.from(mContext).inflate(mShowAsGrid ?
-                R.layout.item_media_grid : R.layout.item_media, parent, false);
+        View item = LayoutInflater.from(mContext).inflate(mShowAsGrid ? R.layout.item_media_grid : R.layout.item_media, parent, false);
         return new ViewHolder(item);
     }
 

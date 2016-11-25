@@ -45,9 +45,14 @@
         android:summary="@string/notification_vibrate_summary"
         android:defaultValue="true" />
 
-    <Preference android:title="@string/rate_app_title" >
+    <Preference android:title="@string/rate_app_title"
+                android:summary="@string/rate_app_summary">
         <intent android:action="android.intent.action.VIEW"
                 android:data="http://www.google.com" />
     </Preference>
+
+    <Preference
+        android:key="@string/about_key"
+        android:title="@string/about_title" />
 
 </android.support.v7.preference.PreferenceScreen>

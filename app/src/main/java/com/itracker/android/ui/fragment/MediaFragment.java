@@ -725,6 +725,11 @@ public class MediaFragment extends TrackerFragment implements
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mMediaAdapter.isMediaSelectModeEnabled()) {
                 mMediaAdapter.setMediaSelectModeEnabled(false);
