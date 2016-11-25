@@ -14,6 +14,8 @@ import com.itracker.android.data.extension.muc.MUCManager;
 import com.itracker.android.data.message.MessageItem;
 import com.itracker.android.data.message.chat.ChatManager;
 import com.itracker.android.data.roster.RosterManager;
+import com.itracker.android.ui.activity.ChatViewerActivity;
+import com.itracker.android.ui.activity.TrackerActivity;
 import com.itracker.android.utils.StringUtils;
 
 import java.util.List;
@@ -194,10 +196,10 @@ public class MessageNotificationCreator {
     }
 
     private PendingIntent getIntent(MessageNotification message) {
-        Intent backIntent = new Intent();//ContactList.createIntent(application);
+        Intent backIntent = TrackerActivity.createIntent(application);
         backIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        Intent intent = new Intent();//ChatViewer.createClearTopIntent(application, message.getAccount(), message.getUser());
+        Intent intent = ChatViewerActivity.createClearTopIntent(application, message.getAccount(), message.getUser());
         return PendingIntent.getActivities(application, UNIQUE_REQUEST_CODE++,
                 new Intent[]{backIntent, intent}, PendingIntent.FLAG_ONE_SHOT);
     }

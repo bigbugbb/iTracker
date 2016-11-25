@@ -151,6 +151,8 @@ public class TrackerActivity extends SingleActivity implements
         return intent;
     }
 
+
+
     public static Intent createContactSubscriptionIntent(Context context, String account, String user) {
         Intent intent = new EntityIntentBuilder(context, TrackerActivity.class)
                 .setAccount(account).setUser(user).build();
