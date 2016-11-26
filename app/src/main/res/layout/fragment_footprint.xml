@@ -35,19 +35,19 @@
                 android:elevation="4dp"
                 android:background="@drawable/tab_background">
 
-                <ImageView
-                    android:id="@+id/iv_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@android:drawable/ic_menu_edit"/>
+                <!--<ImageView-->
+                    <!--android:id="@+id/iv_1"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:src="@android:drawable/ic_menu_edit"/>-->
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_toRightOf="@+id/iv_1"
-                    android:layout_marginLeft="26dp"
-                    android:src="@android:drawable/ic_menu_share"/>
+                <!--<ImageView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_gravity="center_vertical"-->
+                    <!--android:layout_toRightOf="@+id/iv_1"-->
+                    <!--android:layout_marginLeft="26dp"-->
+                    <!--android:src="@android:drawable/ic_menu_share"/>-->
 
                 <ImageView
                     android:layout_width="wrap_content"
