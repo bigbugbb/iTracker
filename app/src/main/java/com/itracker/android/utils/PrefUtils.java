@@ -17,17 +17,11 @@ public class PrefUtils {
      * Boolean preference that when checked, indicates that the user has completed account
      * authentication and the initial set up flow.
      */
-    public static final String PREF_SETUP_DONE = "_pref_setup_done";
-
     public static final String PREF_FIRST_USAGE = "_pref_first_usage";
-
-    public static final String PREF_ALARM_SETUP_DONE = "_pref_alarm_setup_done";
 
     /**
      * Boolean preference that indicates whether we installed the boostrap data or not.
      */
-    public static final String PREF_DATA_BOOTSTRAP_DONE = "_pref_data_bootstrap_done";
-
     public static final String PREF_LAST_SELECTED_TAB = "_pref_last_selected_tab";
 
     public static final String PREF_UPDATE_VCARD_DONE = "_pref_update_vcard_done";
@@ -60,16 +54,6 @@ public class PrefUtils {
 
     public static void init(final Context context) {}
 
-    public static void markNotFirstUsage(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_FIRST_USAGE, false).apply();
-    }
-
-    public static boolean isFirstUsage(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean(PREF_FIRST_USAGE, true);
-    }
-
     public static int getLastSelectedTab(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getInt(PREF_LAST_SELECTED_TAB, 0);
@@ -100,16 +84,6 @@ public class PrefUtils {
         sp.edit().putLong(PREF_LAST_SYNC_ATTEMPTED, System.currentTimeMillis()).apply();
     }
 
-    public static long getLastSyncSucceededTime(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(PREF_LAST_SYNC_SUCCEEDED, 0L);
-    }
-
-    public static void markSyncSucceededNow(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(PREF_LAST_SYNC_SUCCEEDED, System.currentTimeMillis()).apply();
-    }
-
     public static long getCurSyncInterval(final Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getLong(PREF_CUR_SYNC_INTERVAL, 0L);
@@ -128,26 +102,6 @@ public class PrefUtils {
     public static void setSentPushTokenToServer(final Context context, boolean sent) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putBoolean(PREF_SENT_TOKEN_TO_SERVER, sent).apply();
-    }
-
-    public static boolean isSdkTestModeEnabled(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean(PREF_SDK_TEST_MODE_ENABLED, false);
-    }
-
-    public static void enableSdkTestMode(final Context context, boolean enabled) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_SDK_TEST_MODE_ENABLED, enabled).apply();
-    }
-
-    public static boolean isHardwareDecoding(final Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean(PREF_HARDWARE_DECODING, true);
-    }
-
-    public static void enableHardwareDecoding(final Context context, boolean enabled) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean(PREF_HARDWARE_DECODING, enabled).apply();
     }
 
     public static long getLastDateRangeUpdateTime(final Context context) {
@@ -214,17 +168,5 @@ public class PrefUtils {
     public static void setCurrentDownloadSpeed(final Context context, final String downloadId, long currentDownloadSpeed) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp.edit().putLong(PREF_CURRENT_DOWNLOAD_SPEED + downloadId, currentDownloadSpeed).apply();
-    }
-
-    public static void registerOnSharedPreferenceChangeListener(final Context context,
-                                                                SharedPreferences.OnSharedPreferenceChangeListener listener) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.registerOnSharedPreferenceChangeListener(listener);
-    }
-
-    public static void unregisterOnSharedPreferenceChangeListener(final Context context,
-                                                                  SharedPreferences.OnSharedPreferenceChangeListener listener) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.unregisterOnSharedPreferenceChangeListener(listener);
     }
 }

@@ -529,6 +529,7 @@
 
     <!-- app settings titles -->
     <string name="data_sync_interval_time_title">Data sync interval</string>
+
     <string name="restored_data_items_per_sync_title">Restored data items per sync</string>
     <string name="max_download_tasks_title">Number of download tasks</string>
     <string name="notification_sound_title">Notification sound</string>
