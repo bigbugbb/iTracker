@@ -16,7 +16,9 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.google.gson.Gson;
+import com.itracker.android.Application;
 import com.itracker.android.Config;
+import com.itracker.android.R;
 import com.itracker.android.data.model.User;
 
 import org.json.JSONObject;
@@ -255,7 +257,8 @@ public class AccountUtils {
         jsonRequest.put("password", password);
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.SESSIONS_URL, jsonRequest, future, future) {
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(
+                Application.getInstance().getString(R.string.sessions_url), jsonRequest, future, future) {
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -282,7 +285,8 @@ public class AccountUtils {
         jsonRequest.put("password_confirmation", passwordConfirmation);
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.USERS_URL, jsonRequest, future, future) {
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(
+                Application.getInstance().getString(R.string.users_url), jsonRequest, future, future) {
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {

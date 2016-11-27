@@ -1,5 +1,8 @@
 package com.itracker.android.ui.fragment;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
@@ -25,6 +28,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.onPreferenceTreeClick(preference);
         if (getString(R.string.about_key).equals(preference.getKey())) {
             HelpUtils.showAbout(getActivity());
+        } else if (getString(R.string.rate_app_key).equals(preference.getKey())) {
+            String packageName = getActivity().getPackageName();
+            Uri uri = Uri.parse("market://details?id=" + packageName);
+            Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+            // To count with Play market backstack, After pressing back button,
+            // to taken back to our application, we need to add following flags to intent.
+            goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                    Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                    Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+            try {
+                startActivity(goToMarket);
+            } catch (ActivityNotFoundException e) {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("http://play.google.com/store/apps/details?id=" + packageName)));
+            }
         }
         return false;
     }

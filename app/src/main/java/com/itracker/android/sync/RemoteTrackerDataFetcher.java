@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.itracker.android.Config;
+import com.itracker.android.R;
 import com.itracker.android.data.model.DataManifest;
 import com.itracker.android.utils.DataFileUtils;
 import com.itracker.android.utils.HashUtils;
@@ -127,7 +128,7 @@ public class RemoteTrackerDataFetcher {
      */
     private String getManifestUrl() {
 
-        String apibaseUrl = Config.API_BASE;
+        String apibaseUrl = mContext.getString(R.string.api_base);
 
         // check for an override file
         File urlOverrideFile = new File(mContext.getFilesDir(), URL_OVERRIDE_FILE_NAME);

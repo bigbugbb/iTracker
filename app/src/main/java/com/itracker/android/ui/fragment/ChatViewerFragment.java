@@ -638,9 +638,9 @@ public class ChatViewerFragment extends Fragment implements PopupMenu.OnMenuItem
                 showContactInfo();
                 return true;
 
-            case R.id.action_chat_settings:
+//            case R.id.action_chat_settings:
 //                startActivity(ChatContactSettings.createIntent(getActivity(), account, user));
-                return true;
+//                return true;
 
             case R.id.action_show_history:
                 showHistory(mAccount, mUser);

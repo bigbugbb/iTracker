@@ -222,7 +222,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         // Sign in Firebase with the custom token from the app backend
         JSONObject jsonRequest = createFirebaseTokenRequestParams(accountName);
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.FIREBASE_TOKENS_URL, jsonRequest,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(getString(R.string.firebase_tokens_url), jsonRequest,
                 response -> {
                     try {
                         final String customToken = response.getString(FIREBASE_CUSTOM_TOKEN);
@@ -272,7 +272,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     }
 
     private String jidFromAccountName(String accountName) {
-        return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
+        return accountName.replaceAll("@", ".") + "@" + getString(R.string.xmpp_server_host);
     }
 
     @Override
@@ -288,8 +288,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
                 firebaseAuthWithGoogle(account);
             } else {
                 // It's been canceled
-                for (OnAuthStateChangedListener listener
-                        : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                for (OnAuthStateChangedListener listener : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
                     listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_FAIL, null, null);
                 }
             }
@@ -340,7 +339,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         // Create a google sign in session with the generated jwt.
         // If the user identified by the email doesn't exist, the api will create the user.
         JSONObject params = createGoogleSignInRequestParams(compactJwt);
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Config.GOOGLE_SESSIONS_URL, params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(getString(R.string.google_sessions_url), params,
                 response -> {
                     try {
                         handleGoogleSignInSessionResponse(response);

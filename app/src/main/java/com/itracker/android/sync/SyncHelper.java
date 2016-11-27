@@ -321,7 +321,7 @@ public class SyncHelper {
         /*********************************************************************/
         LOGD(TAG, "Start requesting and handling response from backups api.");
         RequestFuture<String> future = RequestFuture.newFuture();
-        StringRequest request = new StringRequest(Config.BACKUPS_URL, future, future) {
+        StringRequest request = new StringRequest(mContext.getString(R.string.backups_url), future, future) {
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {

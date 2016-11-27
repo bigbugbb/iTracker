@@ -25,6 +25,7 @@ import com.android.volley.toolbox.RequestFuture;
 import com.itracker.android.Application;
 import com.itracker.android.BuildConfig;
 import com.itracker.android.Config;
+import com.itracker.android.R;
 
 import org.json.JSONObject;
 
@@ -63,7 +64,7 @@ public final class ServerUtils {
      */
     public static boolean register(final String pushToken) {
         LOGI(TAG, "registering device (push_token = " + pushToken + ")");
-        final String registerUrl = Config.FCM_SERVER_URL + "/register";
+        final String registerUrl = Application.getInstance().getString(R.string.fcm_pushes_url) + "/register";
         final String authToken = AccountUtils.getAuthToken(Application.getInstance());
 
         if (TextUtils.isEmpty(authToken)) {
@@ -106,7 +107,7 @@ public final class ServerUtils {
 
     public static void ping() {
         Context context = Application.getInstance();
-        String pushSendUrl = Config.FCM_SERVER_URL;
+        String pushSendUrl = Application.getInstance().getString(R.string.fcm_pushes_url);
         try {
             Map<String, String> params = new HashMap<>();
             params.put(PROPERTY_MESSAGE, "pong");

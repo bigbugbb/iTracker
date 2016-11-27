@@ -18,23 +18,8 @@ import java.text.Format;
  */
 public class Config {
 
-    // Manifest URL override for Debug (staging) builds:
-    public static final String URL_BASE = "https://itracker-api-bigbugbb.c9users.io";
-    public static final String API_BASE = URL_BASE + "/api";
-    public static final String USERS_URL = API_BASE + "/users";
-    public static final String SESSIONS_URL = API_BASE + "/sessions";
-    public static final String BACKUPS_URL = API_BASE + "/backups";
-    public static final String FIREBASE_TOKENS_URL = API_BASE + "/firebase_tokens";
-    public static final String GOOGLE_SESSIONS_URL = API_BASE + "/google_sessions";
-
     public static final String MANIFEST_FORMAT = "itracker-api-json-v1";
     public static final String API_HEADER_ACCEPT = "application/vnd.itracker.v1";
-
-    // FCM config
-    public static final String FCM_SERVER_URL = API_BASE + "/pushes";
-
-    // XMPP config
-    public static final String XMPP_SERVER_HOST = "ec2-54-165-238-247.compute-1.amazonaws.com";
 
     // Minimum interval between two consecutive syncs. This is a safety mechanism to throttle
     // syncs in case conference data gets updated too often or something else goes wrong that

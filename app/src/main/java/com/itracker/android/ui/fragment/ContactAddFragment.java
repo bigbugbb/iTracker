@@ -110,7 +110,7 @@ public class ContactAddFragment extends Fragment {
     }
 
     private String jidFromUserAccount(String accountName) {
-        return accountName.replaceAll("@", ".") + "@" + Config.XMPP_SERVER_HOST;
+        return accountName.replaceAll("@", ".") + "@" + getString(R.string.xmpp_server_host);
     }
 
     private void addContact() {
