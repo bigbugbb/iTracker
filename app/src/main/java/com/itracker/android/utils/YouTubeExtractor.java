@@ -39,11 +39,7 @@ public class YouTubeExtractor {
         final HandlerThread youtubeExtractorThread = new HandlerThread("YouTubeExtractorThread", 10);
         youtubeExtractorThread.start();
         youtubeExtractorHandler = new Handler(youtubeExtractorThread.getLooper());
-        youtubeExtractorHandler.post(new Runnable() {
-            public void run() {
-                extract(listener);
-            }
-        });
+        youtubeExtractorHandler.post(() -> extract(listener));
     }
 
     public YouTubeExtractor.Result extract(final YouTubeExtractor.Callback listener) {

@@ -92,6 +92,8 @@ public class MediaFragment extends TrackerFragment implements
         GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = makeLogTag(MediaFragment.class);
 
+    private static final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch?v=";
+
     private GoogleApiClient mGoogleApiClient;
     private GoogleAccountCredential mCredential;
 
@@ -277,6 +279,23 @@ public class MediaFragment extends TrackerFragment implements
                 return true;
             }
             case R.id.action_share: {
+                StringBuilder sb = new StringBuilder();
+                List<Video> videos = mMediaAdapter.getSelectedVideos();
+                for (Video video : videos) {
+                    sb.append(video.title).append("\n").append(YOUTUBE_BASE_URL).append(video.identifier);
+                    sb.append("\n\n");
+                }
+                sb.setLength(sb.length() - 2);
+
+                String textToShare = sb.toString();
+                if (!TextUtils.isEmpty(textToShare)) {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, textToShare);
+                    sendIntent.setType("text/plain");
+                    startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.share_youtube_to)));
+                }
+                mMediaAdapter.setMediaSelectModeEnabled(false);
                 return true;
             }
         }

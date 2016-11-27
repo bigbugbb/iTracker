@@ -189,6 +189,9 @@
     <string name="no_download_available">You don\'t have any downloads.</string>
     <string name="download_without_selection">You must select a video to download.</string>
 
+    <!-- Media sharing -->
+    <string name="share_youtube_to">Share the youtube to...</string>
+
     <!-- Media file dialog -->
     <string name="media_dialog_title">File properties</string>
     <string name="media_dialog_file_title">Title:</string>
