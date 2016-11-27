@@ -1,7 +1,5 @@
 <resources>
     <!--
-    TODO: Before you run your application, you need a Google Maps API key.
-
     See this page for more information:
     https://developers.google.com/maps/documentation/android/start#get_an_android_certificate_and_the_google_maps_api_key
 
@@ -12,7 +10,5 @@
     in the debug/.../google_maps_api.xml instead if you just want to run this app.
     (This file is used for the release target that uses the release key store.)
     -->
-    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">
-        YOUR_KEY_HERE
-    </string>
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">AIzaSyC9dWdxijDx0RgBpYqx1Uula1RhUi4FUj8</string>
 </resources>
