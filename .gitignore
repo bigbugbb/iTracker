@@ -40,5 +40,5 @@ local.properties
 _sandbox
 
 # google-services.json
-google-services.json
+app/src/prod/google-services.json
 
