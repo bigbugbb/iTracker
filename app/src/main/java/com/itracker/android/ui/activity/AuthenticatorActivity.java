@@ -342,7 +342,11 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(getString(R.string.google_sessions_url), params,
                 response -> {
                     try {
-                        handleGoogleSignInSessionResponse(response);
+                        Bundle data = handleGoogleSignInSessionResponse(response);
+                        for (OnAuthStateChangedListener listener
+                                : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
+                            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_SUCCEED, null, data);
+                        }
                     } catch (JSONException e) {
                         LOGE(TAG, "This should never happen", e);
                     }
@@ -362,7 +366,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         RequestUtils.addToRequestQueue(jsObjRequest);
     }
 
-    private void handleGoogleSignInSessionResponse(JSONObject response) throws JSONException {
+    private Bundle handleGoogleSignInSessionResponse(JSONObject response) throws JSONException {
         // The api will response with a new auth token and it should be stored locally until expired.
         // If the user is newly created, the app have to register an ejabberd account as well.
         String authToken = response.getString("auth_token");
@@ -378,10 +382,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         data.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
         data.putString(AccountManager.KEY_AUTHTOKEN, authToken);
 
-        for (OnAuthStateChangedListener listener
-                : Application.getInstance().getUIListeners(OnAuthStateChangedListener.class)) {
-            listener.onAuthStateChanged(AuthState.GOOGLE_AUTH_SUCCEED, null, data);
-        }
+        return data;
     }
 
     private void updateChatAccount(String accountName, String accountPassword, boolean createAccount) {
