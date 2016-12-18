@@ -68,7 +68,7 @@ public class NumberPickerPreferenceDialog extends PreferenceDialogFragmentCompat
             mNumberPicker.setDisplayedValues(displayedValues);
             mNumberPicker.setWrapSelectorWheel(false);
 
-            if (number != null) mNumberPicker.setValue(number);
+            if (number != null) mNumberPicker.setValue(number / step);
         }
     }
 

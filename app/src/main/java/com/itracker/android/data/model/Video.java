@@ -6,6 +6,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.api.client.util.DateTime;
+import com.google.api.services.youtube.model.ThumbnailDetails;
 import com.google.api.services.youtube.model.VideoContentDetails;
 import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatistics;
@@ -26,12 +27,17 @@ public final class Video implements Parcelable {
 
     public static Video fromYoutubeVideo(com.google.api.services.youtube.model.Video youtubeVideo, String watchedTime) {
         VideoSnippet snippet = youtubeVideo.getSnippet();
+        ThumbnailDetails thumbnailDetails = snippet.getThumbnails();
         VideoStatistics statistics = youtubeVideo.getStatistics();
         VideoContentDetails contentDetails = youtubeVideo.getContentDetails();
 
+        if (thumbnailDetails == null || statistics == null || contentDetails == null) {
+            return null;
+        }
+
         Video video = new Video();
         video.identifier = youtubeVideo.getId();
-        video.thumbnail = snippet.getThumbnails().getHigh().getUrl();
+        video.thumbnail = thumbnailDetails.getHigh().getUrl();
         video.duration = formatDuration(contentDetails.getDuration().substring(2));
         video.title = snippet.getTitle();
         video.owner = snippet.getChannelTitle();

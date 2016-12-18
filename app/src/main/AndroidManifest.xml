@@ -203,6 +203,8 @@
                 android:value="com.itracker.android.ui.activity.TrackerActivity" />
         </activity>
 
+        <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
+
         <activity
             android:name="com.itracker.android.ui.activity.SettingsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

@@ -497,7 +497,7 @@ public class MediaFragment extends TrackerFragment implements
                     for (com.google.api.services.youtube.model.Video youtubeVideo : vlr.getItems()) {
                         if ("public".equals(youtubeVideo.getStatus().getPrivacyStatus())) {
                             Video video = Video.fromYoutubeVideo(youtubeVideo, watchedVideos.get(youtubeVideo.getId()));
-                            videos.add(video);
+                            if (video != null) videos.add(video);
                         }
                     }
 

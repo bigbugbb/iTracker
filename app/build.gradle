@@ -8,7 +8,7 @@ android {
         applicationId "com.itracker.android"
         minSdkVersion 19
         targetSdkVersion 24
-        versionCode 101
+        versionCode 102
         versionName '1.0.0'
         multiDexEnabled true
         jackOptions {
